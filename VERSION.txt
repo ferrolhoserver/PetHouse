@@ -1,0 +1,90 @@
+PetHouse - Sistema de Gestão de Pets
+Versão: 1.0 Definitiva
+Data de Release: 23 de outubro de 2025
+Status: Produção
+
+CHANGELOG v1.0:
+================
+
+✅ Estrutura completa do aplicativo
+✅ 6 abas de prontuário (Peso, Cuidados, Consultas, Cirurgias, Diagnósticos, Tratamentos)
+✅ Grid 2x3 de abas com design moderno
+✅ Módulo Cuidados com sub-barra de 3 botões (Vacina, Vermífugo, Banho/Tosa)
+✅ Sistema de alertas inteligente para vacinas e vermífugos
+✅ Exportações: JSON (backup), ICS (calendário), PDF (prontuário)
+✅ PWA completo com ícones e manifest
+✅ LocalStorage para persistência de dados
+✅ Interface responsiva para mobile
+✅ Paleta de cores personalizada
+✅ Sistema de backup/restauração
+
+FUNCIONALIDADES:
+================
+
+- Cadastro de múltiplos pets
+- Controle de peso com gráfico
+- Registro de vacinas com alertas automáticos
+- Registro de vermífugos com lembretes trimestrais
+- Registro de banho/tosa
+- Registro de consultas veterinárias
+- Registro de cirurgias
+- Registro de diagnósticos
+- Registro de tratamentos
+- Cálculo automático de idade
+- Alertas de vacinas vencidas
+- Exportação de calendário (ICS)
+- Exportação de backup completo (JSON)
+- Geração de PDF do prontuário
+- Instalação como PWA (app nativo)
+
+TECNOLOGIAS:
+============
+
+- HTML5
+- CSS3
+- JavaScript (Vanilla)
+- LocalStorage API
+- PWA (Progressive Web App)
+- jsPDF (geração de PDF)
+- ICS (geração de calendário)
+
+COMPATIBILIDADE:
+================
+
+- ✅ Chrome/Edge (Android/iOS)
+- ✅ Safari (iOS)
+- ✅ Firefox (Android)
+- ✅ Samsung Internet
+- ✅ Opera
+
+REQUISITOS:
+===========
+
+- Navegador moderno com suporte a ES6
+- LocalStorage habilitado
+- JavaScript habilitado
+
+HOSPEDAGEM RECOMENDADA:
+=======================
+
+1. GitHub Pages (grátis, fácil)
+2. Vercel (grátis, rápido)
+3. Netlify (grátis, simples)
+4. Cloudflare Pages (grátis, avançado)
+
+PRÓXIMAS VERSÕES (Planejadas):
+===============================
+
+v1.1 - Melhorias de UX
+v1.2 - Gráficos e estatísticas
+v2.0 - Backend e sincronização
+v2.1 - Multi-usuário
+v3.0 - Integração com APIs veterinárias
+
+DESENVOLVIDO POR:
+=================
+
+Manus AI
+Para: Gestão de Pets Domésticos
+Licença: Proprietária
+

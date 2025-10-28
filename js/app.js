@@ -8,10 +8,27 @@ class PetHouse {
         this.currentView = 'home';
         this.currentPet = null;
         this.currentTab = 'peso';
+        this.syncEnabled = false;
         this.init();
     }
 
-    init() {
+    async init() {
+        // Inicializar Supabase
+        if (window.SupabaseSync) {
+            this.syncEnabled = await SupabaseSync.init();
+            
+            // Tentar carregar dados da nuvem
+            if (this.syncEnabled) {
+                const result = await SupabaseSync.loadFromCloud();
+                if (result.success && result.data) {
+                    // Mesclar dados da nuvem com dados locais
+                    this.data = result.data;
+                    this.saveData(); // Salvar localmente também
+                    console.log('☁️ Dados carregados da nuvem');
+                }
+            }
+        }
+        
         this.render();
         this.setupEventListeners();
     }
@@ -44,10 +61,23 @@ class PetHouse {
         };
     }
 
-    saveData() {
-        // Salva dados específicos do usuário
+    async saveData() {
+        // Salva dados específicos do usuário localmente
         localStorage.setItem(`pethouse_data_${this.userId}`, JSON.stringify(this.data));
-        this.showToast('Dados salvos!', 'success');
+        
+        // Sincronizar com a nuvem se disponível
+        if (this.syncEnabled && window.SupabaseSync) {
+            const result = await SupabaseSync.saveToCloud(this.data);
+            if (result.success) {
+                this.showToast('Dados salvos e sincronizados! ☁️', 'success');
+            } else if (result.offline) {
+                this.showToast('Dados salvos localmente! 💾', 'success');
+            } else {
+                this.showToast('Dados salvos localmente! ⚠️ Erro na nuvem', 'warning');
+            }
+        } else {
+            this.showToast('Dados salvos!', 'success');
+        }
     }
 
     // ===== RENDERIZAÇÃO =====
@@ -959,29 +989,43 @@ END:VEVENT
     // ===== COMPARTILHAMENTO =====
     
     mostrarCompartilhamento() {
+        const familyCode = this.syncEnabled && window.SupabaseSync ? SupabaseSync.getFamilyCode() : null;
+        
         const modalContent = `
             <div class="modal-header">
                 <h2>👥 Compartilhar Dados</h2>
                 <button class="modal-close" onclick="app.closeModal()">×</button>
             </div>
             <div style="padding: 1rem;">
-                <p style="margin-bottom: 1rem;">Para compartilhar seus dados com outras pessoas (até 4 usuários), use uma das opções abaixo:</p>
+                ${familyCode ? `
+                    <div style="background: #4caf50; color: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h3 style="margin-top: 0; color: white;">☁️ Sincronização Automática Ativada!</h3>
+                        <p style="font-size: 0.9rem; margin: 0.5rem 0;">Seus dados estão sendo sincronizados automaticamente na nuvem.</p>
+                        <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem;">
+                            <strong>Código da Família:</strong><br>
+                            <code style="font-size: 0.85rem; word-break: break-all;">${familyCode}</code>
+                        </div>
+                        <p style="font-size: 0.85rem; margin-top: 0.5rem;">Envie este código para outras pessoas da família para que elas possam acessar os mesmos dados.</p>
+                    </div>
+                ` : ''}
+                
+                <p style="margin-bottom: 1rem;">Para compartilhar seus dados com outras pessoas, use uma das opções abaixo:</p>
+                
+                ${familyCode ? `
+                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h3 style="margin-top: 0;">Opção 1: Compartilhar Código da Família</h3>
+                        <p style="font-size: 0.9rem;">1. Copie o código acima<br>
+                        2. Envie para a outra pessoa (WhatsApp, SMS, etc.)<br>
+                        3. A outra pessoa deve clicar em "👥 Compartilhar" e depois em "Entrar em uma Família"</p>
+                        <button class="btn btn-primary btn-small" onclick="app.entrarEmFamilia()" style="margin-top: 0.5rem;">Entrar em uma Família</button>
+                    </div>
+                ` : ''}
                 
                 <div style="background: #f0f0f0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <h3 style="margin-top: 0;">Opção 1: Compartilhar via Backup</h3>
+                    <h3 style="margin-top: 0;">Opção ${familyCode ? '2' : '1'}: Compartilhar via Backup</h3>
                     <p style="font-size: 0.9rem;">1. Clique em "💾 Salvar" para gerar um backup<br>
                     2. Envie o arquivo para a outra pessoa (WhatsApp, email, etc.)<br>
                     3. A outra pessoa deve clicar em "📂 Restaurar" e selecionar o arquivo</p>
-                </div>
-                
-                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px;">
-                    <h3 style="margin-top: 0;">Opção 2: Usar o Mesmo Dispositivo</h3>
-                    <p style="font-size: 0.9rem;">Se vocês usarem o mesmo celular/navegador, os dados serão automaticamente compartilhados.</p>
-                </div>
-                
-                <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 8px;">
-                    <strong>⚠️ Importante:</strong>
-                    <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Cada dispositivo/navegador tem seus próprios dados. Para sincronizar, use a opção de backup regularmente.</p>
                 </div>
                 
                 <div class="flex justify-end" style="margin-top: 1rem;">
@@ -991,6 +1035,16 @@ END:VEVENT
         `;
         document.getElementById('modal-content').innerHTML = modalContent;
         this.openModal();
+    }
+    
+    entrarEmFamilia() {
+        const codigo = prompt('👥 Digite o código da família:');
+        if (codigo && window.SupabaseSync) {
+            SupabaseSync.joinFamily(codigo);
+            this.closeModal();
+            alert('✅ Você entrou na família! Recarregue a página para ver os dados compartilhados.');
+            location.reload();
+        }
     }
 
     // ===== UTILIDADES =====

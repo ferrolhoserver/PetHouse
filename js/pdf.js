@@ -156,14 +156,49 @@ const PDF = {
             font-size: 9pt;
         }
         
+        .print-actions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .print-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .print-btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .print-btn-secondary {
+            background: #f44336;
+            color: white;
+        }
+        
+        .print-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
         @media print {
             body {
                 margin: 0;
                 padding: 0;
             }
             
-            .no-print {
-                display: none;
+            .no-print, .print-actions {
+                display: none !important;
             }
         }
     </style>
@@ -383,11 +418,14 @@ const PDF = {
         <p>PetHouse - Sistema de Gestão de Pets</p>
     </div>
     
+    <!-- Botões de Ação -->
+    <div class="print-actions no-print">
+        <button class="print-btn print-btn-primary" onclick="window.print()">🖨️ Imprimir</button>
+        <button class="print-btn print-btn-secondary" onclick="window.close()">❌ Fechar</button>
+    </div>
+    
     <script>
-        // Imprimir automaticamente ao carregar
-        window.onload = function() {
-            window.print();
-        };
+        // Não imprimir automaticamente - deixar usuário decidir
     </script>
 </body>
 </html>

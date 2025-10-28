@@ -3,6 +3,7 @@
 
 class PetHouse {
     constructor() {
+        this.userId = this.getUserId();
         this.data = this.loadData();
         this.currentView = 'home';
         this.currentPet = null;
@@ -17,8 +18,22 @@ class PetHouse {
 
     // ===== GERENCIAMENTO DE DADOS =====
     
+    getUserId() {
+        // Verifica se já existe um userId no localStorage
+        let userId = localStorage.getItem('pethouse_userId');
+        
+        if (!userId) {
+            // Gera um ID único para este usuário/dispositivo
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('pethouse_userId', userId);
+        }
+        
+        return userId;
+    }
+    
     loadData() {
-        const saved = localStorage.getItem('pethouse_data');
+        // Carrega dados específicos do usuário
+        const saved = localStorage.getItem(`pethouse_data_${this.userId}`);
         if (saved) {
             return JSON.parse(saved);
         }
@@ -30,7 +45,8 @@ class PetHouse {
     }
 
     saveData() {
-        localStorage.setItem('pethouse_data', JSON.stringify(this.data));
+        // Salva dados específicos do usuário
+        localStorage.setItem(`pethouse_data_${this.userId}`, JSON.stringify(this.data));
         this.showToast('Dados salvos!', 'success');
     }
 
@@ -94,8 +110,9 @@ class PetHouse {
                     <h1>🐾 ${this.data.casaNome}</h1>
                     <div class="header-actions">
                         <button class="btn btn-primary btn-small" onclick="app.showAddPet()">+ Adicionar Pet</button>
-                        <button class="btn btn-success btn-small" onclick="app.exportarBackup()">💾 Backup</button>
-                        <button class="btn btn-success btn-small" onclick="app.exportarCalendario()">📅 Calendário</button>
+                        <button class="btn btn-success btn-small" onclick="app.exportarBackup()">💾 Salvar</button>
+                        <button class="btn btn-info btn-small" onclick="app.restaurarBackup()">📂 Restaurar</button>
+                        <button class="btn btn-warning btn-small" onclick="app.mostrarCompartilhamento()">👥 Compartilhar</button>
                     </div>
                 </div>
             </div>
@@ -828,6 +845,46 @@ class PetHouse {
         this.showToast('Backup exportado!', 'success');
     }
 
+    restaurarBackup() {
+        // Criar input file invisível
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json,.json';
+        
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const backupData = JSON.parse(event.target.result);
+                    
+                    // Validar estrutura básica do backup
+                    if (!backupData.casaNome || !Array.isArray(backupData.pets)) {
+                        throw new Error('Arquivo de backup inválido');
+                    }
+                    
+                    // Confirmar antes de restaurar
+                    if (confirm(`Deseja restaurar o backup "${backupData.casaNome}"?\n\nISTO IRÁ SUBSTITUIR TODOS OS DADOS ATUAIS!`)) {
+                        this.data = backupData;
+                        this.saveData();
+                        this.currentView = 'home';
+                        this.currentPet = null;
+                        this.render();
+                        this.showToast('Backup restaurado com sucesso!', 'success');
+                    }
+                } catch (error) {
+                    alert('Erro ao restaurar backup: ' + error.message);
+                    console.error('Erro ao restaurar backup:', error);
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    }
+
     imprimirProntuario(petId) {
         const pet = this.data.pets.find(p => p.id === petId);
         if (window.PDF) {
@@ -897,6 +954,43 @@ DESCRIPTION:Lembrete: ${title}
 END:VALARM
 END:VEVENT
 `;
+    }
+
+    // ===== COMPARTILHAMENTO =====
+    
+    mostrarCompartilhamento() {
+        const modalContent = `
+            <div class="modal-header">
+                <h2>👥 Compartilhar Dados</h2>
+                <button class="modal-close" onclick="app.closeModal()">×</button>
+            </div>
+            <div style="padding: 1rem;">
+                <p style="margin-bottom: 1rem;">Para compartilhar seus dados com outras pessoas (até 4 usuários), use uma das opções abaixo:</p>
+                
+                <div style="background: #f0f0f0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 style="margin-top: 0;">Opção 1: Compartilhar via Backup</h3>
+                    <p style="font-size: 0.9rem;">1. Clique em "💾 Salvar" para gerar um backup<br>
+                    2. Envie o arquivo para a outra pessoa (WhatsApp, email, etc.)<br>
+                    3. A outra pessoa deve clicar em "📂 Restaurar" e selecionar o arquivo</p>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px;">
+                    <h3 style="margin-top: 0;">Opção 2: Usar o Mesmo Dispositivo</h3>
+                    <p style="font-size: 0.9rem;">Se vocês usarem o mesmo celular/navegador, os dados serão automaticamente compartilhados.</p>
+                </div>
+                
+                <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 8px;">
+                    <strong>⚠️ Importante:</strong>
+                    <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0;">Cada dispositivo/navegador tem seus próprios dados. Para sincronizar, use a opção de backup regularmente.</p>
+                </div>
+                
+                <div class="flex justify-end" style="margin-top: 1rem;">
+                    <button class="btn btn-primary" onclick="app.closeModal()">Entendi</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('modal-content').innerHTML = modalContent;
+        this.openModal();
     }
 
     // ===== UTILIDADES =====

@@ -186,6 +186,37 @@ const PDF = {
         </div>
     </div>
     
+    <!-- Diagnósticos - MOVIDO PARA O TOPO -->
+    <div class="section">
+        <h2>🔍 Histórico de Diagnósticos</h2>
+        ${(pet.diagnosticos && pet.diagnosticos.length > 0) ? `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Diagnóstico</th>
+                        <th>Veterinário</th>
+                        <th>Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${pet.diagnosticos.sort((a, b) => new Date(a.data) - new Date(b.data)).map(d => {
+                        const dataObj = new Date(d.data);
+                        const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                        const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        return `
+                        <tr>
+                            <td>${dataFormatada}<br><small>${horaFormatada}</small></td>
+                            <td><strong>${d.diagnostico}</strong></td>
+                            <td>${d.veterinario || '-'}</td>
+                            <td>${d.obs || '-'}</td>
+                        </tr>
+                    `}).join('')}
+                </tbody>
+            </table>
+        ` : '<div class="empty-section">Nenhum diagnóstico cadastrado.</div>'}
+    </div>
+    
     <!-- Peso -->
     <div class="section">
         <h2>⚖️ Histórico de Peso</h2>
@@ -346,32 +377,6 @@ const PDF = {
         ` : '<div class="empty-section">Nenhum exame cadastrado.</div>'}
     </div>
     
-    <!-- Diagnósticos -->
-    <div class="section">
-        <h2>🔍 Histórico de Diagnósticos</h2>
-        ${(pet.diagnosticos && pet.diagnosticos.length > 0) ? `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Diagnóstico</th>
-                        <th>Data</th>
-                        <th>Veterinário</th>
-                        <th>Observações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${pet.diagnosticos.sort((a, b) => new Date(b.data) - new Date(a.data)).map(d => `
-                        <tr>
-                            <td>${d.diagnostico}</td>
-                            <td>${new Date(d.data).toLocaleDateString('pt-BR')}</td>
-                            <td>${d.veterinario || '-'}</td>
-                            <td>${d.obs || '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        ` : '<div class="empty-section">Nenhum diagnóstico cadastrado.</div>'}
-    </div>
     
     <div class="footer">
         <p>Prontuário gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>

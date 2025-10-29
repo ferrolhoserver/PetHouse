@@ -99,16 +99,33 @@ class PetHouse {
             <div class="container">
                 <div class="card" style="max-width: 500px; margin: 2rem auto;">
                     <h2>🏠 Bem-vindo ao PetHouse!</h2>
-                    <p>Configure sua casa para começar a gerenciar seus pets em família.</p>
+                    <p>Escolha uma opção para começar:</p>
                     
-                    <form id="setup-form" class="mt-1">
-                        <div class="form-group">
-                            <label>Nome da Casa *</label>
-                            <input type="text" id="casa-nome" placeholder="Ex: Família Silva" required>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">Começar</button>
-                    </form>
+                    <!-- Opção 1: Criar nova família -->
+                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h3 style="margin-top: 0;">🆕 Criar Nova Família</h3>
+                        <p style="font-size: 0.9rem;">Comece do zero com seus próprios pets</p>
+                        <form id="setup-form" class="mt-1">
+                            <div class="form-group">
+                                <label>Nome da Casa *</label>
+                                <input type="text" id="casa-nome" placeholder="Ex: Família Silva" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">🆕 Criar Minha Família</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Opção 2: Entrar em família existente -->
+                    <div style="background: #f0f0f0; padding: 1rem; border-radius: 8px;">
+                        <h3 style="margin-top: 0;">👥 Entrar em Família Existente</h3>
+                        <p style="font-size: 0.9rem;">Já tem um código? Cole aqui para acessar</p>
+                        <form id="join-family-form" class="mt-1">
+                            <div class="form-group">
+                                <label>Código da Família *</label>
+                                <input type="text" id="family-code" placeholder="Cole o código aqui" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">👥 Entrar na Família</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         `;
@@ -351,6 +368,8 @@ class PetHouse {
             
             if (e.target.id === 'setup-form') {
                 this.handleSetup(e);
+            } else if (e.target.id === 'join-family-form') {
+                this.handleJoinFamily(e);
             } else if (e.target.id === 'add-pet-form') {
                 this.handleAddPet(e);
             } else if (e.target.id === 'add-record-form') {
@@ -370,6 +389,40 @@ class PetHouse {
         this.data.casaNome = casaNome;
         this.saveData();
         this.render();
+    }
+    
+    async handleJoinFamily(e) {
+        const familyCode = document.getElementById('family-code').value.trim();
+        if (!familyCode) {
+            alert('❌ Por favor, cole o código da família.');
+            return;
+        }
+        
+        // Verificar se Supabase está disponível
+        if (!this.syncEnabled || !window.SupabaseSync) {
+            alert('⚠️ Sincronização não está disponível. Por favor, use a opção de backup.');
+            return;
+        }
+        
+        // Entrar na família
+        await SupabaseSync.joinFamily(familyCode);
+        
+        // Carregar dados da nuvem
+        const result = await SupabaseSync.loadFromCloud();
+        
+        if (result.success && result.data) {
+            // Dados encontrados!
+            this.data = result.data;
+            this.saveData(); // Salvar localmente também
+            this.showToast('✅ Você entrou na família com sucesso!', 'success');
+            this.render();
+        } else if (result.firstTime) {
+            // Código válido mas ainda sem dados
+            alert('⚠️ Este código é válido, mas ainda não há dados cadastrados. Aguarde o administrador da família cadastrar os pets.');
+        } else {
+            // Erro ao carregar
+            alert('❌ Erro ao entrar na família. Verifique o código e tente novamente.');
+        }
     }
 
     handleAddPet(e) {
@@ -1037,13 +1090,29 @@ END:VEVENT
         this.openModal();
     }
     
-    entrarEmFamilia() {
+    async entrarEmFamilia() {
         const codigo = prompt('👥 Digite o código da família:');
-        if (codigo && window.SupabaseSync) {
-            SupabaseSync.joinFamily(codigo);
+        if (!codigo) return;
+        
+        if (!window.SupabaseSync) {
+            alert('⚠️ Sincronização não está disponível.');
+            return;
+        }
+        
+        // Entrar na família
+        await SupabaseSync.joinFamily(codigo);
+        
+        // Carregar dados da nuvem
+        const result = await SupabaseSync.loadFromCloud();
+        
+        if (result.success && result.data) {
+            this.data = result.data;
+            this.saveData();
             this.closeModal();
-            alert('✅ Você entrou na família! Recarregue a página para ver os dados compartilhados.');
-            location.reload();
+            this.showToast('✅ Dados sincronizados com sucesso!', 'success');
+            this.render();
+        } else {
+            alert('❌ Erro ao carregar dados. Verifique o código.');
         }
     }
 

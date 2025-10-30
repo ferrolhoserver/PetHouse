@@ -274,11 +274,13 @@ class PetHouse {
         const date = new Date(record.data).toLocaleDateString('pt-BR');
         
         if (this.currentTab === 'peso') {
+            // Formatar peso com até 3 casas decimais (remove zeros desnecessários)
+            const pesoFormatado = parseFloat(record.peso).toFixed(3).replace(/\.?0+$/, '');
             return `
                 <div class="record-item">
                     <div class="flex justify-between">
                         <div>
-                            <strong>${date}</strong> - ${record.peso} kg
+                            <strong>${date}</strong> - ${pesoFormatado} kg
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
                         <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
@@ -631,8 +633,14 @@ class PetHouse {
                     <input type="date" id="record-data" required>
                 </div>
                 <div class="form-group">
-                    <label>Peso (kg) *</label>
-                    <input type="number" id="record-peso" step="0.1" required>
+                    <label>Peso *</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <input type="number" id="record-peso" step="0.001" required placeholder="Ex: 4.450" style="width: 100%;">
+                        </div>
+                        <button type="button" id="toggle-peso-unit" onclick="app.togglePesoUnit()" class="btn" style="background: #2196F3; color: white; padding: 0.75rem 1rem; min-width: 60px;">kg</button>
+                    </div>
+                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite o peso em quilogramas</small>
                 </div>
                 <div class="form-group">
                     <label>Observações</label>
@@ -795,8 +803,14 @@ class PetHouse {
                     <input type="date" id="edit-record-data" value="${record.data}" required>
                 </div>
                 <div class="form-group">
-                    <label>Peso (kg) *</label>
-                    <input type="number" id="edit-record-peso" value="${record.peso}" step="0.1" required>
+                    <label>Peso *</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <input type="number" id="edit-record-peso" value="${record.peso}" step="0.001" required style="width: 100%;">
+                        </div>
+                        <button type="button" id="toggle-peso-unit" onclick="app.togglePesoUnit()" class="btn" style="background: #2196F3; color: white; padding: 0.75rem 1rem; min-width: 60px;">kg</button>
+                    </div>
+                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite o peso em quilogramas</small>
                 </div>
                 <div class="form-group">
                     <label>Observações</label>
@@ -1116,6 +1130,45 @@ END:VEVENT
         }
     }
 
+    // ===== FUNÇÃO DE ALTERNÂNCIA DE UNIDADE DE PESO =====
+    
+    togglePesoUnit() {
+        const button = document.getElementById('toggle-peso-unit');
+        const input = document.getElementById('record-peso') || document.getElementById('edit-record-peso');
+        const hint = document.getElementById('peso-hint');
+        
+        if (!button || !input) return;
+        
+        const currentUnit = button.textContent;
+        const currentValue = parseFloat(input.value) || 0;
+        
+        if (currentUnit === 'kg') {
+            // Mudar para gramas
+            button.textContent = 'g';
+            button.style.background = '#4CAF50';
+            hint.textContent = 'Digite o peso em gramas';
+            input.placeholder = 'Ex: 4450';
+            input.step = '1';
+            
+            // Converter valor atual de kg para g
+            if (currentValue > 0) {
+                input.value = (currentValue * 1000).toFixed(0);
+            }
+        } else {
+            // Mudar para kg
+            button.textContent = 'kg';
+            button.style.background = '#2196F3';
+            hint.textContent = 'Digite o peso em quilogramas';
+            input.placeholder = 'Ex: 4.450';
+            input.step = '0.001';
+            
+            // Converter valor atual de g para kg
+            if (currentValue > 0) {
+                input.value = (currentValue / 1000).toFixed(3);
+            }
+        }
+    }
+
     // ===== UTILIDADES =====
     
     calcularIdade(nascimento) {
@@ -1167,7 +1220,9 @@ END:VEVENT
             variacaoTexto = ` <span style="color: ${cor};">(${sinal}${variacao.toFixed(1)} kg no último mês)</span>`;
         }
         
-        return `⚖️ Peso: ${pesoAtual.peso} kg${variacaoTexto}`;
+        // Formatar peso com até 3 casas decimais (remove zeros desnecessários)
+        const pesoFormatado = parseFloat(pesoAtual.peso).toFixed(3).replace(/\.?0+$/, '');
+        return `⚖️ Peso: ${pesoFormatado} kg${variacaoTexto}`;
     }
 
     getTabTitle() {

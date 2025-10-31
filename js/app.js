@@ -283,7 +283,10 @@ class PetHouse {
                             <strong>${date}</strong> - ${pesoFormatado} kg
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
+                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -298,7 +301,10 @@ class PetHouse {
                             Próxima: ${proxima}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
+                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -313,7 +319,10 @@ class PetHouse {
                             Próxima: ${proxima}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
+                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -327,7 +336,10 @@ class PetHouse {
                             Motivo: ${record.motivo || 'Consulta de rotina'}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
+                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -341,7 +353,10 @@ class PetHouse {
                             Veterinário: ${record.veterinario || 'Não informado'}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
+                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -355,7 +370,10 @@ class PetHouse {
                             Resultado: ${record.resultado || 'Aguardando'}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
+                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -502,7 +520,15 @@ class PetHouse {
         
         if (this.currentTab === 'peso') {
             record.data = document.getElementById('edit-record-data').value;
-            record.peso = parseFloat(document.getElementById('edit-record-peso').value);
+            let pesoValue = parseFloat(document.getElementById('edit-record-peso').value);
+            
+            // Verificar se está em modo gramas e converter para kg
+            const button = document.getElementById('toggle-peso-unit');
+            if (button && button.textContent === 'g') {
+                pesoValue = pesoValue / 1000; // Converter gramas para kg
+            }
+            
+            record.peso = pesoValue;
             record.obs = document.getElementById('edit-record-obs').value.trim();
         } else if (this.currentTab === 'vacinas') {
             record.nome = document.getElementById('edit-record-nome').value.trim();
@@ -535,6 +561,23 @@ class PetHouse {
         this.closeModal();
         this.render();
     }
+    
+    deleteRecord(index) {
+        const pet = this.data.pets.find(p => p.id === this.currentPet);
+        if (!pet || !pet[this.currentTab] || !pet[this.currentTab][index]) return;
+        
+        // Confirmar exclusão
+        const confirmMsg = '⚠️ Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.';
+        if (!confirm(confirmMsg)) return;
+        
+        // Remover o registro
+        pet[this.currentTab].splice(index, 1);
+        
+        // Salvar e atualizar
+        this.saveData();
+        this.showToast('✅ Registro excluído com sucesso!', 'success');
+        this.render();
+    }
 
 
     getRecordFromForm() {
@@ -544,7 +587,15 @@ class PetHouse {
         const record = { data };
         
         if (this.currentTab === 'peso') {
-            record.peso = parseFloat(document.getElementById('record-peso').value);
+            let pesoValue = parseFloat(document.getElementById('record-peso').value);
+            
+            // Verificar se está em modo gramas e converter para kg
+            const button = document.getElementById('toggle-peso-unit');
+            if (button && button.textContent === 'g') {
+                pesoValue = pesoValue / 1000; // Converter gramas para kg
+            }
+            
+            record.peso = pesoValue;
             record.obs = document.getElementById('record-obs').value.trim();
         } else if (this.currentTab === 'vacinas') {
             record.nome = document.getElementById('record-nome').value.trim();

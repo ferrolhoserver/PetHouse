@@ -1,0 +1,158 @@
+/* Cards de Pets Modernos */
+.pets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.pet-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.pet-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-color: #2196F3;
+}
+
+.pet-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.pet-icon {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.pet-card-title {
+    flex: 1;
+}
+
+.pet-card-name {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 0.25rem 0;
+}
+
+.pet-card-info {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0;
+}
+
+.pet-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pet-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.pet-stat-icon {
+    font-size: 1.2rem;
+    min-width: 24px;
+    text-align: center;
+}
+
+.pet-stat-content {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.pet-stat-label {
+    font-weight: 600;
+    color: #555;
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.15rem;
+}
+
+.pet-stat-value {
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.pet-stat-badge {
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #4CAF50;
+    color: white;
+}
+
+.badge-warning {
+    background: #FF9800;
+    color: white;
+}
+
+.badge-danger {
+    background: #f44336;
+    color: white;
+}
+
+.badge-info {
+    background: #2196F3;
+    color: white;
+}
+
+.badge-neutral {
+    background: #9E9E9E;
+    color: white;
+}
+
+.peso-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.peso-trend-icon {
+    font-size: 1.1rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .pets-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .pets-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1025px) {
+    .pets-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

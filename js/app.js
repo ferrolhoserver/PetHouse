@@ -131,25 +131,74 @@ class PetHouse {
         `;
     }
 
-    renderHome() {
-        const petsHTML = this.data.pets.length > 0 
-            ? this.data.pets.map(pet => {
-                // Calcular alertas (MÓDULO NOVO)
-                const alertas = window.Alertas ? window.Alertas.calcularTodosAlertas(pet) : null;
-                const badgeAlertas = alertas && alertas.criticos > 0 
-                    ? `<span style="background: #f44336; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.85rem; margin-left: 0.5rem;">⚠️ ${alertas.criticos}</span>`
-                    : '';
+    renderPetCard(pet) {
+        // Ícone do animal
+        const icone = pet.especie.toLowerCase().includes('gato') || pet.especie.toLowerCase().includes('felino') ? '🐱' : '🐶';
+        
+        // Peso e tendência
+        const pesoInfo = this.calcularPesoComTendencia(pet);
+        
+        // Status de vacinação
+        const vacinaStatus = this.calcularStatusVacinacao(pet);
+        
+        // Último banho
+        const banhoInfo = this.calcularUltimoBanho(pet);
+        
+        return `
+            <div class="pet-card" onclick="app.viewPet('${pet.id}')">
+                <div class="pet-card-header">
+                    <div class="pet-icon">${icone}</div>
+                    <div class="pet-card-title">
+                        <h3 class="pet-card-name">${pet.nome}</h3>
+                        <p class="pet-card-info">${pet.especie} • ${pet.raca || 'SRD'}</p>
+                    </div>
+                </div>
                 
-                return `
-                    <div class="pet-item" onclick="app.viewPet('${pet.id}')">
-                        <div class="pet-name">${pet.nome} ${badgeAlertas}</div>
-                        <div class="pet-info">
-                            ${pet.especie} • ${pet.raca || 'SRD'} • ${this.calcularIdade(pet.nascimento)}
+                <div class="pet-card-body">
+                    <!-- Peso -->
+                    <div class="pet-stat">
+                        <div class="pet-stat-icon">⚖️</div>
+                        <div class="pet-stat-content">
+                            <span class="pet-stat-label">Peso</span>
+                            <div class="pet-stat-value">
+                                ${pesoInfo.valor}
+                                ${pesoInfo.tendencia}
+                            </div>
                         </div>
                     </div>
-                `;
-            }).join('')
-            : '<p class="text-center">Nenhum pet cadastrado ainda.</p>';
+                    
+                    <!-- Vacinação -->
+                    <div class="pet-stat">
+                        <div class="pet-stat-icon">💉</div>
+                        <div class="pet-stat-content">
+                            <span class="pet-stat-label">Vacinação</span>
+                            <div class="pet-stat-value">
+                                ${vacinaStatus.texto}
+                                <span class="pet-stat-badge ${vacinaStatus.classe}">${vacinaStatus.badge}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Banho -->
+                    <div class="pet-stat">
+                        <div class="pet-stat-icon">🛁</div>
+                        <div class="pet-stat-content">
+                            <span class="pet-stat-label">Banho</span>
+                            <div class="pet-stat-value">
+                                ${banhoInfo.texto}
+                                ${banhoInfo.badge ? `<span class="pet-stat-badge ${banhoInfo.classe}">${banhoInfo.badge}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    renderHome() {
+        const petsHTML = this.data.pets.length > 0 
+            ? this.data.pets.map(pet => this.renderPetCard(pet)).join('')
+            : '<p class="text-center" style="grid-column: 1 / -1;">Nenhum pet cadastrado ainda.</p>';
 
         return `
             <div class="header">
@@ -167,7 +216,7 @@ class PetHouse {
             <div class="container">
                 <div class="card">
                     <h2>Meus Pets</h2>
-                    <div class="pet-list">
+                    <div class="pets-grid">
                         ${petsHTML}
                     </div>
                 </div>
@@ -1241,6 +1290,135 @@ END:VEVENT
             return `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
         } else {
             return 'Recém-nascido';
+        }
+    }
+
+    calcularPesoComTendencia(pet) {
+        if (!pet.peso || pet.peso.length === 0) {
+            return {
+                valor: '0 kg',
+                tendencia: ''
+            };
+        }
+
+        const pesosOrdenados = [...pet.peso].sort((a, b) => new Date(b.data) - new Date(a.data));
+        const pesoAtual = pesosOrdenados[0];
+        const pesoFormatado = parseFloat(pesoAtual.peso).toFixed(3).replace(/\.?0+$/, '');
+        
+        // Calcular tendência (compara com peso de 30 dias atrás)
+        const trintaDiasAtras = new Date();
+        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+        
+        const pesoAnterior = pesosOrdenados.find(p => {
+            const dataPeso = new Date(p.data);
+            return dataPeso <= trintaDiasAtras;
+        });
+        
+        let tendenciaHTML = '';
+        if (pesoAnterior && pesoAnterior.peso !== pesoAtual.peso) {
+            const variacao = pesoAtual.peso - pesoAnterior.peso;
+            const variacaoAbs = Math.abs(variacao).toFixed(2);
+            
+            if (variacao > 0.1) {
+                // Engordando
+                tendenciaHTML = `<span class="peso-trend" style="color: #4CAF50;"><span class="peso-trend-icon">📈</span>+${variacaoAbs}kg</span>`;
+            } else if (variacao < -0.1) {
+                // Emagrecendo
+                tendenciaHTML = `<span class="peso-trend" style="color: #f44336;"><span class="peso-trend-icon">📉</span>-${variacaoAbs}kg</span>`;
+            } else {
+                // Estável
+                tendenciaHTML = `<span class="peso-trend" style="color: #2196F3;"><span class="peso-trend-icon">➡️</span>Estável</span>`;
+            }
+        }
+        
+        return {
+            valor: `${pesoFormatado} kg`,
+            tendencia: tendenciaHTML
+        };
+    }
+    
+    calcularStatusVacinacao(pet) {
+        if (!pet.vacinas || pet.vacinas.length === 0) {
+            return {
+                texto: 'Sem registro',
+                badge: '⚠️',
+                classe: 'badge-warning'
+            };
+        }
+        
+        const hoje = new Date();
+        const vacinasComProxima = pet.vacinas.filter(v => v.proxima);
+        
+        if (vacinasComProxima.length === 0) {
+            return {
+                texto: 'Verificar',
+                badge: 'ℹ️',
+                classe: 'badge-info'
+            };
+        }
+        
+        // Encontrar a próxima vacina mais próxima
+        const proximasOrdenadas = vacinasComProxima
+            .map(v => ({
+                ...v,
+                dataProxima: new Date(v.proxima)
+            }))
+            .sort((a, b) => a.dataProxima - b.dataProxima);
+        
+        const proximaVacina = proximasOrdenadas[0];
+        const diasRestantes = Math.ceil((proximaVacina.dataProxima - hoje) / (1000 * 60 * 60 * 24));
+        
+        if (diasRestantes < 0) {
+            return {
+                texto: 'Atrasada',
+                badge: '🔴 Atrasada',
+                classe: 'badge-danger'
+            };
+        } else if (diasRestantes <= 7) {
+            return {
+                texto: `Em ${diasRestantes} dia${diasRestantes !== 1 ? 's' : ''}`,
+                badge: '🟡 Próxima',
+                classe: 'badge-warning'
+            };
+        } else {
+            return {
+                texto: `Em ${diasRestantes} dias`,
+                badge: '🟢 Em dia',
+                classe: 'badge-success'
+            };
+        }
+    }
+    
+    calcularUltimoBanho(pet) {
+        // Verificar se existe campo de banho (pode não existir ainda)
+        if (!pet.banhos || pet.banhos.length === 0) {
+            return {
+                texto: 'Sem registro',
+                badge: '',
+                classe: ''
+            };
+        }
+        
+        const banhosOrdenados = [...pet.banhos].sort((a, b) => new Date(b.data) - new Date(a.data));
+        const ultimoBanho = banhosOrdenados[0];
+        const dataUltimoBanho = new Date(ultimoBanho.data);
+        const hoje = new Date();
+        const diasDesdeUltimoBanho = Math.floor((hoje - dataUltimoBanho) / (1000 * 60 * 60 * 24));
+        
+        const dataFormatada = dataUltimoBanho.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        
+        if (diasDesdeUltimoBanho > 15) {
+            return {
+                texto: `${dataFormatada} (há ${diasDesdeUltimoBanho} dias)`,
+                badge: '⚠️ Agendar',
+                classe: 'badge-warning'
+            };
+        } else {
+            return {
+                texto: `${dataFormatada} (há ${diasDesdeUltimoBanho} dias)`,
+                badge: '✅ OK',
+                classe: 'badge-success'
+            };
         }
     }
 

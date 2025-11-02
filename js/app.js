@@ -569,15 +569,9 @@ class PetHouse {
         
         if (this.currentTab === 'peso') {
             record.data = document.getElementById('edit-record-data').value;
-            let pesoValue = parseFloat(document.getElementById('edit-record-peso').value);
-            
-            // Verificar se está em modo gramas e converter para kg
-            const button = document.getElementById('toggle-peso-unit');
-            if (button && button.textContent === 'g') {
-                pesoValue = pesoValue / 1000; // Converter gramas para kg
-            }
-            
-            record.peso = pesoValue;
+            // Pegar valor em gramas e converter para kg
+            const pesoGramas = parseInt(document.getElementById('edit-record-peso').value.replace(/\D/g, '')) || 0;
+            record.peso = pesoGramas / 1000; // Converter gramas para kg
             record.obs = document.getElementById('edit-record-obs').value.trim();
         } else if (this.currentTab === 'vacinas') {
             record.nome = document.getElementById('edit-record-nome').value.trim();
@@ -636,15 +630,9 @@ class PetHouse {
         const record = { data };
         
         if (this.currentTab === 'peso') {
-            let pesoValue = parseFloat(document.getElementById('record-peso').value);
-            
-            // Verificar se está em modo gramas e converter para kg
-            const button = document.getElementById('toggle-peso-unit');
-            if (button && button.textContent === 'g') {
-                pesoValue = pesoValue / 1000; // Converter gramas para kg
-            }
-            
-            record.peso = pesoValue;
+            // Pegar valor em gramas e converter para kg
+            const pesoGramas = parseInt(document.getElementById('record-peso').value.replace(/\D/g, '')) || 0;
+            record.peso = pesoGramas / 1000; // Converter gramas para kg
             record.obs = document.getElementById('record-obs').value.trim();
         } else if (this.currentTab === 'vacinas') {
             record.nome = document.getElementById('record-nome').value.trim();
@@ -736,11 +724,10 @@ class PetHouse {
                     <label>Peso *</label>
                     <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
                         <div style="flex: 1;">
-                            <input type="number" id="record-peso" step="0.001" required placeholder="Ex: 4.450" style="width: 100%;">
+                            <input type="text" id="record-peso" required placeholder="Ex: 4450 (gramas)" style="width: 100%;" oninput="app.formatPesoInput(this)">
                         </div>
-                        <button type="button" id="toggle-peso-unit" onclick="app.togglePesoUnit()" class="btn" style="background: #2196F3; color: white; padding: 0.75rem 1rem; min-width: 60px;">kg</button>
                     </div>
-                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite o peso em quilogramas</small>
+                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite apenas os números (ex: 4450 = 4,450 kg)</small>
                 </div>
                 <div class="form-group">
                     <label>Observações</label>
@@ -906,11 +893,10 @@ class PetHouse {
                     <label>Peso *</label>
                     <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
                         <div style="flex: 1;">
-                            <input type="number" id="edit-record-peso" value="${record.peso}" step="0.001" required style="width: 100%;">
+                            <input type="text" id="edit-record-peso" value="${Math.round(record.peso * 1000)}" required style="width: 100%;" oninput="app.formatPesoInput(this)">
                         </div>
-                        <button type="button" id="toggle-peso-unit" onclick="app.togglePesoUnit()" class="btn" style="background: #2196F3; color: white; padding: 0.75rem 1rem; min-width: 60px;">kg</button>
                     </div>
-                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite o peso em quilogramas</small>
+                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite apenas os números (ex: 4450 = 4,450 kg)</small>
                 </div>
                 <div class="form-group">
                     <label>Observações</label>
@@ -1230,42 +1216,28 @@ END:VEVENT
         }
     }
 
-    // ===== FUNÇÃO DE ALTERNÂNCIA DE UNIDADE DE PESO =====
+    // ====    // ===== FUNÇÃO DE FORMATAÇÃO AUTOMÁTICA DE PESO =====
     
-    togglePesoUnit() {
-        const button = document.getElementById('toggle-peso-unit');
-        const input = document.getElementById('record-peso') || document.getElementById('edit-record-peso');
-        const hint = document.getElementById('peso-hint');
+    formatPesoInput(input) {
+        // Remove tudo que não é número
+        let valor = input.value.replace(/\D/g, '');
         
-        if (!button || !input) return;
+        // Limita a 6 dígitos (99.999 kg = 99999 g)
+        if (valor.length > 6) {
+            valor = valor.substring(0, 6);
+        }
         
-        const currentUnit = button.textContent;
-        const currentValue = parseFloat(input.value) || 0;
-        
-        if (currentUnit === 'kg') {
-            // Mudar para gramas
-            button.textContent = 'g';
-            button.style.background = '#4CAF50';
-            hint.textContent = 'Digite o peso em gramas';
-            input.placeholder = 'Ex: 4450';
-            input.step = '1';
-            
-            // Converter valor atual de kg para g
-            if (currentValue > 0) {
-                input.value = (currentValue * 1000).toFixed(0);
-            }
+        // Formata com ponto de milhar e vírgula decimal
+        if (valor.length === 0) {
+            input.value = '';
+        } else if (valor.length <= 3) {
+            // Até 999 gramas (0,999 kg)
+            input.value = valor;
         } else {
-            // Mudar para kg
-            button.textContent = 'kg';
-            button.style.background = '#2196F3';
-            hint.textContent = 'Digite o peso em quilogramas';
-            input.placeholder = 'Ex: 4.450';
-            input.step = '0.001';
-            
-            // Converter valor atual de g para kg
-            if (currentValue > 0) {
-                input.value = (currentValue / 1000).toFixed(3);
-            }
+            // Adiciona ponto de milhar
+            const kg = valor.slice(0, -3);
+            const gramas = valor.slice(-3);
+            input.value = `${kg}.${gramas}`;
         }
     }
 
@@ -1391,7 +1363,7 @@ END:VEVENT
     
     calcularUltimoBanho(pet) {
         // Verificar se existe campo de banho (pode não existir ainda)
-        if (!pet.banhos || pet.banhos.length === 0) {
+        if (!pet.banho_tosa || pet.banho_tosa.length === 0) {
             return {
                 texto: 'Sem registro',
                 badge: '',
@@ -1399,7 +1371,7 @@ END:VEVENT
             };
         }
         
-        const banhosOrdenados = [...pet.banhos].sort((a, b) => new Date(b.data) - new Date(a.data));
+        const banhosOrdenados = [...pet.banho_tosa].sort((a, b) => new Date(b.data) - new Date(a.data));
         const ultimoBanho = banhosOrdenados[0];
         const dataUltimoBanho = new Date(ultimoBanho.data);
         const hoje = new Date();

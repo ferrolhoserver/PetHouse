@@ -3,54 +3,22 @@
 
 class PetHouse {
     constructor() {
-        this.userId = this.getUserId();
         this.data = this.loadData();
         this.currentView = 'home';
         this.currentPet = null;
         this.currentTab = 'peso';
-        this.syncEnabled = false;
         this.init();
     }
 
-    async init() {
-        // Inicializar Supabase
-        if (window.SupabaseSync) {
-            this.syncEnabled = await SupabaseSync.init();
-            
-            // Tentar carregar dados da nuvem
-            if (this.syncEnabled) {
-                const result = await SupabaseSync.loadFromCloud();
-                if (result.success && result.data) {
-                    // Mesclar dados da nuvem com dados locais
-                    this.data = result.data;
-                    this.saveData(); // Salvar localmente também
-                    console.log('☁️ Dados carregados da nuvem');
-                }
-            }
-        }
-        
+    init() {
         this.render();
         this.setupEventListeners();
     }
 
     // ===== GERENCIAMENTO DE DADOS =====
     
-    getUserId() {
-        // Verifica se já existe um userId no localStorage
-        let userId = localStorage.getItem('pethouse_userId');
-        
-        if (!userId) {
-            // Gera um ID único para este usuário/dispositivo
-            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('pethouse_userId', userId);
-        }
-        
-        return userId;
-    }
-    
     loadData() {
-        // Carrega dados específicos do usuário
-        const saved = localStorage.getItem(`pethouse_data_${this.userId}`);
+        const saved = localStorage.getItem('pethouse_data');
         if (saved) {
             return JSON.parse(saved);
         }
@@ -61,23 +29,9 @@ class PetHouse {
         };
     }
 
-    async saveData() {
-        // Salva dados específicos do usuário localmente
-        localStorage.setItem(`pethouse_data_${this.userId}`, JSON.stringify(this.data));
-        
-        // Sincronizar com a nuvem se disponível
-        if (this.syncEnabled && window.SupabaseSync) {
-            const result = await SupabaseSync.saveToCloud(this.data);
-            if (result.success) {
-                this.showToast('Dados salvos e sincronizados! ☁️', 'success');
-            } else if (result.offline) {
-                this.showToast('Dados salvos localmente! 💾', 'success');
-            } else {
-                this.showToast('Dados salvos localmente! ⚠️ Erro na nuvem', 'warning');
-            }
-        } else {
-            this.showToast('Dados salvos!', 'success');
-        }
+    saveData() {
+        localStorage.setItem('pethouse_data', JSON.stringify(this.data));
+        this.showToast('Dados salvos!', 'success');
     }
 
     // ===== RENDERIZAÇÃO =====
@@ -99,106 +53,40 @@ class PetHouse {
             <div class="container">
                 <div class="card" style="max-width: 500px; margin: 2rem auto;">
                     <h2>🏠 Bem-vindo ao PetHouse!</h2>
-                    <p>Escolha uma opção para começar:</p>
+                    <p>Configure sua casa para começar a gerenciar seus pets em família.</p>
                     
-                    <!-- Opção 1: Criar nova família -->
-                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <h3 style="margin-top: 0;">🆕 Criar Nova Família</h3>
-                        <p style="font-size: 0.9rem;">Comece do zero com seus próprios pets</p>
-                        <form id="setup-form" class="mt-1">
-                            <div class="form-group">
-                                <label>Nome da Casa *</label>
-                                <input type="text" id="casa-nome" placeholder="Ex: Família Silva" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">🆕 Criar Minha Família</button>
-                        </form>
-                    </div>
-                    
-                    <!-- Opção 2: Entrar em família existente -->
-                    <div style="background: #f0f0f0; padding: 1rem; border-radius: 8px;">
-                        <h3 style="margin-top: 0;">👥 Entrar em Família Existente</h3>
-                        <p style="font-size: 0.9rem;">Já tem um código? Cole aqui para acessar</p>
-                        <form id="join-family-form" class="mt-1">
-                            <div class="form-group">
-                                <label>Código da Família *</label>
-                                <input type="text" id="family-code" placeholder="Cole o código aqui" required>
-                            </div>
-                            <button type="submit" class="btn btn-success">👥 Entrar na Família</button>
-                        </form>
-                    </div>
+                    <form id="setup-form" class="mt-1">
+                        <div class="form-group">
+                            <label>Nome da Casa *</label>
+                            <input type="text" id="casa-nome" placeholder="Ex: Família Silva" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Começar</button>
+                    </form>
                 </div>
             </div>
         `;
     }
 
-    renderPetCard(pet) {
-        // Ícone do animal
-        const icone = pet.especie.toLowerCase().includes('gato') || pet.especie.toLowerCase().includes('felino') ? '🐱' : '🐶';
-        
-        // Peso e tendência
-        const pesoInfo = this.calcularPesoComTendencia(pet);
-        
-        // Status de vacinação
-        const vacinaStatus = this.calcularStatusVacinacao(pet);
-        
-        // Último banho
-        const banhoInfo = this.calcularUltimoBanho(pet);
-        
-        return `
-            <div class="pet-card" onclick="app.viewPet('${pet.id}')">
-                <div class="pet-card-header">
-                    <div class="pet-icon">${icone}</div>
-                    <div class="pet-card-title">
-                        <h3 class="pet-card-name">${pet.nome}</h3>
-                        <p class="pet-card-info">${pet.especie} • ${pet.raca || 'SRD'}</p>
-                    </div>
-                </div>
-                
-                <div class="pet-card-body">
-                    <!-- Peso -->
-                    <div class="pet-stat">
-                        <div class="pet-stat-icon">⚖️</div>
-                        <div class="pet-stat-content">
-                            <span class="pet-stat-label">Peso</span>
-                            <div class="pet-stat-value">
-                                ${pesoInfo.valor}
-                                ${pesoInfo.tendencia}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Vacinação -->
-                    <div class="pet-stat">
-                        <div class="pet-stat-icon">💉</div>
-                        <div class="pet-stat-content">
-                            <span class="pet-stat-label">Vacinação</span>
-                            <div class="pet-stat-value">
-                                ${vacinaStatus.texto}
-                                <span class="pet-stat-badge ${vacinaStatus.classe}">${vacinaStatus.badge}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Banho -->
-                    <div class="pet-stat">
-                        <div class="pet-stat-icon">🛁</div>
-                        <div class="pet-stat-content">
-                            <span class="pet-stat-label">Banho</span>
-                            <div class="pet-stat-value">
-                                ${banhoInfo.texto}
-                                ${banhoInfo.badge ? `<span class="pet-stat-badge ${banhoInfo.classe}">${banhoInfo.badge}</span>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
     renderHome() {
         const petsHTML = this.data.pets.length > 0 
-            ? this.data.pets.map(pet => this.renderPetCard(pet)).join('')
-            : '<p class="text-center" style="grid-column: 1 / -1;">Nenhum pet cadastrado ainda.</p>';
+            ? this.data.pets.map(pet => {
+                // Calcular alertas (MÓDULO NOVO)
+                const alertas = window.Alertas ? window.Alertas.calcularTodosAlertas(pet) : null;
+                const badgeAlertas = alertas && alertas.criticos > 0 
+                    ? `<span style="background: #f44336; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.85rem; margin-left: 0.5rem;">⚠️ ${alertas.criticos}</span>`
+                    : '';
+                
+                return `
+                    <div class="pet-item" onclick="app.viewPet('${pet.id}')">
+                        <div class="pet-name">${pet.nome} ${badgeAlertas}</div>
+                        <div class="pet-info">
+                            ${pet.especie} • ${pet.raca || 'SRD'} • ${this.calcularIdade(pet.nascimento)}
+                        </div>
+                    </div>
+                `;
+            }).join('')
+            : '<p class="text-center">Nenhum pet cadastrado ainda.</p>';
 
         return `
             <div class="header">
@@ -206,9 +94,8 @@ class PetHouse {
                     <h1>🐾 ${this.data.casaNome}</h1>
                     <div class="header-actions">
                         <button class="btn btn-primary btn-small" onclick="app.showAddPet()">+ Adicionar Pet</button>
-                        <button class="btn btn-success btn-small" onclick="app.exportarBackup()">💾 Salvar</button>
-                        <button class="btn btn-info btn-small" onclick="app.restaurarBackup()">📂 Restaurar</button>
-                        <button class="btn btn-warning btn-small" onclick="app.mostrarCompartilhamento()">👥 Compartilhar</button>
+                        <button class="btn btn-success btn-small" onclick="app.exportarBackup()">💾 Backup</button>
+                        <button class="btn btn-success btn-small" onclick="app.exportarCalendario()">📅 Calendário</button>
                     </div>
                 </div>
             </div>
@@ -216,7 +103,7 @@ class PetHouse {
             <div class="container">
                 <div class="card">
                     <h2>Meus Pets</h2>
-                    <div class="pets-grid">
+                    <div class="pet-list">
                         ${petsHTML}
                     </div>
                 </div>
@@ -323,19 +210,14 @@ class PetHouse {
         const date = new Date(record.data).toLocaleDateString('pt-BR');
         
         if (this.currentTab === 'peso') {
-            // Formatar peso em gramas
-            const pesoGramas = Math.round(record.peso * 1000);
             return `
                 <div class="record-item">
                     <div class="flex justify-between">
                         <div>
-                            <strong>${date}</strong> - ${pesoGramas} g
+                            <strong>${date}</strong> - ${record.peso} kg
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
-                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
-                        </div>
+                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
                     </div>
                 </div>
             `;
@@ -350,10 +232,7 @@ class PetHouse {
                             Próxima: ${proxima}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
-                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
-                        </div>
+                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
                     </div>
                 </div>
             `;
@@ -368,10 +247,7 @@ class PetHouse {
                             Próxima: ${proxima}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
-                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
-                        </div>
+                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
                     </div>
                 </div>
             `;
@@ -385,10 +261,7 @@ class PetHouse {
                             Motivo: ${record.motivo || 'Consulta de rotina'}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
-                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
-                        </div>
+                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
                     </div>
                 </div>
             `;
@@ -402,10 +275,7 @@ class PetHouse {
                             Veterinário: ${record.veterinario || 'Não informado'}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
-                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
-                        </div>
+                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
                     </div>
                 </div>
             `;
@@ -419,10 +289,7 @@ class PetHouse {
                             Resultado: ${record.resultado || 'Aguardando'}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️ Editar</button>
-                            <button class="btn btn-small" onclick="app.deleteRecord(${index})" style="height: fit-content; background: #f44336; color: white;">🗑️ Excluir</button>
-                        </div>
+                        <button class="btn btn-small btn-primary" onclick="app.showEditRecord(${index})" style="height: fit-content;">✏️</button>
                     </div>
                 </div>
             `;
@@ -437,8 +304,6 @@ class PetHouse {
             
             if (e.target.id === 'setup-form') {
                 this.handleSetup(e);
-            } else if (e.target.id === 'join-family-form') {
-                this.handleJoinFamily(e);
             } else if (e.target.id === 'add-pet-form') {
                 this.handleAddPet(e);
             } else if (e.target.id === 'add-record-form') {
@@ -458,40 +323,6 @@ class PetHouse {
         this.data.casaNome = casaNome;
         this.saveData();
         this.render();
-    }
-    
-    async handleJoinFamily(e) {
-        const familyCode = document.getElementById('family-code').value.trim();
-        if (!familyCode) {
-            alert('❌ Por favor, cole o código da família.');
-            return;
-        }
-        
-        // Verificar se Supabase está disponível
-        if (!this.syncEnabled || !window.SupabaseSync) {
-            alert('⚠️ Sincronização não está disponível. Por favor, use a opção de backup.');
-            return;
-        }
-        
-        // Entrar na família
-        await SupabaseSync.joinFamily(familyCode);
-        
-        // Carregar dados da nuvem
-        const result = await SupabaseSync.loadFromCloud();
-        
-        if (result.success && result.data) {
-            // Dados encontrados!
-            this.data = result.data;
-            this.saveData(); // Salvar localmente também
-            this.showToast('✅ Você entrou na família com sucesso!', 'success');
-            this.render();
-        } else if (result.firstTime) {
-            // Código válido mas ainda sem dados
-            alert('⚠️ Este código é válido, mas ainda não há dados cadastrados. Aguarde o administrador da família cadastrar os pets.');
-        } else {
-            // Erro ao carregar
-            alert('❌ Erro ao entrar na família. Verifique o código e tente novamente.');
-        }
     }
 
     handleAddPet(e) {
@@ -569,9 +400,7 @@ class PetHouse {
         
         if (this.currentTab === 'peso') {
             record.data = document.getElementById('edit-record-data').value;
-            // Pegar valor em gramas e converter para kg
-            const pesoGramas = parseInt(document.getElementById('edit-record-peso').value.replace(/\D/g, '')) || 0;
-            record.peso = pesoGramas / 1000; // Converter gramas para kg
+            record.peso = parseFloat(document.getElementById('edit-record-peso').value);
             record.obs = document.getElementById('edit-record-obs').value.trim();
         } else if (this.currentTab === 'vacinas') {
             record.nome = document.getElementById('edit-record-nome').value.trim();
@@ -604,23 +433,6 @@ class PetHouse {
         this.closeModal();
         this.render();
     }
-    
-    deleteRecord(index) {
-        const pet = this.data.pets.find(p => p.id === this.currentPet);
-        if (!pet || !pet[this.currentTab] || !pet[this.currentTab][index]) return;
-        
-        // Confirmar exclusão
-        const confirmMsg = '⚠️ Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.';
-        if (!confirm(confirmMsg)) return;
-        
-        // Remover o registro
-        pet[this.currentTab].splice(index, 1);
-        
-        // Salvar e atualizar
-        this.saveData();
-        this.showToast('✅ Registro excluído com sucesso!', 'success');
-        this.render();
-    }
 
 
     getRecordFromForm() {
@@ -630,9 +442,7 @@ class PetHouse {
         const record = { data };
         
         if (this.currentTab === 'peso') {
-            // Pegar valor em gramas e converter para kg
-            const pesoGramas = parseInt(document.getElementById('record-peso').value.replace(/\D/g, '')) || 0;
-            record.peso = pesoGramas / 1000; // Converter gramas para kg
+            record.peso = parseFloat(document.getElementById('record-peso').value);
             record.obs = document.getElementById('record-obs').value.trim();
         } else if (this.currentTab === 'vacinas') {
             record.nome = document.getElementById('record-nome').value.trim();
@@ -721,13 +531,8 @@ class PetHouse {
                     <input type="date" id="record-data" required>
                 </div>
                 <div class="form-group">
-                    <label>Peso *</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <input type="text" id="record-peso" required placeholder="Ex: 4450 (gramas)" style="width: 100%;" oninput="app.formatPesoInput(this)">
-                        </div>
-                    </div>
-                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite apenas os números (ex: 4450 = 4,450 kg)</small>
+                    <label>Peso (kg) *</label>
+                    <input type="number" id="record-peso" step="0.1" required>
                 </div>
                 <div class="form-group">
                     <label>Observações</label>
@@ -890,13 +695,8 @@ class PetHouse {
                     <input type="date" id="edit-record-data" value="${record.data}" required>
                 </div>
                 <div class="form-group">
-                    <label>Peso *</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <input type="text" id="edit-record-peso" value="${Math.round(record.peso * 1000)}" required style="width: 100%;" oninput="app.formatPesoInput(this)">
-                        </div>
-                    </div>
-                    <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite apenas os números (ex: 4450 = 4,450 kg)</small>
+                    <label>Peso (kg) *</label>
+                    <input type="number" id="edit-record-peso" value="${record.peso}" step="0.1" required>
                 </div>
                 <div class="form-group">
                     <label>Observações</label>
@@ -1028,46 +828,6 @@ class PetHouse {
         this.showToast('Backup exportado!', 'success');
     }
 
-    restaurarBackup() {
-        // Criar input file invisível
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'application/json,.json';
-        
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const backupData = JSON.parse(event.target.result);
-                    
-                    // Validar estrutura básica do backup
-                    if (!backupData.casaNome || !Array.isArray(backupData.pets)) {
-                        throw new Error('Arquivo de backup inválido');
-                    }
-                    
-                    // Confirmar antes de restaurar
-                    if (confirm(`Deseja restaurar o backup "${backupData.casaNome}"?\n\nISTO IRÁ SUBSTITUIR TODOS OS DADOS ATUAIS!`)) {
-                        this.data = backupData;
-                        this.saveData();
-                        this.currentView = 'home';
-                        this.currentPet = null;
-                        this.render();
-                        this.showToast('Backup restaurado com sucesso!', 'success');
-                    }
-                } catch (error) {
-                    alert('Erro ao restaurar backup: ' + error.message);
-                    console.error('Erro ao restaurar backup:', error);
-                }
-            };
-            reader.readAsText(file);
-        };
-        
-        input.click();
-    }
-
     imprimirProntuario(petId) {
         const pet = this.data.pets.find(p => p.id === petId);
         if (window.PDF) {
@@ -1139,108 +899,6 @@ END:VEVENT
 `;
     }
 
-    // ===== COMPARTILHAMENTO =====
-    
-    mostrarCompartilhamento() {
-        const familyCode = this.syncEnabled && window.SupabaseSync ? SupabaseSync.getFamilyCode() : null;
-        
-        const modalContent = `
-            <div class="modal-header">
-                <h2>👥 Compartilhar Dados</h2>
-                <button class="modal-close" onclick="app.closeModal()">×</button>
-            </div>
-            <div style="padding: 1rem;">
-                ${familyCode ? `
-                    <div style="background: #4caf50; color: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <h3 style="margin-top: 0; color: white;">☁️ Sincronização Automática Ativada!</h3>
-                        <p style="font-size: 0.9rem; margin: 0.5rem 0;">Seus dados estão sendo sincronizados automaticamente na nuvem.</p>
-                        <div style="background: rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem;">
-                            <strong>Código da Família:</strong><br>
-                            <code style="font-size: 0.85rem; word-break: break-all;">${familyCode}</code>
-                        </div>
-                        <p style="font-size: 0.85rem; margin-top: 0.5rem;">Envie este código para outras pessoas da família para que elas possam acessar os mesmos dados.</p>
-                    </div>
-                ` : ''}
-                
-                <p style="margin-bottom: 1rem;">Para compartilhar seus dados com outras pessoas, use uma das opções abaixo:</p>
-                
-                ${familyCode ? `
-                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <h3 style="margin-top: 0;">Opção 1: Compartilhar Código da Família</h3>
-                        <p style="font-size: 0.9rem;">1. Copie o código acima<br>
-                        2. Envie para a outra pessoa (WhatsApp, SMS, etc.)<br>
-                        3. A outra pessoa deve clicar em "👥 Compartilhar" e depois em "Entrar em uma Família"</p>
-                        <button class="btn btn-primary btn-small" onclick="app.entrarEmFamilia()" style="margin-top: 0.5rem;">Entrar em uma Família</button>
-                    </div>
-                ` : ''}
-                
-                <div style="background: #f0f0f0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <h3 style="margin-top: 0;">Opção ${familyCode ? '2' : '1'}: Compartilhar via Backup</h3>
-                    <p style="font-size: 0.9rem;">1. Clique em "💾 Salvar" para gerar um backup<br>
-                    2. Envie o arquivo para a outra pessoa (WhatsApp, email, etc.)<br>
-                    3. A outra pessoa deve clicar em "📂 Restaurar" e selecionar o arquivo</p>
-                </div>
-                
-                <div class="flex justify-end" style="margin-top: 1rem;">
-                    <button class="btn btn-primary" onclick="app.closeModal()">Entendi</button>
-                </div>
-            </div>
-        `;
-        document.getElementById('modal-content').innerHTML = modalContent;
-        this.openModal();
-    }
-    
-    async entrarEmFamilia() {
-        const codigo = prompt('👥 Digite o código da família:');
-        if (!codigo) return;
-        
-        if (!window.SupabaseSync) {
-            alert('⚠️ Sincronização não está disponível.');
-            return;
-        }
-        
-        // Entrar na família
-        await SupabaseSync.joinFamily(codigo);
-        
-        // Carregar dados da nuvem
-        const result = await SupabaseSync.loadFromCloud();
-        
-        if (result.success && result.data) {
-            this.data = result.data;
-            this.saveData();
-            this.closeModal();
-            this.showToast('✅ Dados sincronizados com sucesso!', 'success');
-            this.render();
-        } else {
-            alert('❌ Erro ao carregar dados. Verifique o código.');
-        }
-    }
-
-    // ====    // ===== FUNÇÃO DE FORMATAÇÃO AUTOMÁTICA DE PESO =====
-    
-    formatPesoInput(input) {
-        // Remove tudo que não é número
-        let valor = input.value.replace(/\D/g, '');
-        
-        // Limita a 6 dígitos (99.999 kg = 99999 g)
-        if (valor.length > 6) {
-            valor = valor.substring(0, 6);
-        }
-        
-        // Formata com ponto de milhar e vírgula decimal
-        if (valor.length === 0) {
-            input.value = '';
-        } else if (valor.length <= 3) {
-            // Até 999 gramas (0,999 kg)
-            input.value = valor;
-        } else {
-            // Adiciona ponto de milhar
-            const kg = valor.slice(0, -3);
-            const gramas = valor.slice(-3);
-            input.value = `${kg}.${gramas}`;
-        }
-    }
-
     // ===== UTILIDADES =====
     
     calcularIdade(nascimento) {
@@ -1262,137 +920,6 @@ END:VEVENT
             return `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
         } else {
             return 'Recém-nascido';
-        }
-    }
-
-    calcularPesoComTendencia(pet) {
-        if (!pet.peso || pet.peso.length === 0) {
-            return {
-                valor: '0 kg',
-                tendencia: ''
-            };
-        }
-
-        const pesosOrdenados = [...pet.peso].sort((a, b) => new Date(b.data) - new Date(a.data));
-        const pesoAtual = pesosOrdenados[0];
-        const pesoGramas = Math.round(pesoAtual.peso * 1000);
-        
-        // Calcular tendência (compara com peso de 30 dias atrás)
-        const trintaDiasAtras = new Date();
-        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
-        
-        const pesoAnterior = pesosOrdenados.find(p => {
-            const dataPeso = new Date(p.data);
-            return dataPeso <= trintaDiasAtras;
-        });
-        
-        let tendenciaHTML = '';
-        if (pesoAnterior && pesoAnterior.peso !== pesoAtual.peso) {
-            const variacao = pesoAtual.peso - pesoAnterior.peso;
-            const variacaoAbs = Math.abs(variacao).toFixed(2);
-            
-            if (variacao > 0.1) {
-                // Engordando
-                const variacaoGramas = Math.round(variacao * 1000);
-                tendenciaHTML = `<span class="peso-trend" style="color: #4CAF50;"><span class="peso-trend-icon">📈</span>+${variacaoGramas}g</span>`;
-            } else if (variacao < -0.1) {
-                // Emagrecendo
-                const variacaoGramas = Math.round(Math.abs(variacao) * 1000);
-                tendenciaHTML = `<span class="peso-trend" style="color: #f44336;"><span class="peso-trend-icon">📉</span>-${variacaoGramas}g</span>`;
-            } else {
-                // Estável
-                tendenciaHTML = `<span class="peso-trend" style="color: #2196F3;"><span class="peso-trend-icon">➡️</span>Estável</span>`;
-            }
-        }
-        
-        return {
-            valor: `${pesoGramas} g`,
-            tendencia: tendenciaHTML
-        };
-    }
-    
-    calcularStatusVacinacao(pet) {
-        if (!pet.vacinas || pet.vacinas.length === 0) {
-            return {
-                texto: 'Sem registro',
-                badge: '⚠️',
-                classe: 'badge-warning'
-            };
-        }
-        
-        const hoje = new Date();
-        const vacinasComProxima = pet.vacinas.filter(v => v.proxima);
-        
-        if (vacinasComProxima.length === 0) {
-            return {
-                texto: 'Verificar',
-                badge: 'ℹ️',
-                classe: 'badge-info'
-            };
-        }
-        
-        // Encontrar a próxima vacina mais próxima
-        const proximasOrdenadas = vacinasComProxima
-            .map(v => ({
-                ...v,
-                dataProxima: new Date(v.proxima)
-            }))
-            .sort((a, b) => a.dataProxima - b.dataProxima);
-        
-        const proximaVacina = proximasOrdenadas[0];
-        const diasRestantes = Math.ceil((proximaVacina.dataProxima - hoje) / (1000 * 60 * 60 * 24));
-        
-        if (diasRestantes < 0) {
-            return {
-                texto: 'Atrasada',
-                badge: '🔴 Atrasada',
-                classe: 'badge-danger'
-            };
-        } else if (diasRestantes <= 7) {
-            return {
-                texto: `Em ${diasRestantes} dia${diasRestantes !== 1 ? 's' : ''}`,
-                badge: '🟡 Próxima',
-                classe: 'badge-warning'
-            };
-        } else {
-            return {
-                texto: `Em ${diasRestantes} dias`,
-                badge: '🟢 Em dia',
-                classe: 'badge-success'
-            };
-        }
-    }
-    
-    calcularUltimoBanho(pet) {
-        // Verificar se existe campo de banho (pode não existir ainda)
-        if (!pet.banho_tosa || pet.banho_tosa.length === 0) {
-            return {
-                texto: 'Sem registro',
-                badge: '',
-                classe: ''
-            };
-        }
-        
-        const banhosOrdenados = [...pet.banho_tosa].sort((a, b) => new Date(b.data) - new Date(a.data));
-        const ultimoBanho = banhosOrdenados[0];
-        const dataUltimoBanho = new Date(ultimoBanho.data);
-        const hoje = new Date();
-        const diasDesdeUltimoBanho = Math.floor((hoje - dataUltimoBanho) / (1000 * 60 * 60 * 24));
-        
-        const dataFormatada = dataUltimoBanho.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        
-        if (diasDesdeUltimoBanho > 15) {
-            return {
-                texto: `${dataFormatada} (há ${diasDesdeUltimoBanho} dias)`,
-                badge: '⚠️ Agendar',
-                classe: 'badge-warning'
-            };
-        } else {
-            return {
-                texto: `${dataFormatada} (há ${diasDesdeUltimoBanho} dias)`,
-                badge: '✅ OK',
-                classe: 'badge-success'
-            };
         }
     }
 
@@ -1423,9 +950,7 @@ END:VEVENT
             variacaoTexto = ` <span style="color: ${cor};">(${sinal}${variacao.toFixed(1)} kg no último mês)</span>`;
         }
         
-        // Formatar peso em gramas
-        const pesoGramas = Math.round(pesoAtual.peso * 1000);
-        return `⚖️ Peso: ${pesoGramas} g${variacaoTexto}`;
+        return `⚖️ Peso: ${pesoAtual.peso} kg${variacaoTexto}`;
     }
 
     getTabTitle() {

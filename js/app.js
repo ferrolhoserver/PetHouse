@@ -1228,6 +1228,9 @@ END:VEVENT
     
     mostrarCompartilhamento() {
         const familyCode = this.syncEnabled && window.SupabaseSync ? SupabaseSync.getFamilyCode() : null;
+        console.log('DEBUG - familyCode:', familyCode);
+        console.log('DEBUG - this.data.email:', this.data.email);
+        console.log('DEBUG - !this.data.email:', !this.data.email);
         
         const modalContent = `
             <div class="modal-header">

@@ -91,6 +91,17 @@ class PetHouse {
             app.innerHTML = this.renderHome();
         } else if (this.currentView === 'pet') {
             app.innerHTML = this.renderPet();
+            
+            // Renderizar gráfico de peso se estiver na aba de peso
+            if (this.currentTab === 'peso' && window.GraficoPeso) {
+                const pet = this.data.pets.find(p => p.id === this.currentPet);
+                if (pet) {
+                    // Usar setTimeout para garantir que o DOM foi atualizado
+                    setTimeout(() => {
+                        window.GraficoPeso.renderizar(pet, 'grafico-peso-container');
+                    }, 10);
+                }
+            }
         }
     }
 
@@ -326,11 +337,17 @@ class PetHouse {
             ? records.map((r, i) => this.renderRecord(r, i)).join('')
             : '<p class="text-center">Nenhum registro ainda.</p>';
 
+        // Renderizar gráfico de peso se estiver na aba de peso
+        const graficoHTML = this.currentTab === 'peso' && window.GraficoPeso 
+            ? '<div id="grafico-peso-container"></div>' 
+            : '';
+
         return `
             <div class="flex justify-between mb-1">
                 <h2>${this.getTabTitle()}</h2>
                 <button class="btn btn-primary btn-small" onclick="app.showAddRecord()">+ Adicionar</button>
             </div>
+            ${graficoHTML}
             <div class="record-list">
                 ${recordsHTML}
             </div>

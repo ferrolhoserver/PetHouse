@@ -1244,6 +1244,15 @@ END:VEVENT
                             <code style="font-size: 0.85rem; word-break: break-all;">${familyCode}</code>
                         </div>
                         <p style="font-size: 0.85rem; margin-top: 0.5rem;">Envie este código para outras pessoas da família para que elas possam acessar os mesmos dados.</p>
+                        ${!this.data.email ? `
+                            <button class="btn" style="background: white; color: #4caf50; margin-top: 0.5rem; width: 100%;" onclick="app.vincularEmail()">
+                                📧 Vincular Email para Recuperação
+                            </button>
+                        ` : `
+                            <p style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.9;">
+                                ✅ Email vinculado: ${this.data.email}
+                            </p>
+                        `}
                     </div>
                 ` : ''}
                 
@@ -1298,6 +1307,51 @@ END:VEVENT
             this.render();
         } else {
             alert('❌ Erro ao carregar dados. Verifique o código.');
+        }
+    }
+    
+    async vincularEmail() {
+        const email = prompt('📧 Digite seu email para recuperação do código:');
+        if (!email) return;
+        
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('❌ Por favor, insira um email válido.');
+            return;
+        }
+        
+        // Verificar se Supabase está disponível
+        if (!this.syncEnabled || !window.SupabaseSync) {
+            alert('⚠️ Sincronização não está disponível. Verifique sua conexão e tente novamente.');
+            return;
+        }
+        
+        // Obter código da família atual
+        const familyCode = SupabaseSync.getFamilyCode();
+        if (!familyCode) {
+            alert('❌ Erro: Código da família não encontrado.');
+            return;
+        }
+        
+        // Salvar email vinculado
+        const result = await SupabaseSync.linkEmailToFamily(email, familyCode);
+        
+        if (result.success) {
+            // Atualizar dados locais
+            this.data.email = email;
+            this.saveData();
+            
+            // Sincronizar com a nuvem
+            await SupabaseSync.saveToCloud(this.data);
+            
+            this.showToast('✅ Email vinculado com sucesso!', 'success');
+            this.closeModal();
+            
+            // Reabrir modal para mostrar email vinculado
+            setTimeout(() => this.mostrarCompartilhamento(), 300);
+        } else {
+            alert('❌ Erro ao vincular email: ' + (result.error || 'Tente novamente'));
         }
     }
 

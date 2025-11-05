@@ -141,6 +141,35 @@ const SupabaseSync = {
     },
     
     /**
+     * Vincula email a uma família existente
+     */
+    async linkEmailToFamily(email, familyCode) {
+        if (!this.enabled || !supabaseClient) {
+            return { success: false, offline: true };
+        }
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('family_emails')
+                .upsert({
+                    family_id: familyCode,
+                    email: email.toLowerCase(),
+                    created_at: new Date().toISOString()
+                }, {
+                    onConflict: 'family_id'
+                });
+            
+            if (error) throw error;
+            
+            console.log('✅ Email vinculado à família');
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Erro ao vincular email:', error);
+            return { success: false, error: error.message };
+        }
+    },
+    
+    /**
      * Recupera código da família pelo email
      */
     async recoverFamilyCode(email) {

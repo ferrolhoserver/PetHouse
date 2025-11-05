@@ -109,6 +109,66 @@ const SupabaseSync = {
         
         console.log('👥 Entrou na família:', familyCode);
         return true;
+    },
+    
+    /**
+     * Salva email da família no Supabase
+     */
+    async saveFamilyEmail(familyId, email) {
+        if (!this.enabled || !supabaseClient) {
+            return { success: false, offline: true };
+        }
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('family_emails')
+                .upsert({
+                    family_id: familyId,
+                    email: email.toLowerCase(),
+                    created_at: new Date().toISOString()
+                }, {
+                    onConflict: 'family_id'
+                });
+            
+            if (error) throw error;
+            
+            console.log('✅ Email vinculado à família');
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Erro ao salvar email:', error);
+            return { success: false, error: error.message };
+        }
+    },
+    
+    /**
+     * Recupera código da família pelo email
+     */
+    async recoverFamilyCode(email) {
+        if (!this.enabled || !supabaseClient) {
+            return { success: false, offline: true };
+        }
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('family_emails')
+                .select('family_id')
+                .eq('email', email.toLowerCase())
+                .single();
+            
+            if (error) {
+                if (error.code === 'PGRST116') {
+                    // Email não encontrado
+                    return { success: false, notFound: true };
+                }
+                throw error;
+            }
+            
+            console.log('🔑 Código recuperado com sucesso');
+            return { success: true, familyCode: data.family_id };
+        } catch (error) {
+            console.error('❌ Erro ao recuperar código:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
 

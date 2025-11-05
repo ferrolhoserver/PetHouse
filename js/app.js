@@ -110,12 +110,17 @@ class PetHouse {
                                 <label>Nome da Casa *</label>
                                 <input type="text" id="casa-nome" placeholder="Ex: Família Silva" required>
                             </div>
+                            <div class="form-group">
+                                <label>Email para Recuperação *</label>
+                                <input type="email" id="casa-email" placeholder="seu@email.com" required>
+                                <small style="color: #666; font-size: 0.85rem;">Usado para recuperar o código da família se esquecer</small>
+                            </div>
                             <button type="submit" class="btn btn-primary">🆕 Criar Minha Família</button>
                         </form>
                     </div>
                     
                     <!-- Opção 2: Entrar em família existente -->
-                    <div style="background: #f0f0f0; padding: 1rem; border-radius: 8px;">
+                    <div style="background: #f0f0f0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
                         <h3 style="margin-top: 0;">👥 Entrar em Família Existente</h3>
                         <p style="font-size: 0.9rem;">Já tem um código? Cole aqui para acessar</p>
                         <form id="join-family-form" class="mt-1">
@@ -124,6 +129,19 @@ class PetHouse {
                                 <input type="text" id="family-code" placeholder="Cole o código aqui" required>
                             </div>
                             <button type="submit" class="btn btn-success">👥 Entrar na Família</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Opção 3: Recuperar código -->
+                    <div style="background: #fff3e0; padding: 1rem; border-radius: 8px;">
+                        <h3 style="margin-top: 0;">🔑 Esqueci Meu Código</h3>
+                        <p style="font-size: 0.9rem;">Recupere seu código usando o email cadastrado</p>
+                        <form id="recover-code-form" class="mt-1">
+                            <div class="form-group">
+                                <label>Email Cadastrado *</label>
+                                <input type="email" id="recover-email" placeholder="seu@email.com" required>
+                            </div>
+                            <button type="submit" class="btn" style="background: #ff9800; color: white;">🔑 Recuperar Código</button>
                         </form>
                     </div>
                 </div>
@@ -439,6 +457,8 @@ class PetHouse {
                 this.handleSetup(e);
             } else if (e.target.id === 'join-family-form') {
                 this.handleJoinFamily(e);
+            } else if (e.target.id === 'recover-code-form') {
+                this.handleRecoverCode(e);
             } else if (e.target.id === 'add-pet-form') {
                 this.handleAddPet(e);
             } else if (e.target.id === 'add-record-form') {
@@ -451,11 +471,35 @@ class PetHouse {
         });
     }
 
-    handleSetup(e) {
+    async handleSetup(e) {
         const casaNome = document.getElementById('casa-nome').value.trim();
-        if (!casaNome) return;
+        const email = document.getElementById('casa-email').value.trim();
+        
+        if (!casaNome || !email) {
+            alert('❌ Por favor, preencha todos os campos.');
+            return;
+        }
+        
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('❌ Por favor, insira um email válido.');
+            return;
+        }
         
         this.data.casaNome = casaNome;
+        this.data.email = email;
+        
+        // Salvar email + código no Supabase
+        if (this.syncEnabled && window.SupabaseSync) {
+            const result = await SupabaseSync.saveFamilyEmail(this.userId, email);
+            if (result.success) {
+                this.showToast('✅ Família criada! Email vinculado com sucesso!', 'success');
+            } else {
+                this.showToast('⚠️ Família criada, mas erro ao vincular email. Tente novamente depois.', 'warning');
+            }
+        }
+        
         this.saveData();
         this.render();
     }
@@ -483,14 +527,55 @@ class PetHouse {
             // Dados encontrados!
             this.data = result.data;
             this.saveData(); // Salvar localmente também
-            this.showToast('✅ Você entrou na família com sucesso!', 'success');
             this.render();
-        } else if (result.firstTime) {
-            // Código válido mas ainda sem dados
-            alert('⚠️ Este código é válido, mas ainda não há dados cadastrados. Aguarde o administrador da família cadastrar os pets.');
+            alert('✅ Bem-vindo! Dados carregados com sucesso.');
         } else {
-            // Erro ao carregar
-            alert('❌ Erro ao entrar na família. Verifique o código e tente novamente.');
+            alert('❌ Código inválido ou sem dados. Verifique e tente novamente.');
+        }
+    }
+    
+    async handleRecoverCode(e) {
+        const email = document.getElementById('recover-email').value.trim();
+        
+        if (!email) {
+            alert('❌ Por favor, insira seu email.');
+            return;
+        }
+        
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('❌ Por favor, insira um email válido.');
+            return;
+        }
+        
+        // Verificar se Supabase está disponível
+        if (!this.syncEnabled || !window.SupabaseSync) {
+            alert('⚠️ Sincronização não está disponível. Verifique sua conexão e tente novamente.');
+            return;
+        }
+        
+        // Buscar código pelo email
+        const result = await SupabaseSync.recoverFamilyCode(email);
+        
+        if (result.success && result.familyCode) {
+            // Mostrar código em um modal
+            this.showModal(`
+                <h2>🎉 Código Recuperado!</h2>
+                <p>Seu código da família é:</p>
+                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0; text-align: center;">
+                    <h1 style="margin: 0; color: #2196F3; font-family: monospace;">${result.familyCode}</h1>
+                </div>
+                <p style="font-size: 0.9rem; color: #666;">
+                    📝 Anote esse código em um lugar seguro!<br>
+                    Você pode usá-lo na opção "Entrar em Família Existente".
+                </p>
+                <button onclick="navigator.clipboard.writeText('${result.familyCode}'); alert('✅ Código copiado!')" class="btn btn-primary" style="margin-top: 1rem;">
+                    📋 Copiar Código
+                </button>
+            `);
+        } else {
+            alert('❌ Email não encontrado. Verifique se digitou corretamente ou crie uma nova família.');
         }
     }
 

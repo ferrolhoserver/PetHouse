@@ -1238,6 +1238,15 @@ END:VEVENT
                 <button class="modal-close" onclick="app.closeModal()">×</button>
             </div>
             <div style="padding: 1rem;">
+                <!-- DEBUG INFO -->
+                <div style="background: #ffeb3b; color: black; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.75rem;">
+                    <strong>DEBUG:</strong><br>
+                    familyCode: ${familyCode || 'null'}<br>
+                    this.data.email: ${this.data.email || 'undefined'}<br>
+                    !this.data.email: ${!this.data.email}<br>
+                    Deve mostrar botão: ${familyCode && !this.data.email}
+                </div>
+                
                 ${familyCode ? `
                     <div style="background: #4caf50; color: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
                         <h3 style="margin-top: 0; color: white;">☁️ Sincronização Automática Ativada!</h3>

@@ -206,7 +206,6 @@ const OCRCartao = {
                 <input type="file" 
                        id="foto-cartao" 
                        accept="image/*" 
-                       capture="environment"
                        style="display: none;"
                        onchange="OCRCartao.processarArquivo('${petId}', this.files[0])">
 

@@ -326,6 +326,9 @@ class PetHouse {
         if (this.currentTab === 'tratamentos' && window.Tratamentos) {
             return window.Tratamentos.renderContent(pet);
         }
+        if (this.currentTab === 'exames' && window.VisualizacaoExames) {
+            return window.VisualizacaoExames.renderizar(pet);
+        }
         
         // Abas antigas (peso, consultas, cirurgias)
         if (!pet[this.currentTab]) {

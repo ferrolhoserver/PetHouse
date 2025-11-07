@@ -66,6 +66,18 @@ const Cuidados = {
                     </button>
                 </div>
                 
+                <div class="cuidados-buttons" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-small" onclick="document.getElementById('modal-content').innerHTML = window.Revacinacao.importarCartaoFisico(); document.getElementById('modal').classList.add('show');" style="background: #9c27b0; color: white;">
+                        📋 Importar Cartão de Vacinação
+                    </button>
+                    <button class="btn btn-small" onclick="Calendario.mostrarExportacao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: #ff9800; color: white;">
+                        📅 Exportar para Calendário
+                    </button>
+                    <button class="btn btn-small" onclick="Alarmes.mostrarGerenciador()" style="background: #f44336; color: white;">
+                        🔔 Gerenciar Alarmes
+                    </button>
+                </div>
+                
                 <!-- Timeline Cronológica -->
                 ${window.TimelineProntuario ? `
                     <div style="margin-bottom: 1.5rem;">

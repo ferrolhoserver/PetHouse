@@ -229,7 +229,7 @@ const VermifugosRapido = {
         `;
 
         document.getElementById('modal-content').innerHTML = modalContent;
-        document.getElementById('modal').classList.add('active');
+        document.getElementById('modal').classList.add('show');
     },
 
     /**

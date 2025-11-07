@@ -158,7 +158,7 @@ const VacinasRapido = {
         `;
 
         document.getElementById('modal-content').innerHTML = modalContent;
-        document.getElementById('modal').classList.add('active');
+        document.getElementById('modal').classList.add('show');
     },
 
     /**
@@ -259,16 +259,24 @@ const VacinasRapido = {
         const veterinario = document.getElementById('veterinario').value;
         const obs = document.getElementById('obs-vacina').value;
 
-        // Calcular próxima dose
+        // Calcular próxima dose usando sistema de revacinação
         let proximaDose = null;
-        if (vacina.intervalo_dias && doseAplicada !== 'reforco') {
-            const dataProx = new Date(dataAplicacao);
-            dataProx.setDate(dataProx.getDate() + vacina.intervalo_dias);
-            proximaDose = dataProx.toISOString().split('T')[0];
-        } else if (vacina.reforco_anual) {
-            const dataProx = new Date(dataAplicacao);
-            dataProx.setFullYear(dataProx.getFullYear() + 1);
-            proximaDose = dataProx.toISOString().split('T')[0];
+        let proximaDoseInfo = null;
+        
+        if (window.Revacinacao) {
+            proximaDoseInfo = window.Revacinacao.calcularProximaDose(vacinaId, doseAplicada, dataAplicacao);
+            proximaDose = proximaDoseInfo ? proximaDoseInfo.data : null;
+        } else {
+            // Fallback para cálculo simples
+            if (vacina.intervalo_dias && doseAplicada !== 'reforco') {
+                const dataProx = new Date(dataAplicacao);
+                dataProx.setDate(dataProx.getDate() + vacina.intervalo_dias);
+                proximaDose = dataProx.toISOString().split('T')[0];
+            } else if (vacina.reforco_anual) {
+                const dataProx = new Date(dataAplicacao);
+                dataProx.setFullYear(dataProx.getFullYear() + 1);
+                proximaDose = dataProx.toISOString().split('T')[0];
+            }
         }
 
         // Criar registro
@@ -288,10 +296,20 @@ const VacinasRapido = {
         if (!pet.vacinas) pet.vacinas = [];
         pet.vacinas.push(registro);
 
+        // Criar alarme automático se houver próxima dose
+        if (proximaDose && window.Alarmes) {
+            window.Alarmes.agendarAlarme(
+                pet.nome,
+                'vacina',
+                proximaDose,
+                `${registro.nome} - Próxima dose`
+            );
+        }
+        
         // Salvar
         app.saveData();
         app.closeModal();
-        app.showToast('✅ Vacina registrada com sucesso!', 'success');
+        app.showToast('✅ Vacina registrada com sucesso!' + (proximaDose ? ' Alarme criado!' : ''), 'success');
         app.render();
     }
 };

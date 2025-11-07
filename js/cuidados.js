@@ -55,10 +55,23 @@ const Cuidados = {
             <div class="tab-content">
                 <h3 style="margin-bottom: 1rem;">💝 Cuidados</h3>
                 <div class="cuidados-buttons" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-primary btn-small" onclick="Cuidados.showAddModal('vacina')">💉 Adicionar Vacina</button>
-                    <button class="btn btn-primary btn-small" onclick="Cuidados.showAddModal('vermifugo')">💊 Adicionar Vermífugo</button>
-                    <button class="btn btn-primary btn-small" onclick="Cuidados.showAddModal('banho_tosa')">🛁 Adicionar Banho/Tosa</button>
+                    <button class="btn btn-success btn-small" onclick="VacinasRapido.mostrarSelecao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);">
+                        💉 Registro Rápido de Vacina
+                    </button>
+                    <button class="btn btn-primary btn-small" onclick="VermifugosRapido.mostrarSelecao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: linear-gradient(135deg, #2196F3 0%, #42a5f5 100%);">
+                        💊 Registro Rápido de Vermífugo
+                    </button>
+                    <button class="btn btn-small" onclick="Cuidados.showAddModal('banho_tosa')" style="background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%); color: white;">
+                        🛁 Adicionar Banho/Tosa
+                    </button>
                 </div>
+                
+                <!-- Timeline Cronológica -->
+                ${window.TimelineProntuario ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        ${window.TimelineProntuario.renderizarResumo(pet)}
+                    </div>
+                ` : ''}
         `;
         
         // Mostrar alertas (se houver)
@@ -67,13 +80,18 @@ const Cuidados = {
             html += alertasHTML;
         }
         
-        // Mostrar registros
-        if (cuidados.length === 0) {
-            html += '<p class="text-muted">Nenhum cuidado registrado ainda.</p>';
+        // Mostrar registros em timeline cronológica
+        if (window.TimelineProntuario) {
+            html += window.TimelineProntuario.renderizar(pet);
         } else {
-            cuidados.forEach(c => {
-                html += this.renderCuidado(c);
-            });
+            // Fallback para renderização antiga
+            if (cuidados.length === 0) {
+                html += '<p class="text-muted">Nenhum cuidado registrado ainda.</p>';
+            } else {
+                cuidados.forEach(c => {
+                    html += this.renderCuidado(c);
+                });
+            }
         }
         
         html += '</div>';

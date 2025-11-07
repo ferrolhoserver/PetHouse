@@ -86,8 +86,20 @@ const Alertas = {
         // Para adultos e idosos: verificar reforços anuais
         if (fase === 'adulto' || fase === 'idoso') {
             vacinasEsperadas.forEach(vacina => {
+                // Extrair nome base da vacina esperada (sem "Reforço Anual")
+                const nomeBase = vacina.nome.toLowerCase().split('(')[0].trim();
+                
+                // Buscar vacina aplicada que corresponda ao nome base
                 const ultimaAplicacao = vacinasAplicadas
-                    .filter(v => v.nome.toLowerCase().includes(vacina.nome.toLowerCase().split('(')[0].trim().toLowerCase()))
+                    .filter(v => {
+                        const nomeAplicado = v.nome.toLowerCase();
+                        // Verificar se o nome aplicado contém o nome base
+                        // Ex: "V10 (Déctupla)" contém "v10" ou "v8 ou v10" contém "v10"
+                        return nomeAplicado.includes(nomeBase) || 
+                               nomeBase.includes(nomeAplicado.split('(')[0].trim()) ||
+                               (nomeBase.includes('v8 ou v10') && (nomeAplicado.includes('v8') || nomeAplicado.includes('v10'))) ||
+                               (nomeBase.includes('antirrábica') && nomeAplicado.includes('antirrábica'));
+                    })
                     .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
 
                 if (!ultimaAplicacao) {

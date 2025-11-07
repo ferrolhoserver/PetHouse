@@ -104,7 +104,7 @@ END:VCALENDAR`;
     /**
      * Adiciona vermífugo ao calendário
      */
-    adicionarVermifu goAoCalendario(pet, vermifugo) {
+    adicionarVermifugoAoCalendario(pet, vermifugo) {
         if (!vermifugo.proxima) {
             app.showToast('❌ Este vermífugo não tem data de próxima aplicação', 'error');
             return;

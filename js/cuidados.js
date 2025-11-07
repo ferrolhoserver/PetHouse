@@ -67,8 +67,8 @@ const Cuidados = {
                 </div>
                 
                 <div class="cuidados-buttons" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-small" onclick="document.getElementById('modal-content').innerHTML = window.Revacinacao.importarCartaoFisico(); document.getElementById('modal').classList.add('show');" style="background: #9c27b0; color: white;">
-                        📋 Importar Cartão de Vacinação
+                    <button class="btn btn-small" onclick="OCRCartao.mostrarEscaneamento('${pet.id}')" style="background: #9c27b0; color: white;">
+                        📸 Escanear Cartão de Vacinação
                     </button>
                     <button class="btn btn-small" onclick="Calendario.mostrarExportacao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: #ff9800; color: white;">
                         📅 Exportar para Calendário

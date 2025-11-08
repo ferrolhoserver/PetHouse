@@ -259,6 +259,45 @@ const VacinasRapido = {
         const veterinario = document.getElementById('veterinario').value;
         const obs = document.getElementById('obs-vacina').value;
 
+        // VALIDAÇÃO 1: Verificar duplicatas (mesma vacina na mesma data)
+        if (!pet.vacinas) pet.vacinas = [];
+        const duplicata = pet.vacinas.find(v => 
+            v.nome.toLowerCase().includes(vacina.nome.toLowerCase()) && 
+            v.data === dataAplicacao
+        );
+        
+        if (duplicata) {
+            app.showToast('⚠️ Já existe um registro desta vacina nesta data!', 'error');
+            return;
+        }
+
+        // VALIDAÇÃO 2: Verificar se está muito cedo (antes do prazo)
+        const ultimaAplicacao = pet.vacinas
+            .filter(v => v.nome.toLowerCase().includes(vacina.nome.toLowerCase()))
+            .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
+        
+        if (ultimaAplicacao && vacina.intervalo_dias) {
+            const dataUltima = new Date(ultimaAplicacao.data);
+            const dataNova = new Date(dataAplicacao);
+            const diasEntre = Math.floor((dataNova - dataUltima) / (1000 * 60 * 60 * 24));
+            const prazoMinimo = vacina.intervalo_dias - 3; // Tolerância de 3 dias
+            
+            if (diasEntre < prazoMinimo) {
+                const confirmar = confirm(
+                    `⚠️ ATENÇÃO!\n\n` +
+                    `Esta dose está sendo aplicada ANTES do prazo recomendado.\n\n` +
+                    `Última aplicação: ${new Date(ultimaAplicacao.data).toLocaleDateString('pt-BR')}\n` +
+                    `Intervalo recomendado: ${vacina.intervalo_dias} dias\n` +
+                    `Intervalo atual: ${diasEntre} dias\n\n` +
+                    `Deseja continuar mesmo assim?`
+                );
+                
+                if (!confirmar) {
+                    return;
+                }
+            }
+        }
+
         // Calcular próxima dose usando sistema de revacinação
         let proximaDose = null;
         let proximaDoseInfo = null;
@@ -293,7 +332,6 @@ const VacinasRapido = {
         };
 
         // Adicionar ao pet
-        if (!pet.vacinas) pet.vacinas = [];
         pet.vacinas.push(registro);
 
         // Criar alarme automático se houver próxima dose

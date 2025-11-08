@@ -88,13 +88,20 @@ const TimelineProntuario = {
                 <!-- Conteúdo -->
                 <div style="background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 3px solid ${registro.cor};">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                        <div>
+                        <div style="flex: 1;">
                             <h4 style="margin: 0; color: ${registro.cor}; font-size: 0.95rem;">${registro.nome}</h4>
                             <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #999;">📅 ${data}</p>
                         </div>
-                        <span style="background: ${registro.cor}15; color: ${registro.cor}; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
-                            ${registro.categoria === 'vacina' ? 'VACINA' : 'VERMÍFUGO'}
-                        </span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span style="background: ${registro.cor}15; color: ${registro.cor}; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                                ${registro.categoria === 'vacina' ? 'VACINA' : 'VERMÍFUGO'}
+                            </span>
+                            <button onclick="TimelineProntuario.excluirRegistro('${registro.id}', '${registro.categoria}')" 
+                                    style="background: #f44336; color: white; border: none; border-radius: 4px; padding: 0.25rem 0.5rem; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;"
+                                    title="Excluir">
+                                🗑️
+                            </button>
+                        </div>
                     </div>
 
                     ${registro.principio_ativo ? `
@@ -191,6 +198,28 @@ const TimelineProntuario = {
                 ` : ''}
             </div>
         `;
+    },
+
+    /**
+     * Exclui registro individual
+     */
+    excluirRegistro(id, categoria) {
+        if (!confirm('⚠️ Tem certeza que deseja excluir este registro?')) {
+            return;
+        }
+
+        const pet = app.data.pets.find(p => p.id === app.currentPet);
+        if (!pet) return;
+
+        if (categoria === 'vacina') {
+            pet.vacinas = pet.vacinas.filter(v => v.id !== id);
+        } else if (categoria === 'vermifugo') {
+            pet.vermifugo = pet.vermifugo.filter(v => v.id !== id);
+        }
+
+        app.saveData();
+        app.showToast('✅ Registro excluído com sucesso', 'success');
+        app.render();
     }
 };
 

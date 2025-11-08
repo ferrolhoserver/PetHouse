@@ -455,11 +455,52 @@ const VermifugosRapido = {
         const lista = personalizado ? this.personalizados : this.vermifugos;
         const vermifugo = lista.find(v => v.id === vermifugoId);
 
+        const dataAplicacao = document.getElementById('data-vermifugo').value;
+
+        // VALIDAÇÃO 1: Verificar duplicatas (mesmo vermífugo na mesma data)
+        if (!pet.vermifugo) pet.vermifugo = [];
+        const duplicata = pet.vermifugo.find(v => 
+            v.nome.toLowerCase() === vermifugo.nome.toLowerCase() && 
+            v.data === dataAplicacao
+        );
+        
+        if (duplicata) {
+            app.showToast('⚠️ Já existe um registro deste vermífugo nesta data!', 'error');
+            return;
+        }
+
+        // VALIDAÇÃO 2: Verificar se está muito cedo (menos de 60 dias da última aplicação)
+        const ultimaAplicacao = pet.vermifugo
+            .filter(v => v.nome.toLowerCase() === vermifugo.nome.toLowerCase())
+            .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
+        
+        if (ultimaAplicacao) {
+            const dataUltima = new Date(ultimaAplicacao.data);
+            const dataNova = new Date(dataAplicacao);
+            const diasEntre = Math.floor((dataNova - dataUltima) / (1000 * 60 * 60 * 24));
+            const prazoMinimo = 60; // Mínimo 60 dias entre aplicações
+            
+            if (diasEntre < prazoMinimo) {
+                const confirmar = confirm(
+                    `⚠️ ATENÇÃO!\n\n` +
+                    `Este vermífugo está sendo aplicado ANTES do prazo recomendado.\n\n` +
+                    `Última aplicação: ${new Date(ultimaAplicacao.data).toLocaleDateString('pt-BR')}\n` +
+                    `Intervalo recomendado: 90 dias (trimestral)\n` +
+                    `Intervalo atual: ${diasEntre} dias\n\n` +
+                    `Deseja continuar mesmo assim?`
+                );
+                
+                if (!confirmar) {
+                    return;
+                }
+            }
+        }
+
         const registro = {
             id: Date.now().toString(),
             nome: vermifugo.nome,
             principio_ativo: vermifugo.principio_ativo,
-            data: document.getElementById('data-vermifugo').value,
+            data: dataAplicacao,
             dose: document.getElementById('dose-aplicada-vermifugo').value,
             lote: document.getElementById('lote-vermifugo').value,
             proxima: document.getElementById('proxima-vermifugo').value,
@@ -469,7 +510,6 @@ const VermifugosRapido = {
         };
 
         // Adicionar ao pet
-        if (!pet.vermifugo) pet.vermifugo = [];
         pet.vermifugo.push(registro);
 
         // Salvar

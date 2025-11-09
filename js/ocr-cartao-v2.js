@@ -169,8 +169,8 @@ const OCRCartaoV2 = {
             
             console.log('✅ [OCR] Tesseract disponível, criando worker...');
 
-            // Etapa 2: Criar worker
-            const worker = await Tesseract.createWorker('por', 1, {
+            // Etapa 2: Criar worker (Tesseract v5)
+            const worker = await Tesseract.createWorker({
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         const progresso = Math.round(m.progress * 100);
@@ -179,7 +179,11 @@ const OCRCartaoV2 = {
                 }
             });
             
-            console.log('✅ [OCR] Worker criado, reconhecendo texto...');
+            console.log('✅ [OCR] Worker criado, carregando idioma português...');
+            await worker.loadLanguage('por');
+            await worker.initialize('por');
+            
+            console.log('✅ [OCR] Idioma carregado, reconhecendo texto...');
 
             // Etapa 3: Reconhecer texto
             const { data: { text } } = await worker.recognize(arquivo);
@@ -224,8 +228,10 @@ const OCRCartaoV2 = {
         try {
             app.showToast('🐛 Processando cartão de vermífugos...', 'info');
 
-            // OCR básico
-            const worker = await Tesseract.createWorker('por', 1);
+            // OCR básico (Tesseract v5)
+            const worker = await Tesseract.createWorker();
+            await worker.loadLanguage('por');
+            await worker.initialize('por');
             const { data: { text } } = await worker.recognize(arquivo);
             await worker.terminate();
 

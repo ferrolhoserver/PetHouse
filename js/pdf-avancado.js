@@ -50,9 +50,11 @@ const PDFAvancado = {
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
-                    <button class="btn btn-success" onclick="window.PDFAvancado.baixarPDF()">📥 Baixar PDF</button>
-                    <button class="btn btn-primary" onclick="window.PDFAvancado.gerarComOpcoes()">🖨️ Imprimir</button>
+                    <button class="btn btn-primary" onclick="window.PDFAvancado.gerarComOpcoes()">🖨️ Visualizar/Imprimir</button>
                 </div>
+                <p style="margin-top: 10px; font-size: 11px; color: #666; text-align: center;">
+                    💡 Dica: Após visualizar, use <strong>Imprimir > Salvar como PDF</strong> para baixar
+                </p>
             </div>
         `;
         document.body.appendChild(modal);
@@ -100,80 +102,7 @@ const PDFAvancado = {
         this.gerarProntuario(pet, casaNome, opcoes);
     },
 
-    /**
-     * Baixa prontuário como PDF
-     */
-    async baixarPDF() {
-        console.log('baixarPDF chamado');
-        
-        // Usar dados armazenados
-        const pet = this.petAtual;
-        const casaNome = this.casaNomeAtual;
-        
-        if (!pet) {
-            alert('Erro: Dados do pet não encontrados!');
-            return;
-        }
 
-        // Coletar opções
-        const opcoes = {
-            periodo: document.getElementById('pdf-periodo').value,
-            resumo: document.getElementById('pdf-resumo').checked,
-            peso: document.getElementById('pdf-peso').checked,
-            vacinas: document.getElementById('pdf-vacinas').checked,
-            vermifugos: document.getElementById('pdf-vermifugos').checked,
-            consultas: document.getElementById('pdf-consultas').checked,
-            cirurgias: document.getElementById('pdf-cirurgias').checked,
-            tratamentos: document.getElementById('pdf-tratamentos').checked,
-            diagnosticos: document.getElementById('pdf-diagnosticos').checked,
-            indice: document.getElementById('pdf-indice').checked,
-            grafico: document.getElementById('pdf-grafico').checked
-        };
-
-        // Fechar modal
-        const modalElement = document.querySelector('.modal.show');
-        if (modalElement) {
-            modalElement.remove();
-        }
-
-        // Verificar se html2pdf está disponível
-        if (typeof html2pdf === 'undefined') {
-            alert('Biblioteca de PDF não carregada. Usando impressão padrão...');
-            this.gerarProntuario(pet, casaNome, opcoes);
-            return;
-        }
-
-        // Gerar HTML do prontuário
-        const html = this.gerarHTML(pet, casaNome, opcoes);
-
-        // Criar elemento temporário
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-        temp.style.position = 'absolute';
-        temp.style.left = '-9999px';
-        document.body.appendChild(temp);
-
-        // Configurar opções do PDF
-        const opt = {
-            margin: 10,
-            filename: `prontuario-${pet.nome}-${new Date().toISOString().split('T')[0]}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        try {
-            // Gerar e baixar PDF
-            await html2pdf().set(opt).from(temp).save();
-            
-            // Remover elemento temporário
-            document.body.removeChild(temp);
-        } catch (error) {
-            console.error('Erro ao gerar PDF:', error);
-            alert('Erro ao gerar PDF. Tente usar a opção de impressão.');
-            document.body.removeChild(temp);
-        }
-    },
 
     /**
      * Filtra dados por período

@@ -1,6 +1,6 @@
 /**
  * Módulo de OCR Inteligente para Cartão de Vacinação V2
- * Sistema avançado com IA, normalização e prevenção de duplicatas
+ * Sistema avançado com análise local, normalização e prevenção de duplicatas
  */
 
 const OCRCartaoV2 = {
@@ -9,42 +9,121 @@ const OCRCartaoV2 = {
      */
     vacinasConhecidas: {
         // Vanguard (Zoetis)
-        'vanguard': { nome: 'V10 (Déctupla)', tipo: 'V10', laboratorio: 'Zoetis', aliases: ['vanguard', 'vanguard plus', 'vanguard p'] },
+        'vanguard': { 
+            nome: 'V10 (Déctupla)', 
+            tipo: 'V10', 
+            laboratorio: 'Zoetis', 
+            aliases: ['vanguard', 'vanguard plus', 'vanguard p', 'vanguard®'],
+            keywords: ['vanguard', 'cinomose', 'parainfluenza', 'coronavirus', 'leptospira']
+        },
         
         // BronchiGuard (Zoetis)
-        'bronchiguard': { nome: 'Gripe Canina (KC)', tipo: 'Gripe Canina', laboratorio: 'Zoetis', aliases: ['bronchiguard', 'bronchi guard', 'tosse dos canis', 'bordetella'] },
+        'bronchiguard': { 
+            nome: 'Gripe Canina (KC)', 
+            tipo: 'Gripe Canina', 
+            laboratorio: 'Zoetis', 
+            aliases: ['bronchiguard', 'bronchi guard', 'tosse dos canis', 'bordetella', 'bronchiguard®'],
+            keywords: ['bronchi', 'tosse', 'bordetella', 'bronchiseptica']
+        },
         
         // GiardiaVax (Zoetis)
-        'giardiavax': { nome: 'Giárdia (1ª dose)', tipo: 'Giárdia', laboratorio: 'Zoetis', aliases: ['giardiavax', 'giardia vax', 'giardia', 'giardíase'] },
+        'giardiavax': { 
+            nome: 'Giárdia', 
+            tipo: 'Giárdia', 
+            laboratorio: 'Zoetis', 
+            aliases: ['giardiavax', 'giardia vax', 'giardia', 'giardíase', 'giardiavax®'],
+            keywords: ['giardia', 'giardíase', 'inativada']
+        },
         
         // Defensor (Zoetis)
-        'defensor': { nome: 'Antirrábica', tipo: 'Antirrábica', laboratorio: 'Zoetis', aliases: ['defensor', 'raiva', 'antirrábica', 'antirrabica'] },
+        'defensor': { 
+            nome: 'Antirrábica', 
+            tipo: 'Antirrábica', 
+            laboratorio: 'Zoetis', 
+            aliases: ['defensor', 'raiva', 'antirrábica', 'antirrabica', 'defensor®'],
+            keywords: ['defensor', 'raiva', 'inativada contra raiva', 'veterinário']
+        },
         
         // Recombitek (Merial)
-        'recombitek': { nome: 'V8 (Óctupla)', tipo: 'V8', laboratorio: 'Merial', aliases: ['recombitek'] },
+        'recombitek': { 
+            nome: 'V8 (Óctupla)', 
+            tipo: 'V8', 
+            laboratorio: 'Merial', 
+            aliases: ['recombitek'],
+            keywords: ['recombitek']
+        },
         
         // Nobivac (MSD)
-        'nobivac': { nome: 'V10 (Déctupla)', tipo: 'V10', laboratorio: 'MSD', aliases: ['nobivac'] },
+        'nobivac': { 
+            nome: 'V10 (Déctupla)', 
+            tipo: 'V10', 
+            laboratorio: 'MSD', 
+            aliases: ['nobivac'],
+            keywords: ['nobivac']
+        },
         
         // Duramune (Boehringer)
-        'duramune': { nome: 'V8 (Óctupla)', tipo: 'V8', laboratorio: 'Boehringer', aliases: ['duramune'] },
+        'duramune': { 
+            nome: 'V8 (Óctupla)', 
+            tipo: 'V8', 
+            laboratorio: 'Boehringer', 
+            aliases: ['duramune'],
+            keywords: ['duramune']
+        },
         
         // Versican (Zoetis)
-        'versican': { nome: 'V10 (Déctupla)', tipo: 'V10', laboratorio: 'Zoetis', aliases: ['versican'] },
+        'versican': { 
+            nome: 'V10 (Déctupla)', 
+            tipo: 'V10', 
+            laboratorio: 'Zoetis', 
+            aliases: ['versican'],
+            keywords: ['versican']
+        },
         
         // Leish-Tec (Leishmaniose)
-        'leish': { nome: 'Leishmaniose (1ª dose)', tipo: 'Leishmaniose', laboratorio: 'Ceva', aliases: ['leish', 'leishmaniose', 'leish-tec', 'leishtec'] }
+        'leish': { 
+            nome: 'Leishmaniose', 
+            tipo: 'Leishmaniose', 
+            laboratorio: 'Ceva', 
+            aliases: ['leish', 'leishmaniose', 'leish-tec', 'leishtec'],
+            keywords: ['leish', 'leishmaniose']
+        }
     },
 
     /**
      * Banco de dados de vermífugos conhecidos
      */
     vermifugosConhecidos: {
-        'vetmax': { nome: 'Vetmax Plus', principios: ['Febendazol', 'Pamoato de Pirantel', 'Praziquantel'], laboratorio: 'Ourofino' },
-        'drontal': { nome: 'Drontal Plus', principios: ['Febantel', 'Pamoato de Pirantel', 'Praziquantel'], laboratorio: 'Bayer' },
-        'endogard': { nome: 'Endogard', principios: ['Febantel', 'Pamoato de Pirantel', 'Praziquantel'], laboratorio: 'Virbac' },
-        'canex': { nome: 'Canex Plus', principios: ['Pamoato de Pirantel', 'Praziquantel'], laboratorio: 'Ceva' },
-        'vermivet': { nome: 'Vermivet', principios: ['Pamoato de Pirantel', 'Praziquantel'], laboratorio: 'Vetnil' }
+        'vetmax': { 
+            nome: 'Vetmax Plus', 
+            principios: ['Febendazol', 'Pamoato de Pirantel', 'Praziquantel'], 
+            laboratorio: 'Ourofino',
+            keywords: ['vetmax']
+        },
+        'drontal': { 
+            nome: 'Drontal Plus', 
+            principios: ['Febantel', 'Pamoato de Pirantel', 'Praziquantel'], 
+            laboratorio: 'Bayer',
+            keywords: ['drontal']
+        },
+        'endogard': { 
+            nome: 'Endogard', 
+            principios: ['Febantel', 'Pamoato de Pirantel', 'Praziquantel'], 
+            laboratorio: 'Virbac',
+            keywords: ['endogard']
+        },
+        'canex': { 
+            nome: 'Canex Plus', 
+            principios: ['Pamoato de Pirantel', 'Praziquantel'], 
+            laboratorio: 'Ceva',
+            keywords: ['canex']
+        },
+        'vermivet': { 
+            nome: 'Vermivet', 
+            principios: ['Pamoato de Pirantel', 'Praziquantel'], 
+            laboratorio: 'Vetnil',
+            keywords: ['vermivet']
+        }
     },
 
     /**
@@ -65,11 +144,11 @@ const OCRCartaoV2 = {
     },
 
     /**
-     * Processa imagem com OCR usando LLM para interpretação inteligente
+     * Processa imagem com OCR e análise local inteligente
      */
     async processarImagem(arquivo) {
         try {
-            app.showToast('📸 Processando imagem com IA...', 'info');
+            app.showToast('📸 Processando cartão de vacinação...', 'info');
 
             // Etapa 1: OCR básico com Tesseract
             const worker = await Tesseract.createWorker('por', 1, {
@@ -84,10 +163,17 @@ const OCRCartaoV2 = {
             const { data: { text } } = await worker.recognize(arquivo);
             await worker.terminate();
 
-            console.log('Texto extraído:', text);
+            console.log('=== TEXTO EXTRAÍDO ===');
+            console.log(text);
 
-            // Etapa 2: Análise inteligente com LLM
-            const resultado = await this.analisarComIA(text);
+            // Etapa 2: Análise inteligente LOCAL
+            const resultado = this.analisarTextoLocal(text, 'vacina');
+            
+            if (resultado.vacinas && resultado.vacinas.length > 0) {
+                app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)!`, 'success');
+            } else {
+                app.showToast('⚠️ Nenhuma vacina identificada. Tente outra foto.', 'warning');
+            }
             
             return resultado;
 
@@ -96,168 +182,6 @@ const OCRCartaoV2 = {
             app.showToast('❌ Erro ao processar imagem', 'error');
             return null;
         }
-    },
-
-    /**
-     * Analisa texto usando LLM para interpretação inteligente
-     */
-    async analisarComIA(texto) {
-        try {
-            // Preparar prompt para o LLM
-            const prompt = `Você é um especialista em análise de cartões de vacinação veterinária.
-
-Analise o texto extraído de um cartão de vacinação e identifique:
-
-1. **Vacinas aplicadas** (nome comercial e tipo)
-2. **Datas de aplicação** (formato DD/MM/AAAA)
-3. **Lotes** (se disponíveis)
-4. **Veterinário** (se mencionado)
-
-**Regras importantes:**
-- Normalize nomes de vacinas para o padrão brasileiro
-- Vanguard/Vanguard Plus → "V10 (Déctupla)"
-- BronchiGuard → "Gripe Canina (KC)"
-- GiardiaVax → "Giárdia (1ª dose)"
-- Defensor → "Antirrábica"
-- Identifique se é 1ª dose, revacinação ou reforço
-- Converta anos de 2 dígitos (25 → 2025, 26 → 2026)
-
-**Texto do cartão:**
-${texto}
-
-**Responda APENAS com um JSON válido no formato:**
-{
-  "vacinas": [
-    {
-      "nome": "V10 (Déctupla)",
-      "tipo": "V10",
-      "laboratorio": "Zoetis",
-      "data": "2025-11-07",
-      "dose": "1ª dose",
-      "lote": "ABC123",
-      "veterinario": "José Horácio",
-      "proximaDose": "2025-11-28"
-    }
-  ],
-  "sucesso": true
-}`;
-
-            // Chamar LLM
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY || window.OPENAI_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4.1-mini',
-                    messages: [
-                        { role: 'system', content: 'Você é um assistente especializado em análise de cartões de vacinação veterinária. Responda sempre com JSON válido.' },
-                        { role: 'user', content: prompt }
-                    ],
-                    temperature: 0.1,
-                    max_tokens: 2000
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro na API do LLM');
-            }
-
-            const data = await response.json();
-            const jsonText = data.choices[0].message.content.trim();
-            
-            // Extrair JSON (remover markdown se houver)
-            const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('Resposta inválida do LLM');
-            }
-
-            const resultado = JSON.parse(jsonMatch[0]);
-            
-            // Adicionar texto completo
-            resultado.textoCompleto = texto;
-            
-            return resultado;
-
-        } catch (error) {
-            console.error('Erro na análise com IA:', error);
-            
-            // Fallback: análise básica sem IA
-            return this.analisarTextoBasico(texto);
-        }
-    },
-
-    /**
-     * Análise básica (fallback sem IA)
-     */
-    analisarTextoBasico(texto) {
-        const textoLower = texto.toLowerCase();
-        const vacinas = [];
-        const datas = [];
-
-        // Extrair datas
-        let match;
-        this.padroes.data.lastIndex = 0;
-        while ((match = this.padroes.data.exec(texto)) !== null) {
-            const dia = match[1].padStart(2, '0');
-            const mes = match[2].padStart(2, '0');
-            let ano = match[3];
-            
-            if (ano.length === 2) {
-                ano = parseInt(ano) > 50 ? '19' + ano : '20' + ano;
-            }
-            
-            datas.push(`${ano}-${mes}-${dia}`);
-        }
-
-        // Identificar vacinas
-        for (const [chave, vacina] of Object.entries(this.vacinasConhecidas)) {
-            for (const alias of vacina.aliases) {
-                if (textoLower.includes(alias)) {
-                    vacinas.push({
-                        nome: vacina.nome,
-                        tipo: vacina.tipo,
-                        laboratorio: vacina.laboratorio,
-                        data: datas[0] || null,
-                        dose: '1ª dose',
-                        encontrado: true
-                    });
-                    break;
-                }
-            }
-        }
-
-        return {
-            vacinas: vacinas,
-            sucesso: vacinas.length > 0,
-            textoCompleto: texto
-        };
-    },
-
-    /**
-     * Verifica se vacina já existe (prevenção de duplicatas)
-     */
-    verificarDuplicata(pet, vacina) {
-        if (!pet.vacinas || pet.vacinas.length === 0) {
-            return false;
-        }
-
-        // Tolerância de 3 dias
-        const dataVacina = new Date(vacina.data);
-        const tolerancia = 3 * 24 * 60 * 60 * 1000; // 3 dias em ms
-
-        for (const v of pet.vacinas) {
-            const dataExistente = new Date(v.data);
-            const diferencaDias = Math.abs(dataVacina - dataExistente);
-
-            // Mesma vacina e data próxima = duplicata
-            if (v.nome === vacina.nome && diferencaDias <= tolerancia) {
-                return true;
-            }
-        }
-
-        return false;
     },
 
     /**
@@ -272,10 +196,17 @@ ${texto}
             const { data: { text } } = await worker.recognize(arquivo);
             await worker.terminate();
 
-            console.log('Texto extraído (vermífugo):', text);
+            console.log('=== TEXTO EXTRAÍDO (VERMÍFUGO) ===');
+            console.log(text);
 
-            // Análise inteligente
-            const resultado = await this.analisarVermifugoComIA(text);
+            // Análise inteligente LOCAL
+            const resultado = this.analisarTextoLocal(text, 'vermifugo');
+            
+            if (resultado.vermifugos && resultado.vermifugos.length > 0) {
+                app.showToast(`✅ ${resultado.vermifugos.length} vermífugo(s) identificado(s)!`, 'success');
+            } else {
+                app.showToast('⚠️ Nenhum vermífugo identificado. Tente outra foto.', 'warning');
+            }
             
             return resultado;
 
@@ -287,113 +218,202 @@ ${texto}
     },
 
     /**
-     * Analisa vermífugos com IA
+     * Análise inteligente LOCAL do texto extraído
      */
-    async analisarVermifugoComIA(texto) {
-        try {
-            const prompt = `Você é um especialista em análise de cartões de vermifugação veterinária.
-
-Analise o texto extraído e identifique:
-
-1. **Produto vermífugo** (nome comercial)
-2. **Princípios ativos**
-3. **Datas de aplicação**
-4. **Próxima dose** (geralmente 3-6 meses depois)
-
-**Produtos conhecidos:**
-- Vetmax Plus (Febendazol, Pamoato de Pirantel, Praziquantel)
-- Drontal Plus (Febantel, Pamoato de Pirantel, Praziquantel)
-- Endogard, Canex Plus, Vermivet
-
-**Texto do cartão:**
-${texto}
-
-**Responda APENAS com JSON válido:**
-{
-  "vermifugos": [
-    {
-      "produto": "Vetmax Plus",
-      "principios": ["Febendazol 200 mg", "Pamoato de Pirantel 144 mg", "Praziquantel 50 mg"],
-      "data": "2025-11-06",
-      "proximaDose": "2026-02-06"
-    }
-  ],
-  "sucesso": true
-}`;
-
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY || window.OPENAI_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'gpt-4.1-mini',
-                    messages: [
-                        { role: 'system', content: 'Você é um assistente especializado em análise de cartões de vermifugação. Responda sempre com JSON válido.' },
-                        { role: 'user', content: prompt }
-                    ],
-                    temperature: 0.1,
-                    max_tokens: 1500
-                })
-            });
-
-            if (!response.ok) throw new Error('Erro na API do LLM');
-
-            const data = await response.json();
-            const jsonText = data.choices[0].message.content.trim();
-            const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-            
-            if (!jsonMatch) throw new Error('Resposta inválida do LLM');
-
-            const resultado = JSON.parse(jsonMatch[0]);
-            resultado.textoCompleto = texto;
-            resultado.tipo = 'vermifugo';
-            
-            return resultado;
-
-        } catch (error) {
-            console.error('Erro na análise de vermífugo com IA:', error);
-            return this.analisarVermifugoBasico(texto);
+    analisarTextoLocal(texto, tipo = 'vacina') {
+        const textoLower = texto.toLowerCase();
+        const linhas = texto.split('\n');
+        
+        // Extrair todas as datas primeiro
+        const datas = this.extrairDatas(texto);
+        console.log(`Datas encontradas: ${datas.length}`, datas);
+        
+        if (tipo === 'vacina') {
+            return this.analisarVacinas(texto, textoLower, linhas, datas);
+        } else {
+            return this.analisarVermifugos(texto, textoLower, linhas, datas);
         }
     },
 
     /**
-     * Análise básica de vermífugos (fallback)
+     * Analisa vacinas no texto
      */
-    analisarVermifugoBasico(texto) {
-        const textoLower = texto.toLowerCase();
-        const vermifugos = [];
-        const datas = [];
-
-        // Extrair datas
-        let match;
-        this.padroes.data.lastIndex = 0;
-        while ((match = this.padroes.data.exec(texto)) !== null) {
-            const dia = match[1].padStart(2, '0');
-            const mes = match[2].padStart(2, '0');
-            let ano = match[3];
-            
-            if (ano.length === 2) {
-                ano = parseInt(ano) > 50 ? '19' + ano : '20' + ano;
+    analisarVacinas(texto, textoLower, linhas, datas) {
+        const vacinas = [];
+        const vacinasEncontradas = new Set();
+        
+        // Identificar vacinas presentes
+        for (const [chave, vacina] of Object.entries(this.vacinasConhecidas)) {
+            // Verificar aliases
+            for (const alias of vacina.aliases) {
+                if (textoLower.includes(alias.toLowerCase())) {
+                    vacinasEncontradas.add(chave);
+                    console.log(`✓ Vacina encontrada: ${vacina.nome} (via alias: ${alias})`);
+                    break;
+                }
             }
             
-            datas.push(`${ano}-${mes}-${dia}`);
+            // Verificar keywords
+            if (!vacinasEncontradas.has(chave)) {
+                for (const keyword of vacina.keywords) {
+                    if (textoLower.includes(keyword.toLowerCase())) {
+                        vacinasEncontradas.add(chave);
+                        console.log(`✓ Vacina encontrada: ${vacina.nome} (via keyword: ${keyword})`);
+                        break;
+                    }
+                }
+            }
         }
-
-        // Identificar vermífugos
-        for (const [chave, vermifugo] of Object.entries(this.vermifugosConhecidos)) {
-            if (textoLower.includes(chave)) {
-                vermifugos.push({
-                    produto: vermifugo.nome,
-                    principios: vermifugo.principios,
-                    data: datas[0] || null,
-                    encontrado: true
+        
+        console.log(`Total de vacinas diferentes identificadas: ${vacinasEncontradas.size}`);
+        
+        // Para cada vacina encontrada, buscar suas aplicações
+        for (const chave of vacinasEncontradas) {
+            const vacina = this.vacinasConhecidas[chave];
+            const aplicacoes = this.buscarAplicacoes(texto, textoLower, linhas, vacina, datas);
+            
+            console.log(`${vacina.nome}: ${aplicacoes.length} aplicação(ões)`);
+            
+            for (const app of aplicacoes) {
+                vacinas.push({
+                    nome: vacina.nome,
+                    tipo: vacina.tipo,
+                    laboratorio: vacina.laboratorio,
+                    data: app.data,
+                    dose: app.dose,
+                    lote: app.lote,
+                    veterinario: app.veterinario,
+                    proximaDose: app.proximaDose
                 });
-                break;
             }
         }
+        
+        // Se não encontrou vacinas específicas mas tem datas, criar registros genéricos
+        if (vacinas.length === 0 && datas.length > 0) {
+            console.log('⚠️ Nenhuma vacina específica identificada, criando registros genéricos...');
+            
+            // Verificar se tem indicação de revacinação
+            const temRevacinacao = /revacina[çc][ãa]o/gi.test(texto);
+            
+            if (temRevacinacao) {
+                datas.forEach((data, idx) => {
+                    vacinas.push({
+                        nome: 'Revacinação',
+                        tipo: 'Revacinação',
+                        laboratorio: 'Não identificado',
+                        data: data,
+                        dose: `${idx + 1}ª aplicação`,
+                        lote: '',
+                        veterinario: '',
+                        proximaDose: null
+                    });
+                });
+            }
+        }
+        
+        return {
+            vacinas: vacinas,
+            sucesso: vacinas.length > 0,
+            textoCompleto: texto,
+            tipo: 'vacina'
+        };
+    },
 
+    /**
+     * Busca aplicações de uma vacina específica
+     */
+    buscarAplicacoes(texto, textoLower, linhas, vacina, todasDatas) {
+        const aplicacoes = [];
+        
+        // Encontrar contexto da vacina no texto
+        const nomeVacina = vacina.aliases[0];
+        const regexVacina = new RegExp(nomeVacina, 'gi');
+        let match;
+        const posicoes = [];
+        
+        while ((match = regexVacina.exec(texto)) !== null) {
+            posicoes.push(match.index);
+        }
+        
+        console.log(`  Posições de "${nomeVacina}": ${posicoes.length}`);
+        
+        // Se encontrou a vacina no texto, buscar datas próximas
+        if (posicoes.length > 0) {
+            for (const pos of posicoes) {
+                // Pegar contexto (300 caracteres antes e depois)
+                const inicio = Math.max(0, pos - 300);
+                const fim = Math.min(texto.length, pos + 300);
+                const contexto = texto.substring(inicio, fim);
+                
+                // Buscar datas no contexto
+                const datasContexto = this.extrairDatas(contexto);
+                
+                if (datasContexto.length > 0) {
+                    // Usar a primeira data encontrada
+                    const data = datasContexto[0];
+                    
+                    // Buscar lote
+                    const lote = this.extrairLote(contexto);
+                    
+                    // Determinar dose
+                    let dose = '1ª dose';
+                    if (/revacina[çc][ãa]o|refor[çc]o|2[ªº]?\s*dose/gi.test(contexto)) {
+                        dose = 'Revacinação';
+                    } else if (/3[ªº]?\s*dose/gi.test(contexto)) {
+                        dose = '3ª dose';
+                    }
+                    
+                    aplicacoes.push({
+                        data: data,
+                        dose: dose,
+                        lote: lote,
+                        veterinario: '',
+                        proximaDose: this.calcularProximaDose(data, dose)
+                    });
+                }
+            }
+        }
+        
+        // Se não encontrou aplicações mas a vacina está presente, usar datas genéricas
+        if (aplicacoes.length === 0 && todasDatas.length > 0) {
+            // Usar primeira data disponível
+            aplicacoes.push({
+                data: todasDatas[0],
+                dose: '1ª dose',
+                lote: '',
+                veterinario: '',
+                proximaDose: this.calcularProximaDose(todasDatas[0], '1ª dose')
+            });
+        }
+        
+        return aplicacoes;
+    },
+
+    /**
+     * Analisa vermífugos no texto
+     */
+    analisarVermifugos(texto, textoLower, linhas, datas) {
+        const vermifugos = [];
+        
+        // Identificar vermífugos presentes
+        for (const [chave, vermifugo] of Object.entries(this.vermifugosConhecidos)) {
+            for (const keyword of vermifugo.keywords) {
+                if (textoLower.includes(keyword.toLowerCase())) {
+                    // Para cada data, criar um registro
+                    datas.forEach((data, idx) => {
+                        vermifugos.push({
+                            produto: vermifugo.nome,
+                            principios: vermifugo.principios,
+                            laboratorio: vermifugo.laboratorio,
+                            data: data,
+                            proximaDose: this.calcularProximaDoseVermifugo(data)
+                        });
+                    });
+                    break;
+                }
+            }
+        }
+        
         return {
             vermifugos: vermifugos,
             sucesso: vermifugos.length > 0,
@@ -403,32 +423,129 @@ ${texto}
     },
 
     /**
+     * Extrai datas do texto
+     */
+    extrairDatas(texto) {
+        const datas = [];
+        const regex = /(\d{1,2})[\s\/\-\.](\d{1,2})[\s\/\-\.](\d{2,4})/g;
+        let match;
+        
+        while ((match = regex.exec(texto)) !== null) {
+            let dia = match[1].padStart(2, '0');
+            let mes = match[2].padStart(2, '0');
+            let ano = match[3];
+            
+            // Corrigir ano de 2 dígitos
+            if (ano.length === 2) {
+                const anoNum = parseInt(ano);
+                ano = anoNum > 50 ? '19' + ano : '20' + ano;
+            }
+            
+            // Validar data
+            const diaNum = parseInt(dia);
+            const mesNum = parseInt(mes);
+            
+            if (diaNum >= 1 && diaNum <= 31 && mesNum >= 1 && mesNum <= 12) {
+                const dataFormatada = `${ano}-${mes}-${dia}`;
+                
+                // Evitar duplicatas
+                if (!datas.includes(dataFormatada)) {
+                    datas.push(dataFormatada);
+                }
+            }
+        }
+        
+        return datas;
+    },
+
+    /**
+     * Extrai lote do texto
+     */
+    extrairLote(texto) {
+        const match = /(?:lote|lot|l\.?|part|fabr|venc)\s*[:\/]?\s*([A-Z0-9\-\/]+)/gi.exec(texto);
+        return match ? match[1] : '';
+    },
+
+    /**
+     * Calcula próxima dose (vacina)
+     */
+    calcularProximaDose(dataStr, dose) {
+        if (dose.toLowerCase().includes('revacinação') || dose.toLowerCase().includes('reforço')) {
+            // Revacinação anual
+            const data = new Date(dataStr);
+            data.setFullYear(data.getFullYear() + 1);
+            return data.toISOString().split('T')[0];
+        } else if (dose === '1ª dose') {
+            // 2ª dose após 21-30 dias
+            const data = new Date(dataStr);
+            data.setDate(data.getDate() + 21);
+            return data.toISOString().split('T')[0];
+        }
+        return null;
+    },
+
+    /**
+     * Calcula próxima dose (vermífugo)
+     */
+    calcularProximaDoseVermifugo(dataStr) {
+        // Vermífugo a cada 3 meses
+        const data = new Date(dataStr);
+        data.setMonth(data.getMonth() + 3);
+        return data.toISOString().split('T')[0];
+    },
+
+    /**
+     * Verifica se é duplicata
+     */
+    verificarDuplicata(pet, vacina) {
+        if (!pet.vacinas || pet.vacinas.length === 0) return false;
+        
+        const dataVacina = new Date(vacina.data);
+        const nomeVacinaNorm = vacina.nome.toLowerCase().trim();
+        
+        for (const v of pet.vacinas) {
+            const dataExistente = new Date(v.data);
+            const nomeExistenteNorm = v.nome.toLowerCase().trim();
+            
+            // Mesma vacina
+            const mesmaVacina = nomeExistenteNorm.includes(nomeVacinaNorm) || 
+                               nomeVacinaNorm.includes(nomeExistenteNorm);
+            
+            // Diferença de até 3 dias
+            const diffDias = Math.abs((dataVacina - dataExistente) / (1000 * 60 * 60 * 24));
+            const mesmaData = diffDias <= 3;
+            
+            if (mesmaVacina && mesmaData) {
+                return true;
+            }
+        }
+        
+        return false;
+    },
+
+    /**
      * Modal de escaneamento
      */
     mostrarEscaneamento(petId, tipo = 'vacina') {
+        const tituloTipo = tipo === 'vermifugo' ? 'Vermifugação' : 'Vacinação';
+        const iconeTipo = tipo === 'vermifugo' ? '🐛' : '💉';
+        
         const modalContent = `
-                <div class="modal-header">
-                <h2>📸 Escanear Cartão de ${tipo === 'vermifugo' ? 'Vermifugação' : 'Vacinação'}</h2>
+            <div class="modal-header">
+                <h2>📸 Escanear Cartão de ${tituloTipo}</h2>
                 <button class="modal-close" onclick="app.closeModal()">×</button>
             </div>
-            <div style="padding: 1rem;">
-                <div style="background: #e3f2fd; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                    <p style="margin: 0; font-size: 0.9rem; color: #1976d2;">
-                        📱 <strong>Como usar:</strong><br>
-                        1. Tire uma foto clara do cartão de vacinação<br>
-                        2. Certifique-se de que o texto está legível<br>
-                        3. O sistema lerá automaticamente as vacinas, datas e lotes<br>
-                        4. Revise os dados antes de salvar
-                    </p>
-                </div>
-
-                <div style="text-align: center; padding: 2rem; border: 2px dashed #ccc; border-radius: 8px; margin-bottom: 1rem; cursor: pointer;" 
-                     onclick="document.getElementById('foto-cartao-v2').click();">
-                    <div style="font-size: 4rem; margin-bottom: 1rem;">📸💡</div>
-                    <p style="margin: 0; color: #666; font-size: 1.1rem;">
-                        <strong>Clique para tirar foto ou selecionar imagem</strong>
-                    </p>
-                    <p style="margin: 0.5rem 0 0 0; color: #999; font-size: 0.9rem;">
+            <div class="modal-body">
+                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #1976d2;">📱 Como usar:</h4>
+                    <ol style="margin: 0; padding-left: 1.5rem; color: #555;">
+                        <li>Tire uma foto clara do cartão de ${tipo === 'vermifugo' ? 'vermifugação' : 'vacinação'}</li>
+                        <li>Certifique-se de que o texto está legível</li>
+                        <li>O sistema lerá automaticamente as ${tipo === 'vermifugo' ? 'vermifugações' : 'vacinas'}, datas e lotes</li>
+                        <li>Revise os dados antes de salvar</li>
+                    </ol>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #666;">
+                        ${iconeTipo} <strong>Dica:</strong> Boa iluminação e foto nítida melhoram o resultado!<br>
                         Formatos aceitos: JPG, PNG
                     </p>
                 </div>
@@ -445,19 +562,14 @@ ${texto}
 
                 <div id="resultado-ocr-v2" style="display: none;"></div>
 
-                <div style="background: #fff3cd; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-                    <p style="margin: 0; font-size: 0.85rem; color: #856404;">
-                        💡 <strong>Dicas para melhor resultado:</strong><br>
-                        • Boa iluminação<br>
-                        • Foto nítida (sem tremor)<br>
-                        • Cartão plano (sem dobras)<br>
-                        • Texto bem visível<br>
-                        • Adesivos de vacinas visíveis
-                    </p>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button class="btn btn-primary" onclick="document.getElementById('foto-cartao-v2').click()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                        📸 Selecionar Foto do Cartão
+                    </button>
                 </div>
             </div>
         `;
-
+        
         document.getElementById('modal-content').innerHTML = modalContent;
         document.getElementById('modal').classList.add('show');
     },
@@ -500,24 +612,29 @@ ${texto}
         
         let vacinasHTML = '';
         
-        if (resultado.vacinas && resultado.vacinas.length > 0) {
+        // Renderizar vacinas
+        if (tipo === 'vacina' && resultado.vacinas) {
             vacinasHTML = resultado.vacinas.map((v, idx) => {
                 const isDuplicata = this.verificarDuplicata(pet, v);
+                const corBorda = isDuplicata ? '#f44336' : '#4caf50';
+                const iconeStatus = isDuplicata ? '⚠️' : '✅';
+                const labelStatus = isDuplicata ? 'JÁ EXISTE' : 'NOVA';
                 
                 return `
-                <div style="background: ${isDuplicata ? '#ffebee' : 'white'}; padding: 1rem; border-radius: 4px; border-left: 4px solid ${isDuplicata ? '#f44336' : '#4caf50'}; margin-bottom: 0.75rem;">
+                <div style="background: white; padding: 1rem; border-radius: 4px; border-left: 4px solid ${corBorda}; margin-bottom: 0.75rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <h4 style="margin: 0 0 0.5rem 0; color: ${isDuplicata ? '#f44336' : '#4caf50'};">
-                                ${isDuplicata ? '⚠️' : '✅'} ${v.nome}
-                            </h4>
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: ${corBorda};">
+                                    ${iconeStatus} ${v.nome}
+                                </h4>
+                                ${isDuplicata ? '<span style="background: #f44336; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">DUPLICATA</span>' : ''}
+                            </div>
                             ${v.laboratorio ? `<p style="margin: 0; font-size: 0.85rem; color: #666;">Laboratório: ${v.laboratorio}</p>` : ''}
                             ${v.data ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">Data: ${new Date(v.data).toLocaleDateString('pt-BR')}</p>` : ''}
                             ${v.dose ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">Dose: ${v.dose}</p>` : ''}
                             ${v.lote ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">Lote: ${v.lote}</p>` : ''}
-                            ${v.veterinario ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #666;">Veterinário: ${v.veterinario}</p>` : ''}
                             ${v.proximaDose ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #ff9800;">Próxima dose: ${new Date(v.proximaDose).toLocaleDateString('pt-BR')}</p>` : ''}
-                            ${isDuplicata ? '<p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #f44336; font-weight: bold;">⚠️ Já existe registro similar</p>' : ''}
                         </div>
                         <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                             <input type="checkbox" 
@@ -534,8 +651,6 @@ ${texto}
         // Renderizar vermífugos se for o caso
         if (tipo === 'vermifugo' && resultado.vermifugos) {
             vacinasHTML = resultado.vermifugos.map((v, idx) => {
-                const isDuplicata = false; // TODO: implementar verificação de duplicata para vermífugos
-                
                 return `
                 <div style="background: white; padding: 1rem; border-radius: 4px; border-left: 4px solid #ff9800; margin-bottom: 0.75rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -583,7 +698,7 @@ ${texto}
                 </details>
             </div>
         `;
-
+        
         document.getElementById('resultado-ocr-v2').innerHTML = resultadoHTML;
         document.getElementById('resultado-ocr-v2').style.display = 'block';
     },

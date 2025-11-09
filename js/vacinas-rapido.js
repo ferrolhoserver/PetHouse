@@ -12,6 +12,7 @@ const VacinasRapido = {
             {
                 id: 'v8',
                 nome: 'V8 (Óctupla)',
+                nomes_alternativos: ['V8', 'Óctupla', 'Polivalente 8'],
                 descricao: 'Cinomose, Parvovirose, Hepatite, Adenovirose, Parainfluenza, Coronavirose, Leptospirose (2 cepas)',
                 doses: 3,
                 intervalo_dias: 21,
@@ -21,6 +22,7 @@ const VacinasRapido = {
             {
                 id: 'v10',
                 nome: 'V10 (Déctupla)',
+                nomes_alternativos: ['V10', 'Déctupla', 'Polivalente 10'],
                 descricao: 'V8 + Leptospirose (4 cepas)',
                 doses: 3,
                 intervalo_dias: 21,
@@ -39,6 +41,7 @@ const VacinasRapido = {
             {
                 id: 'antirrabica',
                 nome: 'Antirrábica',
+                nomes_alternativos: ['Raiva', 'Anti-rábica', 'Rábica'],
                 descricao: 'Proteção contra raiva (obrigatória por lei)',
                 doses: 1,
                 reforco_anual: true,
@@ -46,8 +49,9 @@ const VacinasRapido = {
             },
             {
                 id: 'gripe_canina',
-                nome: 'Gripe Canina (KC)',
-                descricao: 'Tosse dos Canis (Bordetella + Parainfluenza)',
+                nome: 'Gripe Canina',
+                nomes_alternativos: ['Tosse dos Canis', 'KC', 'Kennel Cough', 'Traqueobronquite Infecciosa'],
+                descricao: 'Proteção contra Bordetella bronchiseptica e Para influenza canina',
                 doses: 1,
                 reforco_anual: true,
                 cor: '#ff9800'
@@ -55,7 +59,8 @@ const VacinasRapido = {
             {
                 id: 'leishmaniose',
                 nome: 'Leishmaniose',
-                descricao: 'Proteção contra Leishmaniose Visceral',
+                nomes_alternativos: ['Leish', 'Calazar', 'Leishmaniose Visceral'],
+                descricao: 'Proteção contra Leishmaniose Visceral (recomendada em regiões endêmicas)',
                 doses: 3,
                 intervalo_dias: 21,
                 reforco_anual: true,
@@ -64,7 +69,8 @@ const VacinasRapido = {
             {
                 id: 'giardia',
                 nome: 'Giárdia',
-                descricao: 'Proteção contra Giardia',
+                nomes_alternativos: ['Giardia', 'Giardiáase'],
+                descricao: 'Proteção contra Giardia (parasita intestinal)',
                 doses: 2,
                 intervalo_dias: 21,
                 reforco_anual: true,
@@ -75,6 +81,7 @@ const VacinasRapido = {
             {
                 id: 'v3',
                 nome: 'V3 (Tríplice Felina)',
+                nomes_alternativos: ['V3', 'Tríplice', 'Tríplice Viral Felina'],
                 descricao: 'Panleucopenia, Rinotraqueíte, Calicivirose',
                 doses: 3,
                 intervalo_dias: 21,
@@ -84,6 +91,7 @@ const VacinasRapido = {
             {
                 id: 'v4',
                 nome: 'V4 (Quádrupla Felina)',
+                nomes_alternativos: ['V4', 'Quádrupla', 'Polivalente Felina'],
                 descricao: 'V3 + Clamidiose',
                 doses: 3,
                 intervalo_dias: 21,
@@ -93,6 +101,7 @@ const VacinasRapido = {
             {
                 id: 'v5',
                 nome: 'V5 (Quíntupla Felina)',
+                nomes_alternativos: ['V5', 'Quíntupla'],
                 descricao: 'V4 + Leucemia Felina (FeLV)',
                 doses: 3,
                 intervalo_dias: 21,
@@ -102,6 +111,7 @@ const VacinasRapido = {
             {
                 id: 'antirrabica_felina',
                 nome: 'Antirrábica Felina',
+                nomes_alternativos: ['Raiva Felina', 'Anti-rábica Gato'],
                 descricao: 'Proteção contra raiva (obrigatória por lei)',
                 doses: 1,
                 reforco_anual: true,
@@ -110,6 +120,7 @@ const VacinasRapido = {
             {
                 id: 'felv',
                 nome: 'FeLV (Leucemia Felina)',
+                nomes_alternativos: ['Leucemia Felina', 'FeLV', 'Leukemia'],
                 descricao: 'Proteção contra Leucemia Felina',
                 doses: 2,
                 intervalo_dias: 21,
@@ -133,7 +144,8 @@ const VacinasRapido = {
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div style="flex: 1;">
                         <h4 style="margin: 0 0 0.25rem 0; color: ${v.cor};">${v.nome}</h4>
-                        <p style="margin: 0; font-size: 0.85rem; color: #666;">${v.descricao}</p>
+                        ${v.nomes_alternativos ? `<p style="margin: 0.25rem 0; font-size: 0.75rem; color: #999; font-style: italic;">Também conhecida como: ${v.nomes_alternativos.join(', ')}</p>` : ''}
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #666;">${v.descricao}</p>
                         <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #999;">
                             ${v.doses > 1 ? `📅 ${v.doses} doses (intervalo de ${v.intervalo_dias} dias)` : '📅 Dose única'}
                             ${v.reforco_anual ? ' • 🔄 Reforço anual' : ''}

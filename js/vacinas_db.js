@@ -54,7 +54,8 @@ const VacinasDB = {
                 obrigatoria: true
             },
             {
-                nome: "Tosse dos Canis",
+                nome: "Gripe Canina",
+                nomes_alternativos: ["Tosse dos Canis", "KC", "Kennel Cough"],
                 frequencia_dias: 365,
                 descricao: "Recomendada se exposto a outros cães",
                 obrigatoria: false

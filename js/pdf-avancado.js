@@ -42,7 +42,8 @@ const PDFAvancado = {
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
-                    <button class="btn btn-primary" onclick="PDFAvancado.gerarComOpcoes('${pet.id}', '${casaNome}')">Gerar Prontuário</button>
+                    <button class="btn btn-success" onclick="window.PDFAvancado.baixarPDF('${pet.id}', '${casaNome}')">📥 Baixar PDF</button>
+                    <button class="btn btn-primary" onclick="window.PDFAvancado.gerarComOpcoes('${pet.id}', '${casaNome}')">🖨️ Imprimir</button>
                 </div>
             </div>
         `;
@@ -53,8 +54,62 @@ const PDFAvancado = {
      * Gera prontuário com as opções selecionadas
      */
     gerarComOpcoes(petId, casaNome) {
+        console.log('gerarComOpcoes chamado', petId, casaNome);
+        
         // Buscar pet
         const app = window.app;
+        if (!app || !app.data || !app.data.pets) {
+            alert('Erro: Aplicativo não carregado corretamente!');
+            return;
+        }
+        
+        const pet = app.data.pets.find(p => p.id === petId);
+        
+        if (!pet) {
+            alert('Pet não encontrado!');
+            return;
+        }
+
+        // Coletar opções
+        const opcoes = {
+            periodo: document.getElementById('pdf-periodo').value,
+            resumo: document.getElementById('pdf-resumo').checked,
+            peso: document.getElementById('pdf-peso').checked,
+            vacinas: document.getElementById('pdf-vacinas').checked,
+            vermifugos: document.getElementById('pdf-vermifugos').checked,
+            consultas: document.getElementById('pdf-consultas').checked,
+            cirurgias: document.getElementById('pdf-cirurgias').checked,
+            tratamentos: document.getElementById('pdf-tratamentos').checked,
+            diagnosticos: document.getElementById('pdf-diagnosticos').checked,
+            indice: document.getElementById('pdf-indice').checked,
+            grafico: document.getElementById('pdf-grafico').checked
+        };
+
+        console.log('Opções coletadas:', opcoes);
+
+        // Fechar modal
+        const modalElement = document.querySelector('.modal.show');
+        if (modalElement) {
+            modalElement.remove();
+        }
+
+        // Gerar prontuário
+        this.gerarProntuario(pet, casaNome, opcoes);
+    },
+
+    /**
+     * Baixa prontuário como PDF
+     */
+    async baixarPDF(petId, casaNome) {
+        console.log('baixarPDF chamado', petId, casaNome);
+        
+        // Buscar pet
+        const app = window.app;
+        if (!app || !app.data || !app.data.pets) {
+            alert('Erro: Aplicativo não carregado corretamente!');
+            return;
+        }
+        
         const pet = app.data.pets.find(p => p.id === petId);
         
         if (!pet) {
@@ -78,10 +133,48 @@ const PDFAvancado = {
         };
 
         // Fechar modal
-        document.querySelector('.modal').remove();
+        const modalElement = document.querySelector('.modal.show');
+        if (modalElement) {
+            modalElement.remove();
+        }
 
-        // Gerar prontuário
-        this.gerarProntuario(pet, casaNome, opcoes);
+        // Verificar se html2pdf está disponível
+        if (typeof html2pdf === 'undefined') {
+            alert('Biblioteca de PDF não carregada. Usando impressão padrão...');
+            this.gerarProntuario(pet, casaNome, opcoes);
+            return;
+        }
+
+        // Gerar HTML do prontuário
+        const html = this.gerarHTML(pet, casaNome, opcoes);
+
+        // Criar elemento temporário
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        temp.style.position = 'absolute';
+        temp.style.left = '-9999px';
+        document.body.appendChild(temp);
+
+        // Configurar opções do PDF
+        const opt = {
+            margin: 10,
+            filename: `prontuario-${pet.nome}-${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+            // Gerar e baixar PDF
+            await html2pdf().set(opt).from(temp).save();
+            
+            // Remover elemento temporário
+            document.body.removeChild(temp);
+        } catch (error) {
+            console.error('Erro ao gerar PDF:', error);
+            alert('Erro ao gerar PDF. Tente usar a opção de impressão.');
+            document.body.removeChild(temp);
+        }
     },
 
     /**
@@ -97,16 +190,16 @@ const PDFAvancado = {
 
         switch (periodo) {
             case '6m':
-                dataLimite = new Date(hoje.setMonth(hoje.getMonth() - 6));
+                dataLimite = new Date(hoje.getFullYear(), hoje.getMonth() - 6, hoje.getDate());
                 break;
             case '1y':
-                dataLimite = new Date(hoje.setFullYear(hoje.getFullYear() - 1));
+                dataLimite = new Date(hoje.getFullYear() - 1, hoje.getMonth(), hoje.getDate());
                 break;
             case '2y':
-                dataLimite = new Date(hoje.setFullYear(hoje.getFullYear() - 2));
+                dataLimite = new Date(hoje.getFullYear() - 2, hoje.getMonth(), hoje.getDate());
                 break;
             case '5y':
-                dataLimite = new Date(hoje.setFullYear(hoje.getFullYear() - 5));
+                dataLimite = new Date(hoje.getFullYear() - 5, hoje.getMonth(), hoje.getDate());
                 break;
             default:
                 return dados;
@@ -184,14 +277,9 @@ const PDFAvancado = {
     },
 
     /**
-     * Gera prontuário completo
+     * Gera HTML do prontuário
      */
-    gerarProntuario(pet, casaNome, opcoes) {
-        // Usar PDF padrão se não tiver opções
-        if (!opcoes) {
-            return window.PDF.gerarProntuario(pet, casaNome);
-        }
-
+    gerarHTML(pet, casaNome, opcoes) {
         // Filtrar dados
         const pesoFiltrado = this.filtrarPorPeriodo(pet.peso || [], opcoes.periodo);
         const vacinasFiltrado = this.filtrarPorPeriodo(pet.vacinas || [], opcoes.periodo);
@@ -223,6 +311,78 @@ const PDFAvancado = {
         const pesoAtual = (pesoFiltrado.length > 0) 
             ? pesoFiltrado.sort((a, b) => new Date(b.data) - new Date(a.data))[0].peso + ' kg'
             : 'Não registrado';
+
+        return `
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>🐾 Prontuário Veterinário</h1>
+            <div class="subtitle">${casaNome || 'PetHouse'}</div>
+        </div>
+        
+        <!-- Informações do Pet -->
+        <div class="pet-info">
+            <h2>${pet.nome}</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Espécie:</span>
+                    <span>${pet.especie}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Raça:</span>
+                    <span>${pet.raca || 'SRD'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Sexo:</span>
+                    <span>${pet.sexo || 'Não informado'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Nascimento:</span>
+                    <span>${new Date(pet.nascimento).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Idade:</span>
+                    <span>${calcularIdade(pet.nascimento)}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Peso Atual:</span>
+                    <span>${pesoAtual}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resumo Executivo -->
+        ${opcoes.resumo ? this.gerarResumo(pet, opcoes) : ''}
+        
+        <!-- Índice -->
+        ${opcoes.indice ? this.gerarIndice(pet, opcoes) : ''}
+        
+        <!-- Seções conforme selecionadas -->
+        ${opcoes.peso && pesoFiltrado.length > 0 ? window.PDF.gerarSecaoPeso(pesoFiltrado, opcoes.grafico) : ''}
+        ${opcoes.vacinas && vacinasFiltrado.length > 0 ? window.PDF.gerarSecaoVacinas(vacinasFiltrado) : ''}
+        ${opcoes.vermifugos && vermifugosFiltrado.length > 0 ? window.PDF.gerarSecaoVermifugos(vermifugosFiltrado) : ''}
+        ${opcoes.consultas && consultasFiltrado.length > 0 ? window.PDF.gerarSecaoConsultas(consultasFiltrado) : ''}
+        ${opcoes.cirurgias && cirurgiasFiltrado.length > 0 ? window.PDF.gerarSecaoCirurgias(cirurgiasFiltrado) : ''}
+        ${opcoes.tratamentos && tratamentosFiltrado.length > 0 ? window.PDF.gerarSecaoTratamentos(tratamentosFiltrado) : ''}
+        ${opcoes.diagnosticos && diagnosticosFiltrado.length > 0 ? window.PDF.gerarSecaoDiagnosticos(diagnosticosFiltrado) : ''}
+        
+        <!-- Rodapé -->
+        <div class="footer">
+            <p><strong>Prontuário gerado em:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+            <p>PetHouse - Sistema de Gestão de Pets</p>
+        </div>
+        `;
+    },
+
+    /**
+     * Gera prontuário completo
+     */
+    gerarProntuario(pet, casaNome, opcoes) {
+        console.log('gerarProntuario chamado', pet, opcoes);
+        
+        // Usar PDF padrão se não tiver opções
+        if (!opcoes) {
+            return window.PDF.gerarProntuario(pet, casaNome);
+        }
 
         const html = `
 <!DOCTYPE html>
@@ -536,63 +696,7 @@ const PDFAvancado = {
 </head>
 <body>
     <div class="container">
-        <!-- Cabeçalho -->
-        <div class="header">
-            <h1>🐾 Prontuário Veterinário</h1>
-            <div class="subtitle">${casaNome || 'PetHouse'}</div>
-        </div>
-        
-        <!-- Informações do Pet -->
-        <div class="pet-info">
-            <h2>${pet.nome}</h2>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Espécie:</span>
-                    <span>${pet.especie}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Raça:</span>
-                    <span>${pet.raca || 'SRD'}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Sexo:</span>
-                    <span>${pet.sexo || 'Não informado'}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Nascimento:</span>
-                    <span>${new Date(pet.nascimento).toLocaleDateString('pt-BR')}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Idade:</span>
-                    <span>${calcularIdade(pet.nascimento)}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Peso Atual:</span>
-                    <span>${pesoAtual}</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Resumo Executivo -->
-        ${opcoes.resumo ? this.gerarResumo(pet, opcoes) : ''}
-        
-        <!-- Índice -->
-        ${opcoes.indice ? this.gerarIndice(pet, opcoes) : ''}
-        
-        <!-- Seções conforme selecionadas -->
-        ${opcoes.peso && pesoFiltrado.length > 0 ? window.PDF.gerarSecaoPeso(pesoFiltrado, opcoes.grafico) : ''}
-        ${opcoes.vacinas && vacinasFiltrado.length > 0 ? window.PDF.gerarSecaoVacinas(vacinasFiltrado) : ''}
-        ${opcoes.vermifugos && vermifugosFiltrado.length > 0 ? window.PDF.gerarSecaoVermifugos(vermifugosFiltrado) : ''}
-        ${opcoes.consultas && consultasFiltrado.length > 0 ? window.PDF.gerarSecaoConsultas(consultasFiltrado) : ''}
-        ${opcoes.cirurgias && cirurgiasFiltrado.length > 0 ? window.PDF.gerarSecaoCirurgias(cirurgiasFiltrado) : ''}
-        ${opcoes.tratamentos && tratamentosFiltrado.length > 0 ? window.PDF.gerarSecaoTratamentos(tratamentosFiltrado) : ''}
-        ${opcoes.diagnosticos && diagnosticosFiltrado.length > 0 ? window.PDF.gerarSecaoDiagnosticos(diagnosticosFiltrado) : ''}
-        
-        <!-- Rodapé -->
-        <div class="footer">
-            <p><strong>Prontuário gerado em:</strong> ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-            <p>PetHouse - Sistema de Gestão de Pets</p>
-        </div>
+        ${this.gerarHTML(pet, casaNome, opcoes)}
     </div>
     
     <!-- Botões de Ação -->
@@ -606,6 +710,11 @@ const PDFAvancado = {
 
         // Abrir em nova janela
         const win = window.open('', '_blank');
+        if (!win) {
+            alert('Bloqueador de pop-ups impediu a abertura. Por favor, permita pop-ups para este site.');
+            return;
+        }
+        
         win.document.write(html);
         win.document.close();
     }

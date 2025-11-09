@@ -52,7 +52,7 @@ const PDF = {
 
         // Dimensões do gráfico
         const width = 700;
-        const height = 200;
+        const height = 120;
         const padding = { top: 20, right: 40, bottom: 40, left: 50 };
         const chartWidth = width - padding.left - padding.right;
         const chartHeight = height - padding.top - padding.bottom;
@@ -193,10 +193,10 @@ const PDF = {
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.4;
+            line-height: 1.3;
             color: #333;
             background: white;
-            padding: 20px;
+            padding: 10px;
         }
         
         .container {
@@ -207,43 +207,43 @@ const PDF = {
         /* Cabeçalho */
         .header {
             text-align: center;
-            padding: 20px 0;
-            border-bottom: 3px solid #2196F3;
-            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 2px solid #2196F3;
+            margin-bottom: 12px;
             page-break-after: avoid;
         }
         
         .header h1 {
             color: #2196F3;
-            font-size: 28pt;
-            margin-bottom: 5px;
+            font-size: 20pt;
+            margin-bottom: 3px;
         }
         
         .header .subtitle {
             color: #666;
-            font-size: 11pt;
+            font-size: 9pt;
         }
         
         /* Informações do Pet */
         .pet-info {
             background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
             page-break-inside: avoid;
         }
         
         .pet-info h2 {
             color: #2196F3;
-            font-size: 20pt;
-            margin-bottom: 10px;
+            font-size: 14pt;
+            margin-bottom: 5px;
         }
         
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            font-size: 10pt;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            font-size: 8pt;
         }
         
         .info-item {
@@ -258,16 +258,16 @@ const PDF = {
         
         /* Seções */
         .section {
-            margin-bottom: 25px;
+            margin-bottom: 12px;
             page-break-inside: avoid;
         }
         
         .section h2 {
             color: #2196F3;
-            font-size: 14pt;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #2196F3;
-            margin-bottom: 12px;
+            font-size: 11pt;
+            padding-bottom: 4px;
+            border-bottom: 1.5px solid #2196F3;
+            margin-bottom: 6px;
             page-break-after: avoid;
         }
         
@@ -275,8 +275,8 @@ const PDF = {
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9pt;
-            margin-top: 10px;
+            font-size: 8pt;
+            margin-top: 4px;
         }
         
         thead {
@@ -285,14 +285,14 @@ const PDF = {
         }
         
         th {
-            padding: 8px;
+            padding: 5px 6px;
             text-align: left;
             font-weight: bold;
-            font-size: 9pt;
+            font-size: 8pt;
         }
         
         td {
-            padding: 6px 8px;
+            padding: 4px 6px;
             border-bottom: 1px solid #e0e0e0;
         }
         
@@ -305,38 +305,38 @@ const PDF = {
         }
         
         .empty-section {
-            padding: 15px;
+            padding: 6px;
             text-align: center;
             color: #999;
             font-style: italic;
-            background: #f9f9f9;
-            border-radius: 4px;
-            font-size: 9pt;
+            background: transparent;
+            border-radius: 0;
+            font-size: 8pt;
         }
         
         /* Vacina com detalhes */
         .vacina-detalhes {
-            font-size: 8pt;
+            font-size: 7pt;
             color: #666;
             font-style: italic;
-            margin-top: 2px;
+            margin-top: 1px;
         }
         
         /* Gráfico */
         .grafico-container {
-            margin: 15px 0;
+            margin: 6px 0;
             text-align: center;
             page-break-inside: avoid;
         }
         
         /* Rodapé */
         .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 2px solid #e0e0e0;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #e0e0e0;
             text-align: center;
             color: #999;
-            font-size: 8pt;
+            font-size: 7pt;
             page-break-before: avoid;
         }
         
@@ -381,7 +381,7 @@ const PDF = {
         @media print {
             body {
                 margin: 0;
-                padding: 10mm;
+                padding: 8mm;
             }
             
             .container {
@@ -423,7 +423,7 @@ const PDF = {
         }
         
         @page {
-            margin: 15mm;
+            margin: 10mm;
             size: A4;
         }
     </style>
@@ -476,9 +476,9 @@ const PDF = {
         </div>
         
         <!-- Histórico de Peso com Gráfico -->
+        ${(pet.peso && pet.peso.length > 0) ? `
         <div class="section">
             <h2>⚖️ Histórico de Peso</h2>
-            ${(pet.peso && pet.peso.length > 0) ? `
                 <div class="grafico-container">
                     ${this.gerarGraficoPeso(pet.peso)}
                 </div>
@@ -509,13 +509,13 @@ const PDF = {
                         }).join('')}
                     </tbody>
                 </table>
-            ` : '<div class="empty-section">Nenhum registro de peso cadastrado.</div>'}
         </div>
+            ` : ''}
         
         <!-- Vacinas -->
+        ${(pet.vacinas && pet.vacinas.length > 0) ? `
         <div class="section">
             <h2>💉 Histórico de Vacinas</h2>
-            ${(pet.vacinas && pet.vacinas.length > 0) ? `
                 <table>
                     <thead>
                         <tr>
@@ -550,13 +550,13 @@ const PDF = {
                         }).join('')}
                     </tbody>
                 </table>
-            ` : '<div class="empty-section">Nenhuma vacina cadastrada.</div>'}
         </div>
+            ` : ''}
         
         <!-- Vermífugo -->
+        ${(pet.vermifugo && pet.vermifugo.length > 0) ? `
         <div class="section">
             <h2>💊 Histórico de Vermífugo</h2>
-            ${(pet.vermifugo && pet.vermifugo.length > 0) ? `
                 <table>
                     <thead>
                         <tr>
@@ -583,13 +583,13 @@ const PDF = {
                         `).join('')}
                     </tbody>
                 </table>
-            ` : '<div class="empty-section">Nenhum vermífugo cadastrado.</div>'}
         </div>
+            ` : ''}
         
         <!-- Consultas -->
+        ${(pet.consultas && pet.consultas.length > 0) ? `
         <div class="section">
             <h2>🏥 Histórico de Consultas</h2>
-            ${(pet.consultas && pet.consultas.length > 0) ? `
                 <table>
                     <thead>
                         <tr>
@@ -610,13 +610,13 @@ const PDF = {
                         `).join('')}
                     </tbody>
                 </table>
-            ` : '<div class="empty-section">Nenhuma consulta cadastrada.</div>'}
         </div>
+            ` : ''}
         
         <!-- Cirurgias -->
+        ${(pet.cirurgias && pet.cirurgias.length > 0) ? `
         <div class="section">
             <h2>🔪 Histórico de Cirurgias</h2>
-            ${(pet.cirurgias && pet.cirurgias.length > 0) ? `
                 <table>
                     <thead>
                         <tr>
@@ -637,13 +637,13 @@ const PDF = {
                         `).join('')}
                     </tbody>
                 </table>
-            ` : '<div class="empty-section">Nenhuma cirurgia cadastrada.</div>'}
         </div>
+            ` : ''}
         
         <!-- Tratamentos -->
+        ${(pet.tratamentos && pet.tratamentos.length > 0) ? `
         <div class="section">
             <h2>💊 Histórico de Tratamentos</h2>
-            ${(pet.tratamentos && pet.tratamentos.length > 0) ? `
                 <table>
                     <thead>
                         <tr>
@@ -666,13 +666,13 @@ const PDF = {
                         `).join('')}
                     </tbody>
                 </table>
-            ` : '<div class="empty-section">Nenhum tratamento cadastrado.</div>'}
         </div>
+            ` : ''}
         
         <!-- Diagnósticos -->
+        ${(pet.diagnosticos && pet.diagnosticos.length > 0) ? `
         <div class="section">
             <h2>🔬 Histórico de Diagnósticos</h2>
-            ${(pet.diagnosticos && pet.diagnosticos.length > 0) ? `
                 <table>
                     <thead>
                         <tr>
@@ -693,8 +693,8 @@ const PDF = {
                         `).join('')}
                     </tbody>
                 </table>
-            ` : '<div class="empty-section">Nenhum diagnóstico cadastrado.</div>'}
         </div>
+            ` : ''}
         
         <!-- Rodapé -->
         <div class="footer">

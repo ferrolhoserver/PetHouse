@@ -436,7 +436,6 @@ ${texto}
                 <input type="file" 
                        id="foto-cartao-v2" 
                        accept="image/*" 
-                       capture="environment"
                        style="display: none;"
                        onchange="OCRCartaoV2.processarArquivo('${petId}', this.files[0], '${tipo}')">
 

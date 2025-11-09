@@ -717,6 +717,277 @@ const PDF = {
         const win = window.open('', '_blank');
         win.document.write(html);
         win.document.close();
+    },
+
+    /**
+     * Gera seção de peso (reutilizável)
+     */
+    gerarSecaoPeso(registrosPeso, incluirGrafico = true) {
+        if (!registrosPeso || registrosPeso.length === 0) return '';
+        
+        // Limitar a 20 pontos mais recentes para o gráfico
+        const registrosGrafico = registrosPeso
+            .sort((a, b) => new Date(b.data) - new Date(a.data))
+            .slice(0, 20)
+            .reverse();
+        
+        return `
+        <div class="section" id="peso">
+            <h2>⚖️ Histórico de Peso (${registrosPeso.length} registros)</h2>
+            ${incluirGrafico ? `
+                <div class="grafico-container">
+                    ${this.gerarGraficoPeso(registrosGrafico)}
+                </div>
+            ` : ''}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Peso</th>
+                        <th>Variação</th>
+                        <th>Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${registrosPeso.sort((a, b) => new Date(b.data) - new Date(a.data)).map((p, i, arr) => {
+                        const pesoAtual = parseFloat(p.peso) || 0;
+                        const pesoAnterior = i < arr.length - 1 ? parseFloat(arr[i + 1].peso) || 0 : 0;
+                        const variacao = pesoAnterior > 0 ? pesoAtual - pesoAnterior : 0;
+                        const variacaoTexto = variacao > 0 ? `+${variacao.toFixed(1)} kg` : variacao < 0 ? `${variacao.toFixed(1)} kg` : '-';
+                        
+                        return `
+                            <tr>
+                                <td>${new Date(p.data).toLocaleDateString('pt-BR')}</td>
+                                <td>${p.peso} kg</td>
+                                <td>${variacaoTexto}</td>
+                                <td>${p.obs || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    },
+
+    /**
+     * Gera seção de vacinas (reutilizável)
+     */
+    gerarSecaoVacinas(vacinas) {
+        if (!vacinas || vacinas.length === 0) return '';
+        
+        return `
+        <div class="section" id="vacinas">
+            <h2>💉 Histórico de Vacinas (${vacinas.length} aplicações)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Vacina</th>
+                        <th style="width: 15%;">Data Aplicação</th>
+                        <th style="width: 15%;">Próxima Dose</th>
+                        <th style="width: 15%;">Veterinário</th>
+                        <th style="width: 25%;">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${vacinas.sort((a, b) => new Date(b.data) - new Date(a.data)).map(v => {
+                        const infoVacina = this.buscarInfoVacina(v.nome);
+                        const nomesAlternativos = infoVacina && infoVacina.nomes_alternativos 
+                            ? infoVacina.nomes_alternativos.join(', ') 
+                            : '';
+                        
+                        return `
+                            <tr>
+                                <td>
+                                    <strong>${v.nome}</strong>
+                                    ${v.dose ? `<div class="vacina-detalhes">${v.dose}</div>` : ''}
+                                    ${nomesAlternativos ? `<div class="vacina-detalhes">Também: ${nomesAlternativos}</div>` : ''}
+                                    ${v.lote ? `<div class="vacina-detalhes">Lote: ${v.lote}</div>` : ''}
+                                </td>
+                                <td>${new Date(v.data).toLocaleDateString('pt-BR')}</td>
+                                <td>${v.proxima ? new Date(v.proxima).toLocaleDateString('pt-BR') : '-'}</td>
+                                <td>${v.veterinario || '-'}</td>
+                                <td>${v.obs || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    },
+
+    /**
+     * Gera seção de vermífugos (reutilizável)
+     */
+    gerarSecaoVermifugos(vermifugos) {
+        if (!vermifugos || vermifugos.length === 0) return '';
+        
+        return `
+        <div class="section" id="vermifugos">
+            <h2>💊 Histórico de Vermífugo (${vermifugos.length} aplicações)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Produto</th>
+                        <th style="width: 15%;">Data Aplicação</th>
+                        <th style="width: 15%;">Próxima Dose</th>
+                        <th style="width: 15%;">Veterinário</th>
+                        <th style="width: 25%;">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${vermifugos.sort((a, b) => new Date(b.data) - new Date(a.data)).map(v => `
+                        <tr>
+                            <td>
+                                <strong>${v.nome}</strong>
+                                ${v.principio_ativo ? `<div class="vacina-detalhes">P.A.: ${v.principio_ativo}</div>` : ''}
+                                ${v.dosagem ? `<div class="vacina-detalhes">Dosagem: ${v.dosagem}</div>` : ''}
+                            </td>
+                            <td>${new Date(v.data).toLocaleDateString('pt-BR')}</td>
+                            <td>${v.proxima ? new Date(v.proxima).toLocaleDateString('pt-BR') : '-'}</td>
+                            <td>${v.veterinario || '-'}</td>
+                            <td>${v.obs || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    },
+
+    /**
+     * Gera seção de consultas (reutilizável)
+     */
+    gerarSecaoConsultas(consultas) {
+        if (!consultas || consultas.length === 0) return '';
+        
+        return `
+        <div class="section" id="consultas">
+            <h2>🏥 Histórico de Consultas (${consultas.length} consultas)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Data</th>
+                        <th style="width: 20%;">Veterinário</th>
+                        <th style="width: 25%;">Motivo</th>
+                        <th style="width: 40%;">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${consultas.sort((a, b) => new Date(b.data) - new Date(a.data)).map(c => `
+                        <tr>
+                            <td>${new Date(c.data).toLocaleDateString('pt-BR')}</td>
+                            <td>${c.veterinario || '-'}</td>
+                            <td>${c.motivo || '-'}</td>
+                            <td>${c.obs || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    },
+
+    /**
+     * Gera seção de cirurgias (reutilizável)
+     */
+    gerarSecaoCirurgias(cirurgias) {
+        if (!cirurgias || cirurgias.length === 0) return '';
+        
+        return `
+        <div class="section" id="cirurgias">
+            <h2>🔪 Histórico de Cirurgias (${cirurgias.length} procedimentos)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Data</th>
+                        <th style="width: 20%;">Veterinário</th>
+                        <th style="width: 25%;">Procedimento</th>
+                        <th style="width: 40%;">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${cirurgias.sort((a, b) => new Date(b.data) - new Date(a.data)).map(c => `
+                        <tr>
+                            <td>${new Date(c.data).toLocaleDateString('pt-BR')}</td>
+                            <td>${c.veterinario || '-'}</td>
+                            <td>${c.procedimento || '-'}</td>
+                            <td>${c.obs || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    },
+
+    /**
+     * Gera seção de tratamentos (reutilizável)
+     */
+    gerarSecaoTratamentos(tratamentos) {
+        if (!tratamentos || tratamentos.length === 0) return '';
+        
+        return `
+        <div class="section" id="tratamentos">
+            <h2>💊 Histórico de Tratamentos (${tratamentos.length} tratamentos)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Data Início</th>
+                        <th style="width: 15%;">Data Fim</th>
+                        <th style="width: 25%;">Medicamento</th>
+                        <th style="width: 15%;">Dosagem</th>
+                        <th style="width: 30%;">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tratamentos.sort((a, b) => new Date(b.data_inicio) - new Date(a.data_inicio)).map(t => `
+                        <tr>
+                            <td>${new Date(t.data_inicio).toLocaleDateString('pt-BR')}</td>
+                            <td>${t.data_fim ? new Date(t.data_fim).toLocaleDateString('pt-BR') : 'Em andamento'}</td>
+                            <td>${t.medicamento || '-'}</td>
+                            <td>${t.dosagem || '-'}</td>
+                            <td>${t.obs || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
+    },
+
+    /**
+     * Gera seção de diagnósticos (reutilizável)
+     */
+    gerarSecaoDiagnosticos(diagnosticos) {
+        if (!diagnosticos || diagnosticos.length === 0) return '';
+        
+        return `
+        <div class="section" id="diagnosticos">
+            <h2>🔬 Histórico de Diagnósticos (${diagnosticos.length} diagnósticos)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Data</th>
+                        <th style="width: 20%;">Veterinário</th>
+                        <th style="width: 25%;">Diagnóstico</th>
+                        <th style="width: 40%;">Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${diagnosticos.sort((a, b) => new Date(b.data) - new Date(a.data)).map(d => `
+                        <tr>
+                            <td>${new Date(d.data).toLocaleDateString('pt-BR')}</td>
+                            <td>${d.veterinario || '-'}</td>
+                            <td>${d.diagnostico || '-'}</td>
+                            <td>${d.obs || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        `;
     }
 };
 

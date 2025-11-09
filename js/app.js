@@ -1175,7 +1175,11 @@ class PetHouse {
 
     imprimirProntuario(petId) {
         const pet = this.data.pets.find(p => p.id === petId);
-        if (window.PDF) {
+        if (window.PDFAvancado) {
+            // Usar PDF Avançado com modal de opções
+            window.PDFAvancado.mostrarOpcoes(pet, this.data.casaNome);
+        } else if (window.PDF) {
+            // Fallback para PDF simples
             window.PDF.gerarProntuario(pet, this.data.casaNome);
         } else {
             alert('Módulo PDF não carregado!');

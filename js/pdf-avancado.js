@@ -4,10 +4,18 @@
  */
 
 const PDFAvancado = {
+    // Armazenar dados temporariamente
+    petAtual: null,
+    casaNomeAtual: null,
+
     /**
      * Mostra modal de opções de impressão
      */
     mostrarOpcoes(pet, casaNome) {
+        // Armazenar dados para uso posterior
+        this.petAtual = pet;
+        this.casaNomeAtual = casaNome;
+        
         const modal = document.createElement('div');
         modal.className = 'modal show';
         modal.innerHTML = `
@@ -42,8 +50,8 @@ const PDFAvancado = {
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
-                    <button class="btn btn-success" onclick="window.PDFAvancado.baixarPDF('${pet.id}', '${casaNome}')">📥 Baixar PDF</button>
-                    <button class="btn btn-primary" onclick="window.PDFAvancado.gerarComOpcoes('${pet.id}', '${casaNome}')">🖨️ Imprimir</button>
+                    <button class="btn btn-success" onclick="window.PDFAvancado.baixarPDF()">📥 Baixar PDF</button>
+                    <button class="btn btn-primary" onclick="window.PDFAvancado.gerarComOpcoes()">🖨️ Imprimir</button>
                 </div>
             </div>
         `;
@@ -53,20 +61,15 @@ const PDFAvancado = {
     /**
      * Gera prontuário com as opções selecionadas
      */
-    gerarComOpcoes(petId, casaNome) {
-        console.log('gerarComOpcoes chamado', petId, casaNome);
+    gerarComOpcoes() {
+        console.log('gerarComOpcoes chamado');
         
-        // Buscar pet
-        const app = window.app;
-        if (!app || !app.data || !app.data.pets) {
-            alert('Erro: Aplicativo não carregado corretamente!');
-            return;
-        }
-        
-        const pet = app.data.pets.find(p => p.id === petId);
+        // Usar dados armazenados
+        const pet = this.petAtual;
+        const casaNome = this.casaNomeAtual;
         
         if (!pet) {
-            alert('Pet não encontrado!');
+            alert('Erro: Dados do pet não encontrados!');
             return;
         }
 
@@ -100,20 +103,15 @@ const PDFAvancado = {
     /**
      * Baixa prontuário como PDF
      */
-    async baixarPDF(petId, casaNome) {
-        console.log('baixarPDF chamado', petId, casaNome);
+    async baixarPDF() {
+        console.log('baixarPDF chamado');
         
-        // Buscar pet
-        const app = window.app;
-        if (!app || !app.data || !app.data.pets) {
-            alert('Erro: Aplicativo não carregado corretamente!');
-            return;
-        }
-        
-        const pet = app.data.pets.find(p => p.id === petId);
+        // Usar dados armazenados
+        const pet = this.petAtual;
+        const casaNome = this.casaNomeAtual;
         
         if (!pet) {
-            alert('Pet não encontrado!');
+            alert('Erro: Dados do pet não encontrados!');
             return;
         }
 

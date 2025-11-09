@@ -147,40 +147,73 @@ const OCRCartaoV2 = {
      * Processa imagem com OCR e análise local inteligente
      */
     async processarImagem(arquivo) {
+        console.log('🔍 [OCR] Iniciando processamento...');
+        console.log('🔍 [OCR] Arquivo:', arquivo ? arquivo.name : 'sem arquivo');
+        
         try {
+            if (!arquivo) {
+                console.error('❌ [OCR] Nenhum arquivo fornecido');
+                app.showToast('❌ Nenhum arquivo selecionado', 'error');
+                return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
+            }
+            
+            console.log('✅ [OCR] Arquivo válido, iniciando Tesseract...');
             app.showToast('📸 Processando cartão de vacinação...', 'info');
 
-            // Etapa 1: OCR básico com Tesseract
+            // Etapa 1: Verificar se Tesseract está disponível
+            if (typeof Tesseract === 'undefined') {
+                console.error('❌ [OCR] Tesseract.js não está carregado!');
+                app.showToast('❌ Biblioteca OCR não carregada. Recarregue a página.', 'error');
+                return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
+            }
+            
+            console.log('✅ [OCR] Tesseract disponível, criando worker...');
+
+            // Etapa 2: Criar worker
             const worker = await Tesseract.createWorker('por', 1, {
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         const progresso = Math.round(m.progress * 100);
-                        console.log(`OCR: ${progresso}%`);
+                        console.log(`🔄 [OCR] Progresso: ${progresso}%`);
                     }
                 }
             });
+            
+            console.log('✅ [OCR] Worker criado, reconhecendo texto...');
 
+            // Etapa 3: Reconhecer texto
             const { data: { text } } = await worker.recognize(arquivo);
             await worker.terminate();
-
+            
+            console.log('✅ [OCR] Texto extraído com sucesso!');
             console.log('=== TEXTO EXTRAÍDO ===');
             console.log(text);
+            console.log('=== FIM DO TEXTO ===');
 
-            // Etapa 2: Análise inteligente LOCAL
+            // Etapa 4: Análise inteligente LOCAL
+            console.log('🧠 [OCR] Analisando texto...');
             const resultado = this.analisarTextoLocal(text, 'vacina');
             
+            console.log('📊 [OCR] Resultado da análise:', resultado);
+            
             if (resultado.vacinas && resultado.vacinas.length > 0) {
+                console.log(`✅ [OCR] ${resultado.vacinas.length} vacina(s) identificada(s)!`);
                 app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)!`, 'success');
+                resultado.sucesso = true;
             } else {
+                console.log('⚠️ [OCR] Nenhuma vacina identificada');
                 app.showToast('⚠️ Nenhuma vacina identificada. Tente outra foto.', 'warning');
+                resultado.sucesso = false;
             }
             
             return resultado;
 
         } catch (error) {
-            console.error('Erro no OCR:', error);
-            app.showToast('❌ Erro ao processar imagem', 'error');
-            return null;
+            console.error('❌ [OCR] ERRO CAPTURADO:', error);
+            console.error('❌ [OCR] Stack:', error.stack);
+            console.error('❌ [OCR] Mensagem:', error.message);
+            app.showToast(`❌ Erro: ${error.message}`, 'error');
+            return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
         }
     },
 

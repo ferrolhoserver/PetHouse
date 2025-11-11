@@ -264,6 +264,7 @@ class PetHouse {
         const tabsData = {
             peso: { title: 'Peso', icon: '⚖️' },
             cuidados: { title: 'Cuidados', icon: '💝' },
+            cio: { title: 'Cio', icon: '🌸' },
             consultas: { title: 'Consultas', icon: '🏥' },
             cirurgias: { title: 'Cirurgias', icon: '🔬' },
             diagnosticos: { title: 'Diagnósticos', icon: '🔍' },
@@ -330,6 +331,9 @@ class PetHouse {
         // Usar módulos específicos para novas abas
         if (this.currentTab === 'cuidados' && window.Cuidados) {
             return window.Cuidados.renderContent(pet);
+        }
+        if (this.currentTab === 'cio' && window.ControleCio) {
+            return window.ControleCio.renderizar(pet);
         }
         if (this.currentTab === 'diagnosticos' && window.Diagnosticos) {
             return window.Diagnosticos.renderContent(pet);
@@ -630,6 +634,7 @@ class PetHouse {
             vacinas: [],
             vermifugo: [],
             consultas: [],
+            cios: [], // Registro de cios para fêmeas
             cirurgias: [],
             exames: []
         };

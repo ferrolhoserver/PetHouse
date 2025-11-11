@@ -14,6 +14,11 @@ const AlertasEspecificos = {
         const idade = this.calcularIdade(pet.nascimento);
         const raca = window.RacasDB?.[pet.especie]?.find(r => r.nome === pet.raca);
         
+        // Alertas de cio (fêmeas)
+        if (pet.sexo === 'Fêmea') {
+            alertas.push(...this.alertasDeCio(pet, idade));
+        }
+        
         // Alertas por sexo
         alertas.push(...this.alertasPorSexo(pet, idade));
         
@@ -23,6 +28,64 @@ const AlertasEspecificos = {
         // Alertas por raça (se aplicável)
         if (raca) {
             alertas.push(...this.alertasPorRaca(pet, idade, raca));
+        }
+        
+        return alertas;
+    },
+    
+    /**
+     * Alertas baseados no ciclo de cio
+     */
+    alertasDeCio(pet, idadeMeses) {
+        const alertas = [];
+        const status = window.CalculosCio?.gerarStatusCio(pet);
+        
+        if (!status || status.status === 'nao_aplicavel') {
+            return alertas;
+        }
+        
+        // Alerta de período fértil
+        if (status.status === 'periodo_fertil') {
+            alertas.push({
+                tipo: 'cio',
+                titulo: '🌟 Período Fértil Ativo!',
+                mensagem: `${pet.nome} está no período fértil (dia ${status.dias} do cio). Este é o melhor momento para cruzamento, se desejado.`,
+                prioridade: 'alta',
+                categoria: 'Reprodução'
+            });
+        }
+        
+        // Alerta de cio ativo
+        if (status.status === 'em_cio') {
+            alertas.push({
+                tipo: 'cio',
+                titulo: '🌸 Cio Ativo',
+                mensagem: `${pet.nome} está no cio (dia ${status.dias}). Redobrar cuidados e supervisão. Evitar contato com machos se não deseja cruzamento.`,
+                prioridade: 'alta',
+                categoria: 'Reprodução'
+            });
+        }
+        
+        // Alerta de próximo cio
+        if (status.status === 'proximo') {
+            alertas.push({
+                tipo: 'cio',
+                titulo: '🔔 Próximo Cio Próximo',
+                mensagem: status.mensagem + '. Prepare-se para redobrar cuidados.',
+                prioridade: 'media',
+                categoria: 'Reprodução'
+            });
+        }
+        
+        // Alerta de cio atrasado
+        if (status.status === 'atrasado') {
+            alertas.push({
+                tipo: 'cio',
+                titulo: '⚠️ Cio Atrasado',
+                mensagem: status.mensagem + '. Consulte o veterinário para verificar se há algum problema.',
+                prioridade: 'alta',
+                categoria: 'Saúde Reprodutiva'
+            });
         }
         
         return alertas;

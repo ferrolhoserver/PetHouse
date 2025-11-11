@@ -103,15 +103,23 @@ const Alertas = {
                     .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
 
                 if (!ultimaAplicacao) {
-                    // Nunca foi aplicada
-                    alertas.push({
-                        tipo: 'vacina',
-                        nome: vacina.nome,
-                        descricao: vacina.descricao,
-                        status: 'pendente',
-                        prioridade: vacina.obrigatoria ? 'alta' : 'media',
-                        mensagem: 'Vacina nunca aplicada. Agendar com veterinário.'
-                    });
+                    // Verificar se está coberta por vacina múltipla (V10, V8, etc)
+                    const cobertura = window.VacinasCompostas?.vacinaEstaCoberta(vacina.nome, vacinasAplicadas);
+                    
+                    if (cobertura) {
+                        // Coberta por vacina múltipla - NÃO adicionar alerta
+                        console.log(`✅ ${vacina.nome} coberta por ${cobertura.vacinaCobre}`);
+                    } else {
+                        // Nunca foi aplicada e não está coberta
+                        alertas.push({
+                            tipo: 'vacina',
+                            nome: vacina.nome,
+                            descricao: vacina.descricao,
+                            status: 'pendente',
+                            prioridade: vacina.obrigatoria ? 'alta' : 'media',
+                            mensagem: 'Vacina nunca aplicada. Agendar com veterinário.'
+                        });
+                    }
                 } else {
                     // Verificar se está na hora do reforço
                     const dataUltima = new Date(ultimaAplicacao.data);
@@ -278,11 +286,17 @@ const Alertas = {
                 const icone = alerta.status === 'atrasada' ? '⚠️' : 
                              alerta.status === 'proxima' ? '📅' : 'ℹ️';
 
+                // Verificar se está coberta por vacina múltipla
+                const cobertura = window.VacinasCompostas?.vacinaEstaCoberta(alerta.nome, pet.vacinas || []);
+                const descricaoFinal = cobertura ? 
+                    window.VacinasCompostas.gerarDescricaoCobertura(alerta.nome, cobertura) : 
+                    alerta.descricao;
+                
                 html += `
                     <div class="alerta-card" style="border-left: 4px solid ${cor}; margin: 0.5rem 0; padding: 0.75rem; background: #f9f9f9; border-radius: 4px;">
                         <div style="font-weight: bold; color: ${cor};">${icone} ${alerta.nome}</div>
                         <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">${alerta.mensagem}</div>
-                        ${alerta.descricao ? `<div style="font-size: 0.85rem; color: #999; margin-top: 0.25rem;">${alerta.descricao}</div>` : ''}
+                        ${descricaoFinal ? `<div style="font-size: 0.85rem; color: ${cobertura ? '#4CAF50' : '#999'}; margin-top: 0.25rem;">${cobertura ? '✅' : ''} ${descricaoFinal}</div>` : ''}
                     </div>
                 `;
             });

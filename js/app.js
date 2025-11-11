@@ -308,10 +308,21 @@ class PetHouse {
             <div class="container">
                 ${alertasHTML ? `<div class="card" style="margin-bottom: 1rem; background: #fff3cd;">${alertasHTML}</div>` : ''}
                 
+                <div class="card" id="alertas-especificos-container"></div>
+                
                 <div class="card">
                     ${contentHTML}
                 </div>
             </div>
+            <script>
+                // Renderizar alertas específicos após o DOM estar pronto
+                setTimeout(() => {
+                    const pet = app.data.pets.find(p => p.id === '${pet.id}');
+                    if (pet && window.AlertasEspecificos) {
+                        window.AlertasEspecificos.renderizar(pet, 'alertas-especificos-container');
+                    }
+                }, 100);
+            </script>
         `;
     }
 
@@ -602,15 +613,17 @@ class PetHouse {
     handleAddPet(e) {
         const nome = document.getElementById('pet-nome').value.trim();
         const especie = document.getElementById('pet-especie').value;
+        const sexo = document.getElementById('pet-sexo').value;
         const raca = document.getElementById('pet-raca').value.trim();
         const nascimento = document.getElementById('pet-nascimento').value;
         
-        if (!nome || !especie || !nascimento) return;
+        if (!nome || !especie || !sexo || !nascimento) return;
         
         const pet = {
             id: Date.now().toString(),
             nome,
             especie,
+            sexo,
             raca,
             nascimento,
             peso: [],
@@ -784,6 +797,44 @@ class PetHouse {
         this.render();
     }
 
+    atualizarRacasPorEspecie() {
+        const especieSelect = document.getElementById('pet-especie');
+        const racaSelect = document.getElementById('pet-raca');
+        
+        if (!especieSelect || !racaSelect) return;
+        
+        const especie = especieSelect.value;
+        const racas = window.RacasDB?.[especie] || [];
+        
+        // Limpar opções atuais
+        racaSelect.innerHTML = '';
+        
+        if (racas.length === 0) {
+            racaSelect.innerHTML = '<option value="Não especificado">Não especificado</option>';
+            return;
+        }
+        
+        // Adicionar opção SRD primeiro (se existir)
+        const srd = racas.find(r => r.nome.includes('SRD') || r.nome.includes('Sem Raça'));
+        if (srd) {
+            const option = document.createElement('option');
+            option.value = srd.nome;
+            option.textContent = srd.nome;
+            racaSelect.appendChild(option);
+        }
+        
+        // Adicionar outras raças em ordem alfabética
+        racas
+            .filter(r => !r.nome.includes('SRD') && !r.nome.includes('Sem Raça'))
+            .sort((a, b) => a.nome.localeCompare(b.nome))
+            .forEach(raca => {
+                const option = document.createElement('option');
+                option.value = raca.nome;
+                option.textContent = raca.nome;
+                racaSelect.appendChild(option);
+            });
+    }
+
     showAddPet() {
         this.showModal(`
             <div class="modal-header">
@@ -797,17 +848,31 @@ class PetHouse {
                 </div>
                 <div class="form-group">
                     <label>Espécie *</label>
-                    <select id="pet-especie" required>
+                    <select id="pet-especie" required onchange="app.atualizarRacasPorEspecie()">
                         <option value="">Selecione...</option>
                         <option value="Cachorro">Cachorro</option>
                         <option value="Gato">Gato</option>
                         <option value="Pássaro">Pássaro</option>
+                        <option value="Réptil">Réptil</option>
+                        <option value="Roedor">Roedor</option>
+                        <option value="Coelho">Coelho</option>
                         <option value="Outro">Outro</option>
                     </select>
                 </div>
                 <div class="form-group">
+                    <label>Sexo *</label>
+                    <select id="pet-sexo" required>
+                        <option value="">Selecione...</option>
+                        <option value="Macho">🐶 Macho</option>
+                        <option value="Fêmea">🐶 Fêmea</option>
+                        <option value="Não definido">❓ Não definido</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Raça</label>
-                    <input type="text" id="pet-raca" placeholder="SRD">
+                    <select id="pet-raca">
+                        <option value="SRD">SRD (Sem Raça Definida)</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Data de Nascimento *</label>

@@ -667,6 +667,7 @@ class PetHouse {
         const petId = document.getElementById('edit-pet-id').value;
         const nome = document.getElementById('edit-pet-nome').value.trim();
         const especie = document.getElementById('edit-pet-especie').value;
+        const sexo = document.getElementById('edit-pet-sexo').value;
         const raca = document.getElementById('edit-pet-raca').value.trim();
         const nascimento = document.getElementById('edit-pet-nascimento').value;
         
@@ -675,6 +676,7 @@ class PetHouse {
         
         pet.nome = nome;
         pet.especie = especie;
+        pet.sexo = sexo;
         pet.raca = raca;
         pet.nascimento = nascimento;
         
@@ -1031,17 +1033,37 @@ class PetHouse {
                 </div>
                 <div class="form-group">
                     <label>Espécie *</label>
-                    <select id="edit-pet-especie" required>
+                    <select id="edit-pet-especie" required onchange="app.atualizarRacasEdicao()">
                         <option value="Cachorro" ${pet.especie === 'Cachorro' ? 'selected' : ''}>Cachorro</option>
                         <option value="Gato" ${pet.especie === 'Gato' ? 'selected' : ''}>Gato</option>
                         <option value="Pássaro" ${pet.especie === 'Pássaro' ? 'selected' : ''}>Pássaro</option>
+                        <option value="Réptil" ${pet.especie === 'Réptil' ? 'selected' : ''}>Réptil</option>
+                        <option value="Roedor" ${pet.especie === 'Roedor' ? 'selected' : ''}>Roedor</option>
+                        <option value="Coelho" ${pet.especie === 'Coelho' ? 'selected' : ''}>Coelho</option>
                         <option value="Outro" ${pet.especie === 'Outro' ? 'selected' : ''}>Outro</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Raça</label>
-                    <input type="text" id="edit-pet-raca" value="${pet.raca || ''}" placeholder="SRD">
+                    <label>Sexo *</label>
+                    <select id="edit-pet-sexo" required>
+                        <option value="Macho" ${pet.sexo === 'Macho' ? 'selected' : ''}>Macho</option>
+                        <option value="Fêmea" ${pet.sexo === 'Fêmea' ? 'selected' : ''}>Fêmea</option>
+                        <option value="Não definido" ${pet.sexo === 'Não definido' || !pet.sexo ? 'selected' : ''}>Não definido</option>
+                    </select>
                 </div>
+                <div class="form-group">
+                    <label>Raça</label>
+                    <select id="edit-pet-raca">
+                        <option value="">SRD (Sem Raça Definida)</option>
+                    </select>
+                </div>
+                <script>
+                    // Atualizar raças ao carregar
+                    setTimeout(() => {
+                        app.atualizarRacasEdicao();
+                        document.getElementById('edit-pet-raca').value = '${pet.raca || ''}';
+                    }, 100);
+                </script>
                 <div class="form-group">
                     <label>Data de Nascimento *</label>
                     <input type="date" id="edit-pet-nascimento" value="${pet.nascimento}" required>
@@ -1711,6 +1733,35 @@ END:VEVENT
         setTimeout(() => {
             toast.remove();
         }, 3000);
+    }
+    
+    atualizarRacasEdicao() {
+        const especieSelect = document.getElementById('edit-pet-especie');
+        const racaSelect = document.getElementById('edit-pet-raca');
+        
+        if (!especieSelect || !racaSelect) return;
+        
+        const especie = especieSelect.value;
+        const racas = window.RacasDB?.[especie] || [];
+        
+        // Salvar valor atual
+        const valorAtual = racaSelect.value;
+        
+        // Limpar opções
+        racaSelect.innerHTML = '<option value="">SRD (Sem Raça Definida)</option>';
+        
+        // Adicionar raças da espécie
+        racas.forEach(raca => {
+            const option = document.createElement('option');
+            option.value = raca.nome;
+            option.textContent = raca.nome;
+            racaSelect.appendChild(option);
+        });
+        
+        // Restaurar valor se existir
+        if (valorAtual) {
+            racaSelect.value = valorAtual;
+        }
     }
 }
 

@@ -26,9 +26,10 @@ const ControleCio = {
         html += this.renderizarStatus(status, pet, ciclo);
         
         // Botão de registro
+        const petJson = JSON.stringify(pet).replace(/"/g, '&quot;');
         html += `
             <div style="margin: 1.5rem 0;">
-                <button class="btn btn-primary" onclick="ControleCio.mostrarFormularioRegistro('${pet.id}')">
+                <button class="btn btn-primary" onclick='ControleCio.abrirFormulario("${petJson}")'>
                     🌸 Registrar Novo Cio
                 </button>
             </div>
@@ -211,25 +212,24 @@ const ControleCio = {
     },
     
     /**
+     * Abre formulário recebendo pet como JSON
+     */
+    abrirFormulario(petJson) {
+        try {
+            const pet = JSON.parse(petJson);
+            console.log('✅ [Cio] Pet recebido:', pet.nome);
+            this.mostrarFormularioRegistro(pet);
+        } catch (error) {
+            console.error('❌ [Cio] Erro ao parsear pet:', error);
+            alert('❌ Erro ao abrir formulário. Tente novamente.');
+        }
+    },
+    
+    /**
      * Mostra formulário de registro de cio
      */
-    mostrarFormularioRegistro(petId) {
-        console.log('🐞 [Cio] Abrindo formulário para pet:', petId);
-        console.log('🐞 [Cio] window.app disponível?', !!window.app);
-        
-        if (!window.app || !window.app.data || !window.app.data.pets) {
-            console.error('❌ [Cio] window.app não disponível!');
-            alert('❌ Erro: Sistema não inicializado. Recarregue a página.');
-            return;
-        }
-        
-        const pet = window.app.data.pets.find(p => p.id === petId);
-        if (!pet) {
-            console.error('❌ [Cio] Pet não encontrado:', petId);
-            return;
-        }
-        
-        console.log('✅ [Cio] Pet encontrado:', pet.nome);
+    mostrarFormularioRegistro(pet) {
+        console.log('✅ [Cio] Abrindo formulário para:', pet.nome);
         
         const ciclo = window.CiclosReprodutivos?.[pet.especie];
         const hoje = new Date().toISOString().split('T')[0];
@@ -239,7 +239,7 @@ const ControleCio = {
                 <h2>🌸 Registrar Cio</h2>
                 <button class="modal-close" onclick="app.closeModal()">×</button>
             </div>
-            <form id="form-cio" onsubmit="ControleCio.salvarCio(event, '${petId}')">
+            <form id="form-cio" onsubmit="ControleCio.salvarCioForm(event, '${pet.id}')">
                 <div class="form-group">
                     <label>Data de Início do Cio *</label>
                     <input type="date" id="cio-inicio" required>
@@ -311,9 +311,9 @@ const ControleCio = {
     },
     
     /**
-     * Salva registro de cio
+     * Salva registro de cio (versão para formulário)
      */
-    salvarCio(event, petId) {
+    salvarCioForm(event, petId) {
         event.preventDefault();
         
         console.log('🐞 [Cio] Salvando cio para pet:', petId);
@@ -329,6 +329,15 @@ const ControleCio = {
             console.error('❌ [Cio] Pet não encontrado ao salvar:', petId);
             return;
         }
+        
+        this.salvarCio(event, pet);
+    },
+    
+    /**
+     * Salva registro de cio
+     */
+    salvarCio(event, pet) {
+        console.log('✅ [Cio] Salvando cio para:', pet.nome);
         
         const inicio = document.getElementById('cio-inicio').value;
         const fim = document.getElementById('cio-fim').value;

@@ -1059,10 +1059,20 @@ class PetHouse {
                 </div>
                 <script>
                     // Atualizar raças ao carregar
+                    console.log('🚀 [Modal] Iniciando atualização de raças...');
                     setTimeout(() => {
-                        app.atualizarRacasEdicao();
-                        document.getElementById('edit-pet-raca').value = '${pet.raca || ''}';
-                    }, 100);
+                        console.log('🚀 [Modal] Chamando atualizarRacasEdicao...');
+                        if (window.app && window.app.atualizarRacasEdicao) {
+                            app.atualizarRacasEdicao();
+                            const racaSelect = document.getElementById('edit-pet-raca');
+                            if (racaSelect) {
+                                racaSelect.value = '${pet.raca || ''}';
+                                console.log('🚀 [Modal] Raça restaurada:', racaSelect.value);
+                            }
+                        } else {
+                            console.error('❌ [Modal] app.atualizarRacasEdicao não disponível!');
+                        }
+                    }, 300);
                 </script>
                 <div class="form-group">
                     <label>Data de Nascimento *</label>
@@ -1736,13 +1746,25 @@ END:VEVENT
     }
     
     atualizarRacasEdicao() {
+        console.log('🔍 [Raças] Atualizando raças de edição...');
+        
         const especieSelect = document.getElementById('edit-pet-especie');
         const racaSelect = document.getElementById('edit-pet-raca');
         
-        if (!especieSelect || !racaSelect) return;
+        console.log('🔍 [Raças] Elementos:', { especieSelect, racaSelect });
+        
+        if (!especieSelect || !racaSelect) {
+            console.error('❌ [Raças] Elementos não encontrados!');
+            return;
+        }
         
         const especie = especieSelect.value;
+        console.log('🔍 [Raças] Espécie selecionada:', especie);
+        console.log('🔍 [Raças] window.RacasDB disponível?', !!window.RacasDB);
+        console.log('🔍 [Raças] Raças disponíveis:', window.RacasDB);
+        
         const racas = window.RacasDB?.[especie] || [];
+        console.log('🔍 [Raças] Raças da espécie', especie, ':', racas.length, 'raças');
         
         // Salvar valor atual
         const valorAtual = racaSelect.value;
@@ -1757,6 +1779,8 @@ END:VEVENT
             option.textContent = raca.nome;
             racaSelect.appendChild(option);
         });
+        
+        console.log('✅ [Raças] Adicionadas', racas.length, 'raças ao dropdown');
         
         // Restaurar valor se existir
         if (valorAtual) {

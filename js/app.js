@@ -1772,9 +1772,11 @@ END:VEVENT
         if (!window.RacasDB) {
             console.error('❌ [Raças] window.RacasDB não está carregado!');
             if (statusEl) {
-                statusEl.innerHTML = '❌ <strong>RacasDB não carregado!</strong> Clique em 🔄 ou recarregue a página';
-                statusEl.style.color = '#d32f2f';
+                statusEl.innerHTML = '🔄 RacasDB não carregado. Recarregando automaticamente...';
+                statusEl.style.color = '#ff9800';
             }
+            // Tentar recarregar automaticamente
+            setTimeout(() => this.forceReloadRacas(), 500);
             return;
         }
         
@@ -1787,8 +1789,11 @@ END:VEVENT
         // Limpar opções
         racaSelect.innerHTML = '<option value="">SRD (Sem Raça Definida)</option>';
         
+        // Ordenar raças alfabeticamente
+        const racasOrdenadas = [...racas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        
         // Adicionar raças da espécie
-        racas.forEach(raca => {
+        racasOrdenadas.forEach(raca => {
             const option = document.createElement('option');
             option.value = raca.nome;
             option.textContent = raca.nome;

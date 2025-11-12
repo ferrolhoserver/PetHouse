@@ -91,6 +91,42 @@ const ControleCio = {
     },
     
     /**
+     * Calcula e retorna texto do próximo cio
+     */
+    calcularProximoCioTexto(pet, ciclo) {
+        if (!pet.cios || pet.cios.length === 0 || ciclo.intervaloCio === 0) {
+            return '';
+        }
+        
+        // Pegar último cio
+        const ultimoCio = pet.cios[pet.cios.length - 1];
+        const dataInicio = new Date(ultimoCio.inicio);
+        const proximaData = new Date(dataInicio);
+        proximaData.setDate(proximaData.getDate() + ciclo.intervaloCio);
+        
+        const hoje = new Date();
+        const diasRestantes = Math.floor((proximaData - hoje) / (1000 * 60 * 60 * 24));
+        
+        let cor = '#4caf50'; // Verde
+        let emoji = '✅';
+        
+        if (diasRestantes < 0) {
+            cor = '#f44336'; // Vermelho - atrasado
+            emoji = '⚠️';
+        } else if (diasRestantes <= 14) {
+            cor = '#ff9800'; // Laranja - próximo
+            emoji = '🔔';
+        }
+        
+        return `
+            <div style="font-size: 0.85rem; color: ${cor}; margin-top: 0.5rem;">
+                ${emoji} Próximo: ${proximaData.toLocaleDateString('pt-BR')}
+                ${diasRestantes >= 0 ? `(em ${diasRestantes} dias)` : `(${Math.abs(diasRestantes)} dias atrás)`}
+            </div>
+        `;
+    },
+    
+    /**
      * Renderiza informações sobre o ciclo reprodutivo
      */
     renderizarInformacoes(ciclo) {
@@ -106,6 +142,7 @@ const ControleCio = {
                         <div style="font-size: 1.2rem; font-weight: bold; color: #1976d2;">
                             ${ciclo.intervaloCio > 0 ? `${ciclo.intervaloCio} dias` : 'Contínuo'}
                         </div>
+                        ${this.calcularProximoCioTexto(pet, ciclo)}
                     </div>
                     
                     <div style="background: white; padding: 1rem; border-radius: 4px;">

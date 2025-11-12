@@ -39,6 +39,7 @@ const PDFAvancado = {
                     <label><input type="checkbox" id="pdf-peso" checked> Histórico de Peso</label><br>
                     <label><input type="checkbox" id="pdf-vacinas" checked> Vacinas</label><br>
                     <label><input type="checkbox" id="pdf-vermifugos" checked> Vermífugos</label><br>
+                    <label><input type="checkbox" id="pdf-cios" checked> Cios</label><br>
                     <label><input type="checkbox" id="pdf-consultas" checked> Consultas</label><br>
                     <label><input type="checkbox" id="pdf-cirurgias" checked> Cirurgias</label><br>
                     <label><input type="checkbox" id="pdf-tratamentos" checked> Tratamentos</label><br>
@@ -82,6 +83,7 @@ const PDFAvancado = {
             peso: document.getElementById('pdf-peso').checked,
             vacinas: document.getElementById('pdf-vacinas').checked,
             vermifugos: document.getElementById('pdf-vermifugos').checked,
+            cios: document.getElementById('pdf-cios').checked,
             consultas: document.getElementById('pdf-consultas').checked,
             cirurgias: document.getElementById('pdf-cirurgias').checked,
             tratamentos: document.getElementById('pdf-tratamentos').checked,
@@ -186,6 +188,7 @@ const PDFAvancado = {
         if (opcoes.peso && pet.peso && pet.peso.length > 0) secoes.push({ nome: 'Histórico de Peso', id: 'peso' });
         if (opcoes.vacinas && pet.vacinas && pet.vacinas.length > 0) secoes.push({ nome: 'Vacinas', id: 'vacinas' });
         if (opcoes.vermifugos && pet.vermifugo && pet.vermifugo.length > 0) secoes.push({ nome: 'Vermífugos', id: 'vermifugos' });
+        if (opcoes.cios && pet.cios && pet.cios.length > 0) secoes.push({ nome: 'Cios', id: 'cios' });
         if (opcoes.consultas && pet.consultas && pet.consultas.length > 0) secoes.push({ nome: 'Consultas', id: 'consultas' });
         if (opcoes.cirurgias && pet.cirurgias && pet.cirurgias.length > 0) secoes.push({ nome: 'Cirurgias', id: 'cirurgias' });
         if (opcoes.tratamentos && pet.tratamentos && pet.tratamentos.length > 0) secoes.push({ nome: 'Tratamentos', id: 'tratamentos' });
@@ -287,6 +290,7 @@ const PDFAvancado = {
         ${opcoes.peso && pesoFiltrado.length > 0 ? window.PDF.gerarSecaoPeso(pesoFiltrado, opcoes.grafico) : ''}
         ${opcoes.vacinas && vacinasFiltrado.length > 0 ? window.PDF.gerarSecaoVacinas(vacinasFiltrado) : ''}
         ${opcoes.vermifugos && vermifugosFiltrado.length > 0 ? window.PDF.gerarSecaoVermifugos(vermifugosFiltrado) : ''}
+        ${opcoes.cios && pet.cios && pet.cios.length > 0 ? this.gerarSecaoCios(pet.cios) : ''}
         ${opcoes.consultas && consultasFiltrado.length > 0 ? window.PDF.gerarSecaoConsultas(consultasFiltrado) : ''}
         ${opcoes.cirurgias && cirurgiasFiltrado.length > 0 ? window.PDF.gerarSecaoCirurgias(cirurgiasFiltrado) : ''}
         ${opcoes.tratamentos && tratamentosFiltrado.length > 0 ? window.PDF.gerarSecaoTratamentos(tratamentosFiltrado) : ''}
@@ -644,6 +648,58 @@ const PDFAvancado = {
         
         win.document.write(html);
         win.document.close();
+    }
+    /**
+     * Gera seção de cios
+     */
+    gerarSecaoCios(cios) {
+        if (!cios || cios.length === 0) return '';
+        
+        // Ordenar por data de início (mais recente primeiro)
+        const ciosOrdenados = [...cios].sort((a, b) => new Date(b.inicio) - new Date(a.inicio));
+        
+        return `
+            <div class="secao" id="cios">
+                <h2>🌸 Cios (${cios.length})</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Início</th>
+                            <th>Fim</th>
+                            <th>Duração</th>
+                            <th>Cruzamento</th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ciosOrdenados.map(cio => {
+                            const inicio = new Date(cio.inicio).toLocaleDateString('pt-BR');
+                            const fim = cio.fim ? new Date(cio.fim).toLocaleDateString('pt-BR') : 'Em andamento';
+                            const duracao = cio.fim ? Math.floor((new Date(cio.fim) - new Date(cio.inicio)) / (1000 * 60 * 60 * 24)) + ' dias' : '-';
+                            const cruzamento = cio.cruzamento ? `Sim (${new Date(cio.cruzamento.data).toLocaleDateString('pt-BR')})` : 'Não';
+                            
+                            return `
+                                <tr>
+                                    <td>${inicio}</td>
+                                    <td>${fim}</td>
+                                    <td>${duracao}</td>
+                                    <td>${cruzamento}</td>
+                                    <td>${cio.observacoes || '-'}</td>
+                                </tr>
+                                ${cio.cruzamento && cio.cruzamento.previsaoParto ? `
+                                    <tr>
+                                        <td colspan="5" style="background: #E3F2FD; font-size: 0.9em;">
+                                            🤰 Macho: ${cio.cruzamento.macho || 'Não informado'} | 
+                                            Parto previsto: ${new Date(cio.cruzamento.previsaoParto).toLocaleDateString('pt-BR')}
+                                        </td>
+                                    </tr>
+                                ` : ''}
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
     }
 };
 

@@ -270,15 +270,17 @@ const CalculosCio = {
                 cor: '#F44336'
             };
         } else if (diasAteProximo <= 7) {
+            const proximaData = this.calcularProximoCio(ultimoCio.inicio, pet.especie);
             return {
                 status: 'proximo',
-                mensagem: `🔔 Próximo cio em ${diasAteProximo} dias`,
+                mensagem: `🔔 Próximo cio: ${this.formatarData(proximaData)} (em ${diasAteProximo} dias)`,
                 cor: '#FF9800'
             };
         } else {
+            const proximaData = this.calcularProximoCio(ultimoCio.inicio, pet.especie);
             return {
                 status: 'normal',
-                mensagem: `📅 Próximo cio em ${diasAteProximo} dias`,
+                mensagem: `📅 Próximo cio: ${this.formatarData(proximaData)} (em ${diasAteProximo} dias)`,
                 cor: '#2196F3'
             };
         }

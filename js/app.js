@@ -895,7 +895,7 @@ class PetHouse {
         if (!pet) return;
         
         if (window.ControleCio && window.ControleCio.mostrarFormularioRegistro) {
-            window.ControleCio.mostrarFormularioRegistro(pet);
+            window.ControleCio.mostrarFormularioRegistro(pet, this);
         }
     }
 

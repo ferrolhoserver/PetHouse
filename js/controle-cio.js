@@ -215,23 +215,23 @@ const ControleCio = {
      */
     abrirFormulario(petId) {
         const pet = window.app?.data?.pets?.find(p => p.id === petId);
-        if (!pet) {
+        if (!pet || !window.app) {
             alert('❌ Erro ao carregar pet. Recarregue a página.');
             return;
         }
-        this.mostrarFormularioRegistro(pet);
+        this.mostrarFormularioRegistro(pet, window.app);
     },
     
     /**
      * Mostra formulário de registro de cio
      */
-    mostrarFormularioRegistro(pet) {
+    mostrarFormularioRegistro(pet, app) {
         console.log('✅ [Cio] Abrindo formulário para:', pet.nome);
         
         const ciclo = window.CiclosReprodutivos?.[pet.especie];
         const hoje = new Date().toISOString().split('T')[0];
         
-        window.app.showModal(`
+        app.showModal(`
             <div class="modal-header">
                 <h2>🌸 Registrar Cio</h2>
                 <button class="modal-close" onclick="app.closeModal()">×</button>

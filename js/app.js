@@ -890,6 +890,15 @@ class PetHouse {
         `);
     }
 
+    registrarNovoCio() {
+        const pet = this.data.pets.find(p => p.id === this.currentPet);
+        if (!pet) return;
+        
+        if (window.ControleCio && window.ControleCio.mostrarFormularioRegistro) {
+            window.ControleCio.mostrarFormularioRegistro(pet);
+        }
+    }
+
     showAddRecord() {
         const forms = {
             peso: `

@@ -28,7 +28,7 @@ const ControleCio = {
         // Botão de registro
         html += `
             <div style="margin: 1.5rem 0;">
-                <button class="btn btn-primary" onclick="ControleCio.abrirFormulario('${pet.id}')">
+                <button class="btn btn-primary" onclick="app.registrarNovoCio()">
                     🌸 Registrar Novo Cio
                 </button>
             </div>

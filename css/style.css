@@ -126,12 +126,27 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Lists */
-.pet-list, .record-list {
+.pet-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.record-list {
     display: grid;
     gap: 1rem;
 }
 
-.pet-item, .record-item {
+.pet-item {
+    background: var(--card);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.record-item {
     background: var(--card);
     padding: 1rem;
     border-radius: 8px;
@@ -146,14 +161,15 @@ input:focus, select:focus, textarea:focus {
 }
 
 .pet-name {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: bold;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
 }
 
 .pet-info {
     color: #666;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
 }
 
 /* Tabs */

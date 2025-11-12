@@ -174,49 +174,46 @@ class PetHouse {
         const banhoInfo = this.calcularUltimoBanho(pet);
         
         return `
-            <div class="pet-card" onclick="app.viewPet('${pet.id}')">
-                <div class="pet-card-header">
-                    <div class="pet-icon">${icone}</div>
-                    <div class="pet-card-title">
-                        <h3 class="pet-card-name">${pet.nome}</h3>
-                        <p class="pet-card-info">${pet.especie} • ${pet.raca || 'SRD'}</p>
+            <div class="pet-item" onclick="app.viewPet('${pet.id}')">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="font-size: 2rem;">${icone}</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <h3 class="pet-name">${pet.nome}</h3>
+                        <p class="pet-info" style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${pet.especie} • ${pet.raca || 'SRD'}</p>
                     </div>
                 </div>
                 
-                <div class="pet-card-body">
+                <div>
                     <!-- Peso -->
-                    <div class="pet-stat">
-                        <div class="pet-stat-icon">⚖️</div>
-                        <div class="pet-stat-content">
-                            <span class="pet-stat-label">Peso</span>
-                            <div class="pet-stat-value">
-                                ${pesoInfo.valor}
-                                ${pesoInfo.tendencia}
-                            </div>
+                    <div style="background: #f5f5f5; padding: 0.4rem; border-radius: 4px; margin-bottom: 0.4rem;">
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 0.9rem;">⚖️</span>
+                            <span style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Peso</span>
+                        </div>
+                        <div style="font-weight: bold; font-size: 0.85rem; margin-top: 0.2rem;">
+                            ${pesoInfo.valor} ${pesoInfo.tendencia}
                         </div>
                     </div>
                     
                     <!-- Vacinação -->
-                    <div class="pet-stat">
-                        <div class="pet-stat-icon">💉</div>
-                        <div class="pet-stat-content">
-                            <span class="pet-stat-label">Vacinação</span>
-                            <div class="pet-stat-value">
-                                ${vacinaStatus.texto}
-                                <span class="pet-stat-badge ${vacinaStatus.classe}">${vacinaStatus.badge}</span>
-                            </div>
+                    <div style="background: #f5f5f5; padding: 0.4rem; border-radius: 4px; margin-bottom: 0.4rem;">
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 0.9rem;">💉</span>
+                            <span style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Vacinação</span>
+                        </div>
+                        <div style="font-size: 0.8rem; margin-top: 0.2rem;">
+                            ${vacinaStatus.texto} <span class="pet-stat-badge ${vacinaStatus.classe}">${vacinaStatus.badge}</span>
                         </div>
                     </div>
                     
                     <!-- Banho -->
-                    <div class="pet-stat">
-                        <div class="pet-stat-icon">🛁</div>
-                        <div class="pet-stat-content">
-                            <span class="pet-stat-label">Banho</span>
-                            <div class="pet-stat-value">
-                                ${banhoInfo.texto}
-                                ${banhoInfo.badge ? `<span class="pet-stat-badge ${banhoInfo.classe}">${banhoInfo.badge}</span>` : ''}
-                            </div>
+                    <div style="background: #f5f5f5; padding: 0.4rem; border-radius: 4px;">
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <span style="font-size: 0.9rem;">🛁</span>
+                            <span style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Banho</span>
+                        </div>
+                        <div style="font-size: 0.8rem; margin-top: 0.2rem;">
+                            ${banhoInfo.texto} <span class="pet-stat-badge ${banhoInfo.classe}">${banhoInfo.badge}</span>
                         </div>
                     </div>
                 </div>
@@ -245,7 +242,7 @@ class PetHouse {
             <div class="container">
                 <div class="card">
                     <h2>Meus Pets</h2>
-                    <div class="pets-grid">
+                    <div class="pet-list">
                         ${petsHTML}
                     </div>
                 </div>

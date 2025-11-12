@@ -184,24 +184,97 @@ const PDFAvancado = {
     gerarIndice(pet, opcoes) {
         const secoes = [];
         
-        if (opcoes.resumo) secoes.push({ nome: 'Resumo Executivo', id: 'resumo' });
-        if (opcoes.peso && pet.peso && pet.peso.length > 0) secoes.push({ nome: 'Histórico de Peso', id: 'peso' });
-        if (opcoes.vacinas && pet.vacinas && pet.vacinas.length > 0) secoes.push({ nome: 'Vacinas', id: 'vacinas' });
-        if (opcoes.vermifugos && pet.vermifugo && pet.vermifugo.length > 0) secoes.push({ nome: 'Vermífugos', id: 'vermifugos' });
-        if (opcoes.cios && pet.cios && pet.cios.length > 0) secoes.push({ nome: 'Cios', id: 'cios' });
-        if (opcoes.consultas && pet.consultas && pet.consultas.length > 0) secoes.push({ nome: 'Consultas', id: 'consultas' });
-        if (opcoes.cirurgias && pet.cirurgias && pet.cirurgias.length > 0) secoes.push({ nome: 'Cirurgias', id: 'cirurgias' });
-        if (opcoes.tratamentos && pet.tratamentos && pet.tratamentos.length > 0) secoes.push({ nome: 'Tratamentos', id: 'tratamentos' });
-        if (opcoes.diagnosticos && pet.diagnosticos && pet.diagnosticos.length > 0) secoes.push({ nome: 'Diagnósticos', id: 'diagnosticos' });
+        const periodoTexto = {
+            'ultimo_mes': 'Último mês',
+            'ultimo_trimestre': 'Último trimestre',
+            'ultimo_semestre': 'Último semestre',
+            'ultimo_ano': 'Último ano',
+            'todos': 'Todos os registros'
+        };
+        
+        if (opcoes.resumo) secoes.push({ 
+            icone: '📊', 
+            nome: 'Resumo Executivo', 
+            info: periodoTexto[opcoes.periodo] || 'Todos os registros',
+            id: 'resumo' 
+        });
+        
+        if (opcoes.peso && pet.peso && pet.peso.length > 0) secoes.push({ 
+            icone: '⚖️', 
+            nome: 'Histórico de Peso', 
+            info: `${pet.peso.length} ${pet.peso.length === 1 ? 'registro' : 'registros'}`,
+            id: 'peso' 
+        });
+        
+        if (opcoes.vacinas && pet.vacinas && pet.vacinas.length > 0) secoes.push({ 
+            icone: '💉', 
+            nome: 'Vacinas', 
+            info: `${pet.vacinas.length} ${pet.vacinas.length === 1 ? 'aplicação' : 'aplicações'}`,
+            id: 'vacinas' 
+        });
+        
+        if (opcoes.vermifugos && pet.vermifugo && pet.vermifugo.length > 0) secoes.push({ 
+            icone: '💊', 
+            nome: 'Vermífugos', 
+            info: `${pet.vermifugo.length} ${pet.vermifugo.length === 1 ? 'aplicação' : 'aplicações'}`,
+            id: 'vermifugos' 
+        });
+        
+        if (opcoes.cios && pet.cios && pet.cios.length > 0) secoes.push({ 
+            icone: '🌸', 
+            nome: 'Cios', 
+            info: `${pet.cios.length} ${pet.cios.length === 1 ? 'registro' : 'registros'}`,
+            id: 'cios' 
+        });
+        
+        if (opcoes.consultas && pet.consultas && pet.consultas.length > 0) secoes.push({ 
+            icone: '🏯', 
+            nome: 'Consultas', 
+            info: `${pet.consultas.length} ${pet.consultas.length === 1 ? 'consulta' : 'consultas'}`,
+            id: 'consultas' 
+        });
+        
+        if (opcoes.cirurgias && pet.cirurgias && pet.cirurgias.length > 0) secoes.push({ 
+            icone: '⚒️', 
+            nome: 'Cirurgias', 
+            info: `${pet.cirurgias.length} ${pet.cirurgias.length === 1 ? 'procedimento' : 'procedimentos'}`,
+            id: 'cirurgias' 
+        });
+        
+        if (opcoes.tratamentos && pet.tratamentos && pet.tratamentos.length > 0) secoes.push({ 
+            icone: '💊', 
+            nome: 'Tratamentos', 
+            info: `${pet.tratamentos.length} ${pet.tratamentos.length === 1 ? 'tratamento' : 'tratamentos'}`,
+            id: 'tratamentos' 
+        });
+        
+        if (opcoes.diagnosticos && pet.diagnosticos && pet.diagnosticos.length > 0) secoes.push({ 
+            icone: '🔬', 
+            nome: 'Diagnósticos', 
+            info: `${pet.diagnosticos.length} ${pet.diagnosticos.length === 1 ? 'diagnóstico' : 'diagnósticos'}`,
+            id: 'diagnosticos' 
+        });
 
         if (secoes.length === 0) return '';
 
         return `
             <div class="indice">
-                <h2>📑 Índice</h2>
-                <ul class="indice-lista">
-                    ${secoes.map(s => `<li><a href="#${s.id}">${s.nome}</a></li>`).join('')}
-                </ul>
+                <h2 style="color: #1976d2; margin-bottom: 1rem; border-bottom: 2px solid #1976d2; padding-bottom: 0.5rem;">
+                    📁 Índice do Prontuário
+                </h2>
+                <div style="display: grid; gap: 0.5rem;">
+                    ${secoes.map(s => `
+                        <a href="#${s.id}" style="text-decoration: none; color: inherit;">
+                            <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-radius: 6px; border-left: 4px solid #FF9800; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 1.2rem;">${s.icone}</span>
+                                    <span style="font-weight: 500; color: #333;">${s.nome}</span>
+                                </div>
+                                <span style="color: #666; font-size: 0.9rem;">${s.info}</span>
+                            </div>
+                        </a>
+                    `).join('')}
+                </div>
             </div>
         `;
     },

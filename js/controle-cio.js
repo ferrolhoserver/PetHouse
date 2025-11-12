@@ -214,8 +214,22 @@ const ControleCio = {
      * Mostra formulário de registro de cio
      */
     mostrarFormularioRegistro(petId) {
+        console.log('🐞 [Cio] Abrindo formulário para pet:', petId);
+        console.log('🐞 [Cio] window.app disponível?', !!window.app);
+        
+        if (!window.app || !window.app.data || !window.app.data.pets) {
+            console.error('❌ [Cio] window.app não disponível!');
+            alert('❌ Erro: Sistema não inicializado. Recarregue a página.');
+            return;
+        }
+        
         const pet = window.app.data.pets.find(p => p.id === petId);
-        if (!pet) return;
+        if (!pet) {
+            console.error('❌ [Cio] Pet não encontrado:', petId);
+            return;
+        }
+        
+        console.log('✅ [Cio] Pet encontrado:', pet.nome);
         
         const ciclo = window.CiclosReprodutivos?.[pet.especie];
         const hoje = new Date().toISOString().split('T')[0];
@@ -302,8 +316,19 @@ const ControleCio = {
     salvarCio(event, petId) {
         event.preventDefault();
         
+        console.log('🐞 [Cio] Salvando cio para pet:', petId);
+        
+        if (!window.app || !window.app.data || !window.app.data.pets) {
+            console.error('❌ [Cio] window.app não disponível ao salvar!');
+            alert('❌ Erro: Sistema não inicializado. Recarregue a página.');
+            return;
+        }
+        
         const pet = window.app.data.pets.find(p => p.id === petId);
-        if (!pet) return;
+        if (!pet) {
+            console.error('❌ [Cio] Pet não encontrado ao salvar:', petId);
+            return;
+        }
         
         const inicio = document.getElementById('cio-inicio').value;
         const fim = document.getElementById('cio-fim').value;

@@ -228,7 +228,8 @@ const ControleCio = {
             <form id="form-cio" onsubmit="ControleCio.salvarCio(event, '${petId}')">
                 <div class="form-group">
                     <label>Data de Início do Cio *</label>
-                    <input type="date" id="cio-inicio" required value="${hoje}">
+                    <input type="date" id="cio-inicio" required>
+                    <small style="color: #666;">Pode ser uma data passada</small>
                 </div>
                 
                 <div class="form-group">

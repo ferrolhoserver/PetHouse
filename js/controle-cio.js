@@ -26,10 +26,9 @@ const ControleCio = {
         html += this.renderizarStatus(status, pet, ciclo);
         
         // Botão de registro
-        const petJson = JSON.stringify(pet).replace(/"/g, '&quot;');
         html += `
             <div style="margin: 1.5rem 0;">
-                <button class="btn btn-primary" onclick='ControleCio.abrirFormulario("${petJson}")'>
+                <button class="btn btn-primary" onclick="ControleCio.abrirFormulario('${pet.id}')">
                     🌸 Registrar Novo Cio
                 </button>
             </div>
@@ -212,17 +211,15 @@ const ControleCio = {
     },
     
     /**
-     * Abre formulário recebendo pet como JSON
+     * Abre formulário
      */
-    abrirFormulario(petJson) {
-        try {
-            const pet = JSON.parse(petJson);
-            console.log('✅ [Cio] Pet recebido:', pet.nome);
-            this.mostrarFormularioRegistro(pet);
-        } catch (error) {
-            console.error('❌ [Cio] Erro ao parsear pet:', error);
-            alert('❌ Erro ao abrir formulário. Tente novamente.');
+    abrirFormulario(petId) {
+        const pet = window.app?.data?.pets?.find(p => p.id === petId);
+        if (!pet) {
+            alert('❌ Erro ao carregar pet. Recarregue a página.');
+            return;
         }
+        this.mostrarFormularioRegistro(pet);
     },
     
     /**

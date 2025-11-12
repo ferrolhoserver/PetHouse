@@ -236,7 +236,7 @@ const ControleCio = {
                 <h2>🌸 Registrar Cio</h2>
                 <button class="modal-close" onclick="app.closeModal()">×</button>
             </div>
-            <form id="form-cio" onsubmit="ControleCio.salvarCioForm(event, '${pet.id}')">
+            <form id="form-cio" onsubmit="return ControleCio.salvarCioForm(event, '${pet.id}', app)">
                 <div class="form-group">
                     <label>Data de Início do Cio *</label>
                     <input type="date" id="cio-inicio" required>
@@ -246,7 +246,7 @@ const ControleCio = {
                 <div class="form-group">
                     <label>Data de Fim do Cio</label>
                     <input type="date" id="cio-fim">
-                    <small style="color: #666;">Deixe em branco se o cio ainda está em andamento</small>
+                    <small style="color: #666;">Deixe em branco para calcular automaticamente (${ciclo ? ciclo.duracaoCio + ' dias' : 'duração média'})</small>
                 </div>
                 
                 <div class="form-group">
@@ -310,36 +310,49 @@ const ControleCio = {
     /**
      * Salva registro de cio (versão para formulário)
      */
-    salvarCioForm(event, petId) {
+    salvarCioForm(event, petId, app) {
         event.preventDefault();
         
         console.log('🐞 [Cio] Salvando cio para pet:', petId);
         
-        if (!window.app || !window.app.data || !window.app.data.pets) {
-            console.error('❌ [Cio] window.app não disponível ao salvar!');
+        if (!app || !app.data || !app.data.pets) {
+            console.error('❌ [Cio] app não disponível ao salvar!');
             alert('❌ Erro: Sistema não inicializado. Recarregue a página.');
-            return;
+            return false;
         }
         
-        const pet = window.app.data.pets.find(p => p.id === petId);
+        const pet = app.data.pets.find(p => p.id === petId);
         if (!pet) {
             console.error('❌ [Cio] Pet não encontrado ao salvar:', petId);
-            return;
+            return false;
         }
         
-        this.salvarCio(event, pet);
+        this.salvarCio(event, pet, app);
+        return false;
     },
     
     /**
      * Salva registro de cio
      */
-    salvarCio(event, pet) {
+    salvarCio(event, pet, app) {
         console.log('✅ [Cio] Salvando cio para:', pet.nome);
         
         const inicio = document.getElementById('cio-inicio').value;
-        const fim = document.getElementById('cio-fim').value;
+        let fim = document.getElementById('cio-fim').value;
         const observacoes = document.getElementById('cio-observacoes').value;
         const houveCruzamento = document.getElementById('cio-cruzamento').checked;
+        
+        // Se não informou data de fim, calcular automaticamente baseado na duração do ciclo
+        if (!fim && inicio) {
+            const ciclo = window.CiclosReprodutivos?.[pet.especie];
+            if (ciclo && ciclo.duracaoCio) {
+                const dataInicio = new Date(inicio);
+                const dataFim = new Date(dataInicio);
+                dataFim.setDate(dataFim.getDate() + ciclo.duracaoCio);
+                fim = dataFim.toISOString().split('T')[0];
+                console.log('✅ [Cio] Data de fim calculada automaticamente:', fim, '(', ciclo.duracaoCio, 'dias)');
+            }
+        }
         
         const cio = {
             id: Date.now().toString(),
@@ -366,9 +379,9 @@ const ControleCio = {
         if (!pet.cios) pet.cios = [];
         pet.cios.push(cio);
         
-        window.app.saveData();
-        window.app.closeModal();
-        window.app.render();
+        app.saveData();
+        app.closeModal();
+        app.render();
         
         alert('✅ Cio registrado com sucesso!');
     },

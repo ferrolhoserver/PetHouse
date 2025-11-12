@@ -648,7 +648,8 @@ const PDFAvancado = {
         
         win.document.write(html);
         win.document.close();
-    }
+    },
+    
     /**
      * Gera seção de cios
      */

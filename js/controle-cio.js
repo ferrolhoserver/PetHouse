@@ -35,7 +35,7 @@ const ControleCio = {
         `;
         
         // Informações sobre o ciclo da espécie
-        html += this.renderizarInformacoes(ciclo);
+        html += this.renderizarInformacoes(ciclo, pet);
         
         // Histórico de cios
         if (cios.length > 0) {
@@ -129,7 +129,7 @@ const ControleCio = {
     /**
      * Renderiza informações sobre o ciclo reprodutivo
      */
-    renderizarInformacoes(ciclo) {
+    renderizarInformacoes(ciclo, pet) {
         let html = `
             <div style="background: #f5f5f5; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
                 <h3 style="margin: 0 0 1rem 0; color: #1976d2; font-size: 1.1rem;">

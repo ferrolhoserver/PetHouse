@@ -1053,9 +1053,13 @@ class PetHouse {
                 </div>
                 <div class="form-group">
                     <label>Raça</label>
-                    <select id="edit-pet-raca">
-                        <option value="">SRD (Sem Raça Definida)</option>
-                    </select>
+                    <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+                        <select id="edit-pet-raca" style="flex: 1;">
+                            <option value="">SRD (Sem Raça Definida)</option>
+                        </select>
+                        <button type="button" onclick="app.forceReloadRacas()" class="btn btn-small" style="white-space: nowrap; padding: 0.5rem 1rem;">🔄</button>
+                    </div>
+                    <small id="racas-status" style="color: #666; display: block; margin-top: 0.25rem;">Carregando raças...</small>
                 </div>
                 <script>
                     // Atualizar raças ao carregar
@@ -1750,11 +1754,13 @@ END:VEVENT
         
         const especieSelect = document.getElementById('edit-pet-especie');
         const racaSelect = document.getElementById('edit-pet-raca');
+        const statusEl = document.getElementById('racas-status');
         
         console.log('🔍 [Raças] Elementos:', { especieSelect, racaSelect });
         
         if (!especieSelect || !racaSelect) {
             console.error('❌ [Raças] Elementos não encontrados!');
+            if (statusEl) statusEl.textContent = '❌ Erro: elementos não encontrados';
             return;
         }
         
@@ -1763,7 +1769,16 @@ END:VEVENT
         console.log('🔍 [Raças] window.RacasDB disponível?', !!window.RacasDB);
         console.log('🔍 [Raças] Raças disponíveis:', window.RacasDB);
         
-        const racas = window.RacasDB?.[especie] || [];
+        if (!window.RacasDB) {
+            console.error('❌ [Raças] window.RacasDB não está carregado!');
+            if (statusEl) {
+                statusEl.innerHTML = '❌ <strong>RacasDB não carregado!</strong> Clique em 🔄 ou recarregue a página';
+                statusEl.style.color = '#d32f2f';
+            }
+            return;
+        }
+        
+        const racas = window.RacasDB[especie] || [];
         console.log('🔍 [Raças] Raças da espécie', especie, ':', racas.length, 'raças');
         
         // Salvar valor atual
@@ -1782,10 +1797,49 @@ END:VEVENT
         
         console.log('✅ [Raças] Adicionadas', racas.length, 'raças ao dropdown');
         
+        if (statusEl) {
+            if (racas.length > 0) {
+                statusEl.textContent = `✅ ${racas.length} raças carregadas`;
+                statusEl.style.color = '#4caf50';
+            } else {
+                statusEl.textContent = '⚠️ Nenhuma raça disponível para esta espécie';
+                statusEl.style.color = '#ff9800';
+            }
+        }
+        
         // Restaurar valor se existir
         if (valorAtual) {
             racaSelect.value = valorAtual;
         }
+    }
+    
+    forceReloadRacas() {
+        const statusEl = document.getElementById('racas-status');
+        if (statusEl) {
+            statusEl.textContent = '🔄 Recarregando...';
+            statusEl.style.color = '#2196f3';
+        }
+        
+        // Forçar recarga do script
+        const oldScript = document.querySelector('script[src*="racas_db.js"]');
+        if (oldScript) {
+            oldScript.remove();
+        }
+        
+        const newScript = document.createElement('script');
+        newScript.src = `./js/racas_db.js?v=${Date.now()}`;
+        newScript.onload = () => {
+            console.log('✅ [Raças] Script recarregado com sucesso!');
+            setTimeout(() => this.atualizarRacasEdicao(), 100);
+        };
+        newScript.onerror = () => {
+            console.error('❌ [Raças] Erro ao recarregar script!');
+            if (statusEl) {
+                statusEl.textContent = '❌ Erro ao recarregar. Tente recarregar a página.';
+                statusEl.style.color = '#d32f2f';
+            }
+        };
+        document.head.appendChild(newScript);
     }
 }
 

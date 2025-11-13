@@ -62,8 +62,18 @@ class PetHouse {
     }
 
     async saveData() {
-        // Salva dados específicos do usuário localmente
-        localStorage.setItem(`pethouse_data_${this.userId}`, JSON.stringify(this.data));
+        try {
+            // Salva dados específicos do usuário localmente
+            localStorage.setItem(`pethouse_data_${this.userId}`, JSON.stringify(this.data));
+            
+            // Log da ação
+            if (window.ErrorLogger) {
+                ErrorLogger.logAction('Dados salvos', {
+                    totalPets: this.data.pets.length,
+                    familyId: this.data.familyId,
+                    userId: this.userId
+                });
+            }
         
         // Sincronizar com a nuvem se disponível
         if (this.syncEnabled && window.SupabaseSync) {
@@ -77,6 +87,18 @@ class PetHouse {
             }
         } else {
             this.showToast('Dados salvos!', 'success');
+        }
+        } catch (e) {
+            console.error('Erro ao salvar dados:', e);
+            if (window.ErrorLogger) {
+                ErrorLogger.logError({
+                    tipo: 'Erro ao Salvar Dados',
+                    mensagem: e.message,
+                    stack: e.stack
+                });
+            }
+            this.showToast('❌ Erro ao salvar dados!', 'error');
+            throw e;
         }
     }
 
@@ -235,6 +257,7 @@ class PetHouse {
                         <button class="btn btn-success btn-small" onclick="app.exportarBackup()">💾 Salvar</button>
                         <button class="btn btn-info btn-small" onclick="app.restaurarBackup()">📂 Restaurar</button>
                         <button class="btn btn-warning btn-small" onclick="app.mostrarCompartilhamento()">👥 Compartilhar</button>
+                        <button class="btn btn-danger btn-small" onclick="ErrorLogger.enviarPorEmail()" title="Reportar problema ou erro">🐛 Reportar</button>
                     </div>
                 </div>
             </div>

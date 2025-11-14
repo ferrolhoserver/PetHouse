@@ -1,0 +1,369 @@
+/**
+ * Estilos para Tela de Consentimento LGPD
+ */
+
+/* Overlay de fundo */
+.consent-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+/* Container principal */
+.consent-container {
+    background: white;
+    border-radius: 16px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+/* Header */
+.consent-header {
+    padding: 2rem;
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+    text-align: center;
+}
+
+.consent-logo {
+    margin-bottom: 1rem;
+}
+
+.consent-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.consent-header h1 {
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+}
+
+.consent-subtitle {
+    font-size: 1rem;
+    opacity: 0.95;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Tabs */
+.consent-tabs {
+    display: flex;
+    background: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.consent-tab {
+    flex: 1;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.consent-tab:hover {
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196F3;
+}
+
+.consent-tab.active {
+    background: white;
+    color: #2196F3;
+    border-bottom-color: #2196F3;
+}
+
+/* Conteúdo */
+.consent-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.consent-tab-content {
+    display: none;
+    height: 100%;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.consent-tab-content.active {
+    display: block;
+}
+
+/* Indicador de scroll */
+.consent-scroll-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.95));
+    padding: 3rem 1rem 1rem;
+    text-align: center;
+    pointer-events: none;
+    animation: bounce 2s infinite;
+}
+
+.scroll-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.consent-scroll-indicator p {
+    margin: 0;
+    font-weight: 600;
+    color: #2196F3;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Footer */
+.consent-footer {
+    padding: 1.5rem 2rem;
+    background: #f9f9f9;
+    border-top: 1px solid #e0e0e0;
+}
+
+.consent-checkboxes {
+    margin-bottom: 1.5rem;
+}
+
+.consent-checkbox {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.consent-checkbox input[type="checkbox"] {
+    margin-right: 0.75rem;
+    margin-top: 0.25rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.consent-checkbox input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.consent-checkbox span {
+    flex: 1;
+    line-height: 1.5;
+    color: #333;
+}
+
+.consent-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.consent-buttons button {
+    flex: 1;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.consent-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.consent-note {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+    padding: 1rem;
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+}
+
+/* Documento legal */
+.legal-document {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+.legal-document h1 {
+    font-size: 1.75rem;
+    color: #2196F3;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+}
+
+.legal-document .last-updated {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0 0 2rem 0;
+    font-style: italic;
+}
+
+.legal-section {
+    margin-bottom: 2rem;
+}
+
+.legal-section h2 {
+    font-size: 1.3rem;
+    color: #1976D2;
+    margin: 0 0 1rem 0;
+    font-weight: 600;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+}
+
+.legal-section h3 {
+    font-size: 1.1rem;
+    color: #333;
+    margin: 1.5rem 0 0.75rem 0;
+    font-weight: 600;
+}
+
+.legal-section h4 {
+    font-size: 1rem;
+    color: #555;
+    margin: 1rem 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.legal-section p {
+    margin: 0 0 1rem 0;
+    text-align: justify;
+}
+
+.legal-section ul {
+    margin: 0 0 1rem 0;
+    padding-left: 2rem;
+}
+
+.legal-section li {
+    margin-bottom: 0.5rem;
+}
+
+.legal-section strong {
+    color: #2196F3;
+    font-weight: 600;
+}
+
+.legal-footer {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #2196F3;
+    text-align: center;
+}
+
+.legal-footer p {
+    margin: 0 0 1rem 0;
+}
+
+.version-info {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .consent-container {
+        max-height: 95vh;
+        border-radius: 0;
+    }
+    
+    .consent-header {
+        padding: 1.5rem 1rem;
+    }
+    
+    .consent-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .consent-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .consent-tab {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .consent-tab-content {
+        padding: 1.5rem 1rem;
+    }
+    
+    .consent-footer {
+        padding: 1rem;
+    }
+    
+    .consent-buttons {
+        flex-direction: column;
+    }
+    
+    .legal-document h1 {
+        font-size: 1.5rem;
+    }
+    
+    .legal-section h2 {
+        font-size: 1.2rem;
+    }
+    
+    .legal-section h3 {
+        font-size: 1rem;
+    }
+}
+
+/* Scroll personalizado */
+.consent-tab-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.consent-tab-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.consent-tab-content::-webkit-scrollbar-thumb {
+    background: #2196F3;
+    border-radius: 4px;
+}
+
+.consent-tab-content::-webkit-scrollbar-thumb:hover {
+    background: #1976D2;
+}

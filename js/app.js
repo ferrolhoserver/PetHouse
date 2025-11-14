@@ -74,6 +74,14 @@ class PetHouse {
                     userId: this.userId
                 });
             }
+            
+            // Track para Analytics
+            if (window.Analytics) {
+                Analytics.trackAction('save_data', {
+                    totalPets: this.data.pets.length,
+                    timestamp: new Date().toISOString()
+                });
+            }
         
         // Sincronizar com a nuvem se disponível
         if (this.syncEnabled && window.SupabaseSync) {
@@ -1880,6 +1888,36 @@ END:VEVENT
 // Inicializar aplicativo
 let app;
 window.addEventListener('DOMContentLoaded', () => {
-    app = new PetHouse();
+    // Verificar e exibir consentimento LGPD
+    if (window.ConsentManager) {
+        const hasConsent = ConsentManager.checkAndShow(() => {
+            // Callback após aceitar consentimento
+            console.log('✅ Consentimento aceito, inicializando app...');
+            initializeApp();
+        });
+        
+        // Se já tem consentimento, inicializar diretamente
+        if (hasConsent) {
+            initializeApp();
+        }
+    } else {
+        // Fallback se ConsentManager não carregar
+        console.warn('⚠️ ConsentManager não disponível, inicializando sem consentimento');
+        initializeApp();
+    }
 });
+
+function initializeApp() {
+    // Criar instância do app
+    app = new PetHouse();
+    
+    // Inicializar Analytics
+    if (window.Analytics) {
+        Analytics.init();
+        console.log('📊 Analytics inicializado');
+    }
+    
+    // Restaurar overflow do body (caso tenha sido bloqueado pelo consentimento)
+    document.body.style.overflow = '';
+}
 

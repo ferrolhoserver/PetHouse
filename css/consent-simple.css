@@ -1,0 +1,327 @@
+/**
+ * Estilos Simplificados para Tela de Consentimento
+ * Otimizado para iOS e mobile
+ */
+
+/* Overlay simples */
+.consent-overlay-simple {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem;
+}
+
+/* Modal simples */
+.consent-modal-simple {
+    background: white;
+    border-radius: 16px;
+    max-width: 600px;
+    margin: 2rem auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.consent-header-simple {
+    padding: 2rem;
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+    text-align: center;
+    border-radius: 16px 16px 0 0;
+}
+
+.consent-icon-simple {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.consent-header-simple h1 {
+    font-size: 1.75rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+}
+
+.consent-header-simple p {
+    font-size: 0.95rem;
+    margin: 0;
+    opacity: 0.95;
+    line-height: 1.5;
+}
+
+/* Body */
+.consent-body-simple {
+    padding: 2rem;
+}
+
+.consent-section-simple {
+    margin-bottom: 1.5rem;
+}
+
+.consent-section-simple h2 {
+    font-size: 1.1rem;
+    color: #2196F3;
+    margin: 0 0 0.75rem 0;
+    font-weight: 600;
+}
+
+.consent-section-simple ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style: none;
+}
+
+.consent-section-simple li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    color: #333;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.consent-section-simple li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.consent-important-simple {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    line-height: 1.6;
+    color: #856404;
+}
+
+.consent-docs-simple {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.consent-docs-simple p {
+    margin: 0 0 0.75rem 0;
+    color: #666;
+    font-weight: 600;
+}
+
+.consent-link-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #2196F3;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.consent-link-btn:hover {
+    background: #2196F3;
+    color: white;
+    border-color: #2196F3;
+}
+
+/* Footer */
+.consent-footer-simple {
+    padding: 2rem;
+    background: #f9f9f9;
+    border-radius: 0 0 16px 16px;
+}
+
+.consent-checkbox-simple {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.consent-checkbox-simple input[type="checkbox"] {
+    margin-right: 0.75rem;
+    margin-top: 0.25rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.consent-checkbox-simple span {
+    flex: 1;
+    line-height: 1.5;
+    color: #333;
+}
+
+.consent-buttons-simple {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.consent-buttons-simple button {
+    flex: 1;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-decline {
+    background: #f44336;
+    color: white;
+}
+
+.btn-decline:hover {
+    background: #d32f2f;
+}
+
+.btn-accept {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-accept:hover {
+    background: #388E3C;
+}
+
+.btn-accept:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.consent-note-simple {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+    text-align: center;
+}
+
+/* Modal de documento */
+.consent-doc-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.consent-doc-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.consent-doc-header {
+    padding: 1.5rem;
+    background: #2196F3;
+    color: white;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.consent-doc-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.consent-doc-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.consent-doc-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.consent-doc-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .consent-overlay-simple {
+        padding: 0;
+    }
+    
+    .consent-modal-simple {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+    
+    .consent-header-simple {
+        padding: 1.5rem 1rem;
+        border-radius: 0;
+    }
+    
+    .consent-header-simple h1 {
+        font-size: 1.5rem;
+    }
+    
+    .consent-body-simple {
+        padding: 1.5rem 1rem;
+    }
+    
+    .consent-footer-simple {
+        padding: 1.5rem 1rem;
+        border-radius: 0;
+    }
+    
+    .consent-buttons-simple {
+        flex-direction: column;
+    }
+    
+    .consent-doc-modal {
+        padding: 0;
+    }
+    
+    .consent-doc-content {
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .consent-doc-header {
+        border-radius: 0;
+    }
+    
+    .consent-doc-body {
+        padding: 1.5rem 1rem;
+    }
+}

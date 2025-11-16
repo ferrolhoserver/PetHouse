@@ -95,6 +95,7 @@ const ConsentManager = {
                     <div class="consent-logo">
                         <span class="consent-icon">🐾</span>
                         <h1>Bem-vindo ao PetHouse</h1>
+                        <div class="prototype-badge">⚠️ PROTÓTIPO - VAGAS LIMITADAS (20 famílias)</div>
                     </div>
                     <p class="consent-subtitle">
                         Antes de começar, precisamos do seu consentimento para coletar e processar seus dados.

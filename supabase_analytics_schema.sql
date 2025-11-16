@@ -323,6 +323,43 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO service_role;
 GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
 -- ============================================================================
+-- Tabela de lista de espera (protótipo)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS waitlist (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    message TEXT,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    notified BOOLEAN DEFAULT FALSE,
+    notified_at TIMESTAMPTZ
+);
+
+-- Índices
+CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
+CREATE INDEX IF NOT EXISTS idx_waitlist_notified ON waitlist(notified);
+CREATE INDEX IF NOT EXISTS idx_waitlist_created ON waitlist(created_at);
+
+-- RLS
+ALTER TABLE waitlist ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permitir inserção na waitlist" ON waitlist
+    FOR INSERT
+    WITH CHECK (true);
+
+CREATE POLICY "Admin pode ler waitlist" ON waitlist
+    FOR SELECT
+    USING (auth.role() = 'service_role');
+
+-- Grant
+GRANT INSERT ON waitlist TO anon;
+
+-- Comentário
+COMMENT ON TABLE waitlist IS 'Lista de espera de usuários interessados no PetHouse';
+
+-- ============================================================================
 -- FIM DO SCHEMA
 -- ============================================================================
 

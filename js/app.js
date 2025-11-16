@@ -13,6 +13,16 @@ class PetHouse {
     }
 
     async init() {
+        // Verificar limite de famílias (protótipo)
+        if (window.FamilyLimit && !this.data.familyId) {
+            const canCreate = await FamilyLimit.canCreateFamily();
+            if (!canCreate) {
+                const { current } = await FamilyLimit.checkAvailability();
+                FamilyLimit.showFullScreen(current);
+                return; // Bloquear acesso
+            }
+        }
+        
         // Inicializar Supabase
         if (window.SupabaseSync) {
             this.syncEnabled = await SupabaseSync.init();

@@ -14,6 +14,21 @@ const TermsOfService = {
                 <h1>Termos de Uso do PetHouse</h1>
                 <p class="last-updated">Última atualização: ${this.lastUpdated}</p>
                 
+                <div class="legal-section" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <h2 style="color: #856404; margin-top: 0;">⚠️ AVISO IMPORTANTE: VERSÃO PROTÓTIPO</h2>
+                    <p style="color: #856404; margin-bottom: 0.5rem;">
+                        <strong>O PetHouse está atualmente em fase de PROTÓTIPO com acesso limitado.</strong>
+                    </p>
+                    <ul style="color: #856404; margin: 0;">
+                        <li><strong>Vagas Limitadas:</strong> Apenas as primeiras <strong>20 famílias</strong> terão acesso gratuito ao protótipo.</li>
+                        <li><strong>Acesso Gratuito:</strong> Durante a fase de protótipo, o acesso é 100% gratuito para testar e validar funcionalidades.</li>
+                        <li><strong>Coleta de Feedback:</strong> Seus dados de uso serão coletados para melhorar o aplicativo.</li>
+                        <li><strong>Migração Futura:</strong> Após o protótipo, o PetHouse se tornará um serviço pago. Usuários do protótipo terão condições especiais.</li>
+                        <li><strong>Sem Garantias:</strong> Como protótipo, o serviço pode apresentar instabilidades, bugs ou interrupções.</li>
+                        <li><strong>Dados Preservados:</strong> Seus dados serão migrados para a versão comercial.</li>
+                    </ul>
+                </div>
+                
                 <div class="legal-section">
                     <h2>1. ACEITAÇÃO DOS TERMOS</h2>
                     <p>

@@ -140,11 +140,9 @@ const ConsentManager = {
                 .consent-header {
                     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
                     color: white;
-                    padding: 2rem 1rem;
+                    padding: 1.5rem 1rem;
                     text-align: center;
-                    position: sticky;
-                    top: 0;
-                    z-index: 100;
+                    position: relative;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                 }
                 
@@ -174,9 +172,7 @@ const ConsentManager = {
                     display: flex;
                     background: #f5f5f5;
                     border-bottom: 2px solid #e0e0e0;
-                    position: sticky;
-                    top: 140px;
-                    z-index: 99;
+                    position: relative;
                 }
                 
                 .consent-tab {
@@ -212,8 +208,6 @@ const ConsentManager = {
                 }
                 
                 .consent-footer {
-                    position: sticky;
-                    bottom: 0;
                     background: white;
                     padding: 1rem;
                     border-top: 2px solid #e0e0e0;
@@ -388,7 +382,8 @@ const ConsentManager = {
         // Botão Aceitar
         acceptBtn.addEventListener('click', () => {
             if (this.recordConsent()) {
-                if (onAccept) onAccept();
+                // Recarregar a página para iniciar o app
+                window.location.reload();
             } else {
                 alert('Erro ao salvar consentimento. Tente novamente.');
             }

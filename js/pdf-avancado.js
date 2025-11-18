@@ -39,6 +39,8 @@ const PDFAvancado = {
                     <label><input type="checkbox" id="pdf-peso" checked> Histórico de Peso</label><br>
                     <label><input type="checkbox" id="pdf-vacinas" checked> Vacinas</label><br>
                     <label><input type="checkbox" id="pdf-vermifugos" checked> Vermífugos</label><br>
+                    <label><input type="checkbox" id="pdf-banhos" checked> Banhos</label><br>
+                    <label><input type="checkbox" id="pdf-tosas" checked> Tosas</label><br>
                     <label><input type="checkbox" id="pdf-cios" checked> Cios</label><br>
                     <label><input type="checkbox" id="pdf-consultas" checked> Consultas</label><br>
                     <label><input type="checkbox" id="pdf-cirurgias" checked> Cirurgias</label><br>
@@ -83,6 +85,8 @@ const PDFAvancado = {
             peso: document.getElementById('pdf-peso').checked,
             vacinas: document.getElementById('pdf-vacinas').checked,
             vermifugos: document.getElementById('pdf-vermifugos').checked,
+            banhos: document.getElementById('pdf-banhos').checked,
+            tosas: document.getElementById('pdf-tosas').checked,
             cios: document.getElementById('pdf-cios').checked,
             consultas: document.getElementById('pdf-consultas').checked,
             cirurgias: document.getElementById('pdf-cirurgias').checked,
@@ -254,6 +258,22 @@ const PDFAvancado = {
             info: `${pet.diagnosticos.length} ${pet.diagnosticos.length === 1 ? 'diagnóstico' : 'diagnósticos'}`,
             id: 'diagnosticos' 
         });
+        
+        // Adicionar banhos
+        if (opcoes.banhos && pet.banhos && pet.banhos.length > 0) secoes.push({ 
+            icone: '🛁', 
+            nome: 'Banhos', 
+            info: `${pet.banhos.length} ${pet.banhos.length === 1 ? 'banho' : 'banhos'}`,
+            id: 'banhos' 
+        });
+        
+        // Adicionar tosas
+        if (opcoes.tosas && pet.tosas && pet.tosas.length > 0) secoes.push({ 
+            icone: '✂️', 
+            nome: 'Tosas', 
+            info: `${pet.tosas.length} ${pet.tosas.length === 1 ? 'tosa' : 'tosas'}`,
+            id: 'tosas' 
+        });
 
         if (secoes.length === 0) return '';
 
@@ -262,15 +282,15 @@ const PDFAvancado = {
                 <h2 style="color: #1976d2; margin-bottom: 1rem; border-bottom: 2px solid #1976d2; padding-bottom: 0.5rem;">
                     📁 Índice do Prontuário
                 </h2>
-                <div style="display: grid; gap: 0.5rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                     ${secoes.map(s => `
                         <a href="#${s.id}" style="text-decoration: none; color: inherit;">
-                            <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-radius: 6px; border-left: 4px solid #FF9800; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-radius: 6px; border-left: 4px solid #FF9800; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.25rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <span style="font-size: 1.2rem;">${s.icone}</span>
-                                    <span style="font-weight: 500; color: #333;">${s.nome}</span>
+                                    <span style="font-weight: 500; color: #333; font-size: 0.95rem;">${s.nome}</span>
                                 </div>
-                                <span style="color: #666; font-size: 0.9rem;">${s.info}</span>
+                                <span style="color: #666; font-size: 0.85rem; padding-left: 1.7rem;">${s.info}</span>
                             </div>
                         </a>
                     `).join('')}
@@ -363,6 +383,8 @@ const PDFAvancado = {
         ${opcoes.peso && pesoFiltrado.length > 0 ? window.PDF.gerarSecaoPeso(pesoFiltrado, opcoes.grafico) : ''}
         ${opcoes.vacinas && vacinasFiltrado.length > 0 ? window.PDF.gerarSecaoVacinas(vacinasFiltrado) : ''}
         ${opcoes.vermifugos && vermifugosFiltrado.length > 0 ? window.PDF.gerarSecaoVermifugos(vermifugosFiltrado) : ''}
+        ${opcoes.banhos && pet.banhos && pet.banhos.length > 0 ? this.gerarSecaoBanhos(pet.banhos) : ''}
+        ${opcoes.tosas && pet.tosas && pet.tosas.length > 0 ? this.gerarSecaoTosas(pet.tosas) : ''}
         ${opcoes.cios && pet.cios && pet.cios.length > 0 ? this.gerarSecaoCios(pet.cios) : ''}
         ${opcoes.consultas && consultasFiltrado.length > 0 ? window.PDF.gerarSecaoConsultas(consultasFiltrado) : ''}
         ${opcoes.cirurgias && cirurgiasFiltrado.length > 0 ? window.PDF.gerarSecaoCirurgias(cirurgiasFiltrado) : ''}
@@ -768,6 +790,101 @@ const PDFAvancado = {
                                         </td>
                                     </tr>
                                 ` : ''}
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    },
+
+    /**
+     * Gera seção de banhos
+     */
+    gerarSecaoBanhos(banhos) {
+        const banhosOrdenados = [...banhos].sort((a, b) => new Date(b.data) - new Date(a.data));
+        
+        // Gerar gráfico se disponível
+        const grafico = window.GraficoBanhos ? window.GraficoBanhos.gerarGraficoPDF(banhos) : '';
+        
+        return `
+            <div class="secao" id="banhos">
+                <h2>🛁 Banhos (${banhos.length})</h2>
+                
+                ${grafico}
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Local</th>
+                            <th>Profissional</th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${banhosOrdenados.map(banho => {
+                            const data = new Date(banho.data).toLocaleDateString('pt-BR');
+                            const tipo = window.BanhosTosas ? window.BanhosTosas.getTipoLabel(banho.tipo, 'banho') : banho.tipo;
+                            
+                            return `
+                                <tr>
+                                    <td>${data}</td>
+                                    <td>${tipo}</td>
+                                    <td>${banho.local || '-'}</td>
+                                    <td>${banho.profissional || '-'}</td>
+                                    <td>${banho.obs || '-'}</td>
+                                </tr>
+                                ${banho.produtos ? `
+                                    <tr>
+                                        <td colspan="5" style="background: #f8f9fa; font-size: 0.9em; padding: 6px;">
+                                            <strong>Produtos:</strong> ${banho.produtos}
+                                        </td>
+                                    </tr>
+                                ` : ''}
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    },
+
+    /**
+     * Gera seção de tosas
+     */
+    gerarSecaoTosas(tosas) {
+        const tosasOrdenadas = [...tosas].sort((a, b) => new Date(b.data) - new Date(a.data));
+        
+        return `
+            <div class="secao" id="tosas">
+                <h2>✂️ Tosas (${tosas.length})</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Estilo</th>
+                            <th>Local</th>
+                            <th>Profissional</th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tosasOrdenadas.map(tosa => {
+                            const data = new Date(tosa.data).toLocaleDateString('pt-BR');
+                            const tipo = window.BanhosTosas ? window.BanhosTosas.getTipoLabel(tosa.tipo, 'tosa') : tosa.tipo;
+                            
+                            return `
+                                <tr>
+                                    <td>${data}</td>
+                                    <td>${tipo}</td>
+                                    <td>${tosa.estilo || '-'}</td>
+                                    <td>${tosa.local || '-'}</td>
+                                    <td>${tosa.profissional || '-'}</td>
+                                    <td>${tosa.obs || '-'}</td>
+                                </tr>
                             `;
                         }).join('')}
                     </tbody>

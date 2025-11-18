@@ -302,6 +302,8 @@ class PetHouse {
         const tabsData = {
             peso: { title: 'Peso', icon: '⚖️' },
             cuidados: { title: 'Cuidados', icon: '💝' },
+            banhos: { title: 'Banhos', icon: '🛁' },
+            tosas: { title: 'Tosas', icon: '✂️' },
             cio: { title: 'Cio', icon: '🌸' },
             consultas: { title: 'Consultas', icon: '🏥' },
             cirurgias: { title: 'Cirurgias', icon: '🔬' },
@@ -381,6 +383,22 @@ class PetHouse {
         }
         if (this.currentTab === 'exames' && window.VisualizacaoExames) {
             return window.VisualizacaoExames.renderizar(pet);
+        }
+        if (this.currentTab === 'banhos' && window.BanhosTosas) {
+            if (!pet.banhos) pet.banhos = [];
+            const grafico = window.GraficoBanhos && pet.banhos.length > 0 ? window.GraficoBanhos.gerarGrafico(pet.banhos) : '';
+            return `
+                <button class="btn btn-primary" onclick="app.showAddBanho()">➕ Adicionar Banho</button>
+                ${grafico}
+                ${window.BanhosTosas.renderBanhosList(pet.banhos)}
+            `;
+        }
+        if (this.currentTab === 'tosas' && window.BanhosTosas) {
+            if (!pet.tosas) pet.tosas = [];
+            return `
+                <button class="btn btn-primary" onclick="app.showAddTosa()">➕ Adicionar Tosa</button>
+                ${window.BanhosTosas.renderTosasList(pet.tosas)}
+            `;
         }
         
         // Abas antigas (peso, consultas, cirurgias)

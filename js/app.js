@@ -302,8 +302,7 @@ class PetHouse {
         const tabsData = {
             peso: { title: 'Peso', icon: '⚖️' },
             cuidados: { title: 'Cuidados', icon: '💝' },
-            banhos: { title: 'Banhos', icon: '🛁' },
-            tosas: { title: 'Tosas', icon: '✂️' },
+            banhos_tosas: { title: 'Banhos & Tosas', icon: '🛁' },
             cio: { title: 'Cio', icon: '🌸' },
             consultas: { title: 'Consultas', icon: '🏥' },
             cirurgias: { title: 'Cirurgias', icon: '🔬' },
@@ -384,19 +383,40 @@ class PetHouse {
         if (this.currentTab === 'exames' && window.VisualizacaoExames) {
             return window.VisualizacaoExames.renderizar(pet);
         }
-        if (this.currentTab === 'banhos' && window.BanhosTosas) {
+        if (this.currentTab === 'banhos_tosas' && window.BanhosTosas) {
+            // Inicializar arrays se não existirem
             if (!pet.banhos) pet.banhos = [];
-            const grafico = window.GraficoBanhos && pet.banhos.length > 0 ? window.GraficoBanhos.gerarGrafico(pet.banhos) : '';
-            return `
-                <button class="btn btn-primary" onclick="app.showAddBanho()">➕ Adicionar Banho</button>
-                ${grafico}
-                ${window.BanhosTosas.renderBanhosList(pet.banhos)}
-            `;
-        }
-        if (this.currentTab === 'tosas' && window.BanhosTosas) {
             if (!pet.tosas) pet.tosas = [];
+            
+            // Migrar dados de banho_tosa se existirem
+            if (pet.banho_tosa && pet.banho_tosa.length > 0) {
+                pet.banho_tosa.forEach(item => {
+                    // Determinar se é banho ou tosa baseado no tipo
+                    if (item.tipo && (item.tipo.includes('banho') || item.tipo.includes('Banho'))) {
+                        pet.banhos.push(item);
+                    } else {
+                        pet.tosas.push(item);
+                    }
+                });
+                // Limpar array antigo
+                delete pet.banho_tosa;
+                this.saveData();
+            }
+            
+            const grafico = window.GraficoBanhos && pet.banhos.length > 0 ? window.GraficoBanhos.gerarGrafico(pet.banhos) : '';
+            
             return `
-                <button class="btn btn-primary" onclick="app.showAddTosa()">➕ Adicionar Tosa</button>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="app.showAddBanho()">🛁 Adicionar Banho</button>
+                    <button class="btn btn-primary" onclick="app.showAddTosa()">✂️ Adicionar Tosa</button>
+                </div>
+                
+                ${grafico}
+                
+                <h3 style="margin-top: 1.5rem; color: #2196F3;">🛁 Banhos (${pet.banhos.length})</h3>
+                ${window.BanhosTosas.renderBanhosList(pet.banhos)}
+                
+                <h3 style="margin-top: 1.5rem; color: #2196F3;">✂️ Tosas (${pet.tosas.length})</h3>
                 ${window.BanhosTosas.renderTosasList(pet.tosas)}
             `;
         }

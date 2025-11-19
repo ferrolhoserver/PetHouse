@@ -149,6 +149,8 @@ const PDFAvancado = {
             peso: this.filtrarPorPeriodo(pet.peso || [], opcoes.periodo).length,
             vacinas: this.filtrarPorPeriodo(pet.vacinas || [], opcoes.periodo).length,
             vermifugos: this.filtrarPorPeriodo(pet.vermifugo || [], opcoes.periodo).length,
+            banhos: this.filtrarPorPeriodo(pet.banhos || [], opcoes.periodo).length,
+            tosas: this.filtrarPorPeriodo(pet.tosas || [], opcoes.periodo).length,
             consultas: this.filtrarPorPeriodo(pet.consultas || [], opcoes.periodo).length,
             cirurgias: this.filtrarPorPeriodo(pet.cirurgias || [], opcoes.periodo).length,
             tratamentos: this.filtrarPorPeriodo(pet.tratamentos || [], opcoes.periodo).length,
@@ -173,9 +175,11 @@ const PDFAvancado = {
                     ${resumo.peso > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.peso}</span><span class="resumo-label">Pesagens</span></div>` : ''}
                     ${resumo.vacinas > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.vacinas}</span><span class="resumo-label">Vacinas</span></div>` : ''}
                     ${resumo.vermifugos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.vermifugos}</span><span class="resumo-label">Vermífugos</span></div>` : ''}
+                    ${resumo.banhos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.banhos}</span><span class="resumo-label">Banhos</span></div>` : ''}
+                    ${resumo.tosas > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.tosas}</span><span class="resumo-label">Tosas</span></div>` : ''}
                     ${resumo.consultas > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.consultas}</span><span class="resumo-label">Consultas</span></div>` : ''}
                     ${resumo.cirurgias > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.cirurgias}</span><span class="resumo-label">Cirurgias</span></div>` : ''}
-                    ${resumo.tratamentos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.tratamentos}</span><span class="resumo-label">Tratamentos</span></div>` : ''}
+                    ${resumo.tratamentos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.tratamentos}</span><span class="resumo-label">Tratamentos</span></div>` : ''
                     ${resumo.diagnosticos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.diagnosticos}</span><span class="resumo-label">Diagnósticos</span></div>` : ''}
                 </div>
             </div>

@@ -36,17 +36,7 @@ const Cuidados = {
             });
         }
         
-        // Adicionar banhos/tosas
-        if (pet.banho_tosa) {
-            pet.banho_tosa.forEach((b, idx) => {
-                cuidados.push({
-                    tipo: 'banho_tosa',
-                    icon: '🛁',
-                    ...b,
-                    originalIndex: idx
-                });
-            });
-        }
+        // Banhos e tosas agora têm aba própria
         
         // Ordenar por data (mais recente primeiro)
         cuidados.sort((a, b) => new Date(b.data) - new Date(a.data));
@@ -61,9 +51,7 @@ const Cuidados = {
                     <button class="btn btn-primary btn-small" onclick="VermifugosRapido.mostrarSelecao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: linear-gradient(135deg, #2196F3 0%, #42a5f5 100%);">
                         💊 Registro Rápido de Vermífugo
                     </button>
-                    <button class="btn btn-small" onclick="Cuidados.showAddModal('banho_tosa')" style="background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%); color: white;">
-                        🛁 Adicionar Banho/Tosa
-                    </button>
+
                 </div>
                 
                 <div class="cuidados-buttons" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">

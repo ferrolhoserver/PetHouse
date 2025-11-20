@@ -813,7 +813,7 @@ const PDFAvancado = {
         
         return `
             <div class="secao" id="banhos">
-                <h2>🛁 Banhos (${banhos.length})</h2>
+                <h2>🛁 Cuidados de Higiene - Banhos (${banhos.length})</h2>
                 
                 ${grafico}
                 
@@ -863,7 +863,7 @@ const PDFAvancado = {
         
         return `
             <div class="secao" id="tosas">
-                <h2>✂️ Tosas (${tosas.length})</h2>
+                <h2>✂️ Cuidados de Higiene - Tosas (${tosas.length})</h2>
                 <table>
                     <thead>
                         <tr>

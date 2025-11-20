@@ -302,7 +302,7 @@ class PetHouse {
         const tabsData = {
             peso: { title: 'Peso', icon: '⚖️' },
             cuidados: { title: 'Cuidados', icon: '💝' },
-            banhos_tosas: { title: 'Banhos & Tosas', icon: '🛁' },
+            banhos_tosas: { title: 'Cuidados de Higiene', icon: '🛁' },
             cio: { title: 'Cio', icon: '🌸' },
             consultas: { title: 'Consultas', icon: '🏥' },
             cirurgias: { title: 'Cirurgias', icon: '🔬' },
@@ -391,11 +391,47 @@ class PetHouse {
             // Migrar dados de banho_tosa se existirem
             if (pet.banho_tosa && pet.banho_tosa.length > 0) {
                 pet.banho_tosa.forEach(item => {
-                    // Determinar se é banho ou tosa baseado no tipo
-                    if (item.tipo && (item.tipo.includes('banho') || item.tipo.includes('Banho'))) {
-                        pet.banhos.push(item);
+                    // Adicionar ID se não existir
+                    if (!item.id) {
+                        item.id = Date.now() + Math.random();
+                    }
+                    
+                    // Determinar se é banho ou tosa baseado no tipo e observações
+                    const textoCompleto = `${item.tipo || ''} ${item.obs || ''}`.toLowerCase();
+                    
+                    if (textoCompleto.includes('banho') || textoCompleto.includes('bath')) {
+                        // É um banho
+                        pet.banhos.push({
+                            id: item.id,
+                            data: item.data,
+                            tipo: item.tipo || 'banho_simples',
+                            local: item.local || '',
+                            profissional: item.profissional || '',
+                            produtos: item.produtos || '',
+                            obs: item.obs || ''
+                        });
+                    } else if (textoCompleto.includes('tosa') || textoCompleto.includes('corte') || textoCompleto.includes('grooming')) {
+                        // É uma tosa
+                        pet.tosas.push({
+                            id: item.id,
+                            data: item.data,
+                            tipo: item.tipo || 'tosa_higienica',
+                            estilo: item.estilo || '',
+                            local: item.local || '',
+                            profissional: item.profissional || '',
+                            obs: item.obs || ''
+                        });
                     } else {
-                        pet.tosas.push(item);
+                        // Se não identificar, considerar como banho por padrão
+                        pet.banhos.push({
+                            id: item.id,
+                            data: item.data,
+                            tipo: item.tipo || 'banho_simples',
+                            local: item.local || '',
+                            profissional: item.profissional || '',
+                            produtos: item.produtos || '',
+                            obs: item.obs || ''
+                        });
                     }
                 });
                 // Limpar array antigo

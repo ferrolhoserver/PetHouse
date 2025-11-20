@@ -156,9 +156,11 @@ const BanhosTosas = {
                     <div class="record-card">
                         <div class="record-header">
                             <span class="record-date">🛁 ${this.formatDate(banho.data)}</span>
-                            <button class="btn-icon" onclick="app.deleteRecord('banhos', ${banho.id})" title="Excluir">
-                                🗑️
-                            </button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn-icon" onclick="app.deleteRecord('banhos', '${banho.id}')" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
                         </div>
                         <div class="record-body">
                             <p><strong>Tipo:</strong> ${this.getTipoLabel(banho.tipo, 'banho')}</p>
@@ -189,9 +191,11 @@ const BanhosTosas = {
                     <div class="record-card">
                         <div class="record-header">
                             <span class="record-date">✂️ ${this.formatDate(tosa.data)}</span>
-                            <button class="btn-icon" onclick="app.deleteRecord('tosas', ${tosa.id})" title="Excluir">
-                                🗑️
-                            </button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn-icon" onclick="app.deleteRecord('tosas', '${tosa.id}')" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
                         </div>
                         <div class="record-body">
                             <p><strong>Tipo:</strong> ${this.getTipoLabel(tosa.tipo, 'tosa')}</p>

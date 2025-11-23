@@ -157,6 +157,9 @@ const BanhosTosas = {
                         <div class="record-header">
                             <span class="record-date">🛁 ${this.formatDate(banho.data)}</span>
                             <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn-icon" onclick="app.showEditBanho('${banho.id}')" title="Editar">
+                                    ✏️
+                                </button>
                                 <button class="btn-icon" onclick="app.deleteRecord('banhos', '${banho.id}')" title="Excluir">
                                     🗑️
                                 </button>
@@ -192,6 +195,9 @@ const BanhosTosas = {
                         <div class="record-header">
                             <span class="record-date">✂️ ${this.formatDate(tosa.data)}</span>
                             <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn-icon" onclick="app.showEditTosa('${tosa.id}')" title="Editar">
+                                    ✏️
+                                </button>
                                 <button class="btn-icon" onclick="app.deleteRecord('tosas', '${tosa.id}')" title="Excluir">
                                     🗑️
                                 </button>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Dados de Teste - PetHouse</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1976d2;
+            text-align: center;
+        }
+        .btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background: #1976D2;
+        }
+        .success {
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+        .info {
+            background: #fff3e0;
+            border-left: 4px solid #FF9800;
+            padding: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Dados de Teste - PetHouse</h1>
+        
+        <div class="info">
+            <strong>⚠️ Atenção:</strong> Este script adiciona dados fictícios ao pet atual para testes. Use apenas em ambiente de desenvolvimento!
+        </div>
+
+        <button class="btn" onclick="adicionarBanhos()">🛁 Adicionar 5 Banhos de Teste</button>
+        <button class="btn" onclick="adicionarTosas()">✂️ Adicionar 3 Tosas de Teste</button>
+        <button class="btn" onclick="adicionarTudo()">🎯 Adicionar Todos os Dados</button>
+        <button class="btn" onclick="limparTudo()" style="background: #f44336;">🗑️ Limpar Todos os Dados de Higiene</button>
+
+        <div class="success" id="success-msg"></div>
+
+        <div class="info" style="margin-top: 20px;">
+            <strong>📋 Dados que serão adicionados:</strong>
+            <ul>
+                <li><strong>Banhos:</strong> 5 registros com intervalos de 10-20 dias</li>
+                <li><strong>Tosas:</strong> 3 registros com diferentes estilos</li>
+                <li><strong>Datas:</strong> Últimos 3 meses</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showSuccess(msg) {
+            const el = document.getElementById('success-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 3000);
+        }
+
+        function adicionarBanhos() {
+            const data = JSON.parse(localStorage.getItem('petHouseData'));
+            if (!data || !data.currentPet) {
+                alert('Nenhum pet selecionado! Abra o PetHouse primeiro.');
+                return;
+            }
+
+            const pet = data.pets.find(p => p.id === data.currentPet);
+            if (!pet) {
+                alert('Pet não encontrado!');
+                return;
+            }
+
+            if (!pet.banhos) pet.banhos = [];
+
+            // Adicionar 5 banhos com intervalos variados
+            const hoje = new Date();
+            const banhos = [
+                {
+                    id: Date.now() + 1,
+                    data: new Date(hoje.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'banho_simples',
+                    local: 'Pet Shop Amigo Fiel',
+                    profissional: 'Maria Silva',
+                    produtos: 'Shampoo antipulgas',
+                    obs: 'Pet ficou muito calmo'
+                },
+                {
+                    id: Date.now() + 2,
+                    data: new Date(hoje.getTime() - 70 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'banho_medicado',
+                    local: 'Clínica Veterinária Vida Animal',
+                    profissional: 'Dr. João Santos',
+                    produtos: 'Shampoo medicado para dermatite',
+                    obs: 'Tratamento para coceira'
+                },
+                {
+                    id: Date.now() + 3,
+                    data: new Date(hoje.getTime() - 50 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'banho_simples',
+                    local: 'Em casa',
+                    profissional: '',
+                    produtos: 'Shampoo neutro',
+                    obs: 'Banho caseiro'
+                },
+                {
+                    id: Date.now() + 4,
+                    data: new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'banho_completo',
+                    local: 'Pet Shop Patinhas Felizes',
+                    profissional: 'Ana Costa',
+                    produtos: 'Shampoo + condicionador + perfume',
+                    obs: 'Banho completo com hidratação'
+                },
+                {
+                    id: Date.now() + 5,
+                    data: new Date(hoje.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'banho_seco',
+                    local: 'Em casa',
+                    profissional: '',
+                    produtos: 'Shampoo seco',
+                    obs: 'Limpeza rápida'
+                }
+            ];
+
+            pet.banhos.push(...banhos);
+            localStorage.setItem('petHouseData', JSON.stringify(data));
+            showSuccess('✅ 5 banhos adicionados com sucesso!');
+        }
+
+        function adicionarTosas() {
+            const data = JSON.parse(localStorage.getItem('petHouseData'));
+            if (!data || !data.currentPet) {
+                alert('Nenhum pet selecionado! Abra o PetHouse primeiro.');
+                return;
+            }
+
+            const pet = data.pets.find(p => p.id === data.currentPet);
+            if (!pet) {
+                alert('Pet não encontrado!');
+                return;
+            }
+
+            if (!pet.tosas) pet.tosas = [];
+
+            // Adicionar 3 tosas
+            const hoje = new Date();
+            const tosas = [
+                {
+                    id: Date.now() + 10,
+                    data: new Date(hoje.getTime() - 80 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'tosa_higienica',
+                    estilo: 'Tosa higiênica padrão',
+                    local: 'Pet Shop Amigo Fiel',
+                    profissional: 'Carlos Tosador',
+                    obs: 'Apenas região íntima e patinhas'
+                },
+                {
+                    id: Date.now() + 11,
+                    data: new Date(hoje.getTime() - 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'tosa_completa',
+                    estilo: 'Tosa bebê (curta)',
+                    local: 'Clínica Veterinária Vida Animal',
+                    profissional: 'Marina Groomer',
+                    obs: 'Tosa completa para o verão'
+                },
+                {
+                    id: Date.now() + 12,
+                    data: new Date(hoje.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    tipo: 'tosa_parcial',
+                    estilo: 'Apenas face e patinhas',
+                    local: 'Pet Shop Patinhas Felizes',
+                    profissional: 'Ana Costa',
+                    obs: 'Manutenção entre tosas completas'
+                }
+            ];
+
+            pet.tosas.push(...tosas);
+            localStorage.setItem('petHouseData', JSON.stringify(data));
+            showSuccess('✅ 3 tosas adicionadas com sucesso!');
+        }
+
+        function adicionarTudo() {
+            adicionarBanhos();
+            setTimeout(() => {
+                adicionarTosas();
+            }, 500);
+        }
+
+        function limparTudo() {
+            if (!confirm('Tem certeza que deseja limpar TODOS os dados de banhos e tosas?')) {
+                return;
+            }
+
+            const data = JSON.parse(localStorage.getItem('petHouseData'));
+            if (!data || !data.currentPet) {
+                alert('Nenhum pet selecionado!');
+                return;
+            }
+
+            const pet = data.pets.find(p => p.id === data.currentPet);
+            if (!pet) {
+                alert('Pet não encontrado!');
+                return;
+            }
+
+            pet.banhos = [];
+            pet.tosas = [];
+            localStorage.setItem('petHouseData', JSON.stringify(data));
+            showSuccess('✅ Todos os dados de higiene foram removidos!');
+        }
+    </script>
+</body>
+</html>

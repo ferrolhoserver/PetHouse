@@ -208,11 +208,10 @@ const OCRCartaoV2 = {
     },
 
     /**
-     * Processa imagem com OCR e análise local inteligente
-     * Tenta Tesseract.js primeiro, fallback para API se falhar
+     * Processa imagem com OCR via API (simples e rápido)
      */
-    async processarImagem(arquivo, tentarAPI = true) {
-        console.log('🔍 [OCR] Iniciando processamento...');
+    async processarImagem(arquivo) {
+        console.log('🔍 [OCR] Iniciando processamento via API...');
         console.log('🔍 [OCR] Arquivo:', arquivo ? arquivo.name : 'sem arquivo');
         
         try {
@@ -222,82 +221,24 @@ const OCRCartaoV2 = {
                 return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
             }
             
-            console.log('✅ [OCR] Arquivo válido, iniciando Tesseract...');
+            console.log('✅ [OCR] Arquivo válido, processando via API...');
+            if (this.addDebugLog) this.addDebugLog('Processando via OCR.space API...');
             app.showToast('📸 Processando cartão de vacinação...', 'info');
 
-            // Etapa 1: Verificar se Tesseract está disponível
-            if (typeof Tesseract === 'undefined') {
-                console.error('❌ [OCR] Tesseract.js não está carregado!');
-                app.showToast('❌ Biblioteca OCR não carregada. Recarregue a página.', 'error');
-                return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
-            }
+            // Processar com API
+            const text = await this.processarComAPI(arquivo);
             
-            console.log('✅ [OCR] Tesseract disponível');
-            if (this.updateProgress) this.updateProgress(25, 'Preparando OCR...');
-            if (this.addDebugLog) this.addDebugLog('Preparando OCR...');
-
-            // Etapa 2: Usar worker pré-carregado ou criar novo
-            let worker;
-            if (this.tesseractCarregado && this.tesseractWorker) {
-                console.log('✅ [OCR] Usando worker pré-carregado');
-                if (this.addDebugLog) this.addDebugLog('Usando worker pré-carregado (rápido!)');
-                worker = this.tesseractWorker;
-            } else {
-                console.log('🔄 [OCR] Criando novo worker...');
-                if (this.addDebugLog) this.addDebugLog('Criando novo worker (pode demorar)...');
-                
-                worker = await Tesseract.createWorker({
-                    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
-                    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-                    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progresso = Math.round(m.progress * 100);
-                            const progressoTotal = 30 + Math.round(progresso * 0.5);
-                            console.log(`🔄 [OCR] Progresso: ${progresso}%`);
-                            if (this.updateProgress) this.updateProgress(progressoTotal, `Reconhecendo texto: ${progresso}%`);
-                        }
-                    }
-                });
-                
-                console.log('✅ [OCR] Worker criado, carregando idioma...');
-                if (this.addDebugLog) this.addDebugLog('Carregando idioma português...');
-                await worker.loadLanguage('por');
-                await worker.initialize('por');
-            }
-            
-            console.log('✅ [OCR] Idioma carregado, reconhecendo texto...');
-            if (this.addDebugLog) this.addDebugLog('Idioma carregado, iniciando reconhecimento...');
-
-            // Etapa 3: Reconhecer texto
-            const { data: { text } } = await worker.recognize(arquivo);
-            
-            // Não terminar worker se for pré-carregado (reutilizar)
-            if (!this.tesseractCarregado) {
-                await worker.terminate();
-                if (this.addDebugLog) this.addDebugLog('Worker temporário encerrado');
-            } else {
-                if (this.addDebugLog) this.addDebugLog('Worker pré-carregado mantido para reutilização');
-            }
-            
-            if (this.addDebugLog) this.addDebugLog(`Texto extraído: ${text.length} caracteres`);
+            // Analisar texto
             if (this.updateProgress) this.updateProgress(80, 'Analisando texto...');
+            if (this.addDebugLog) this.addDebugLog('Analisando vacinas no texto...');
             
-            console.log('✅ [OCR] Texto extraído com sucesso!');
-            console.log('=== TEXTO EXTRAÍDO ===');
-            console.log(text);
-            console.log('=== FIM DO TEXTO ===');
-
-            // Etapa 4: Análise inteligente LOCAL + IA
-            console.log('🧠 [OCR] Analisando texto...');
             const resultado = await this.analisarTextoLocal(text, 'vacina');
             
             console.log('📊 [OCR] Resultado da análise:', resultado);
             
             if (resultado.vacinas && resultado.vacinas.length > 0) {
                 console.log(`✅ [OCR] ${resultado.vacinas.length} vacina(s) identificada(s)!`);
-                const metodo = resultado.metodo === 'api' ? ' (via API rápida)' : '';
-                app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)${metodo}!`, 'success');
+                app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)!`, 'success');
                 resultado.sucesso = true;
             } else {
                 console.log('⚠️ [OCR] Nenhuma vacina identificada');
@@ -305,50 +246,16 @@ const OCRCartaoV2 = {
                 resultado.sucesso = false;
             }
             
+            resultado.textoCompleto = text;
             return resultado;
 
         } catch (error) {
-            console.error('❌ [OCR] ERRO no Tesseract:', error);
+            console.error('❌ [OCR] ERRO:', error);
             console.error('❌ [OCR] Stack:', error.stack);
             console.error('❌ [OCR] Mensagem:', error.message);
-            
-            // FALLBACK: Tentar API se Tesseract falhar
-            if (tentarAPI && this.OCR_SPACE_API_KEY !== 'PLACEHOLDER_API_KEY') {
-                console.log('🔄 [OCR] Tesseract falhou, tentando API...');
-                if (this.addDebugLog) this.addDebugLog('Tesseract falhou, usando API como fallback...', 'warning');
-                app.showToast('🔄 Tentando método alternativo...', 'info');
-                
-                try {
-                    // Processar com API
-                    const text = await this.processarComAPI(arquivo);
-                    
-                    // Analisar texto da mesma forma
-                    if (this.updateProgress) this.updateProgress(80, 'Analisando texto...');
-                    const resultado = await this.analisarTextoLocal(text, 'vacina');
-                    
-                    if (resultado.vacinas && resultado.vacinas.length > 0) {
-                        console.log(`✅ [OCR] ${resultado.vacinas.length} vacina(s) identificada(s) via API!`);
-                        app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)!`, 'success');
-                        resultado.sucesso = true;
-                        resultado.metodo = 'api'; // Marcar que foi via API
-                    } else {
-                        console.log('⚠️ [OCR] Nenhuma vacina identificada');
-                        app.showToast('⚠️ Nenhuma vacina identificada', 'warning');
-                        resultado.sucesso = false;
-                    }
-                    
-                    return resultado;
-                    
-                } catch (apiError) {
-                    console.error('❌ [OCR] API também falhou:', apiError);
-                    if (this.addDebugLog) this.addDebugLog(`API falhou: ${apiError.message}`, 'error');
-                    app.showToast(`❌ Ambos métodos falharam: ${apiError.message}`, 'error');
-                    return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
-                }
-            } else {
-                app.showToast(`❌ Erro: ${error.message}`, 'error');
-                return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
-            }
+            if (this.addDebugLog) this.addDebugLog(`Erro: ${error.message}`, 'error');
+            app.showToast(`❌ Erro: ${error.message}`, 'error');
+            return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
         }
     },
 
@@ -726,55 +633,6 @@ const OCRCartaoV2 = {
     },
 
     /**
-     * Pré-carregar Tesseract
-     */
-    tesseractWorker: null,
-    tesseractCarregado: false,
-    
-    async preCarregarTesseract() {
-        if (this.tesseractCarregado) {
-            console.log('✅ [OCR] Tesseract já carregado');
-            return true;
-        }
-        
-        try {
-            console.log('🔄 [OCR] Pré-carregando Tesseract...');
-            
-            if (typeof Tesseract === 'undefined') {
-                console.error('❌ [OCR] Tesseract.js não disponível');
-                return false;
-            }
-            
-            // Criar worker uma vez
-            this.tesseractWorker = await Tesseract.createWorker({
-                workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
-                langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-                corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
-                logger: m => {
-                    if (m.status === 'loading tesseract core') {
-                        console.log(`🔄 [OCR] Carregando core: ${Math.round(m.progress * 100)}%`);
-                    }
-                    if (m.status === 'loading language traineddata') {
-                        console.log(`🔄 [OCR] Carregando idioma: ${Math.round(m.progress * 100)}%`);
-                    }
-                }
-            });
-            
-            await this.tesseractWorker.loadLanguage('por');
-            await this.tesseractWorker.initialize('por');
-            
-            this.tesseractCarregado = true;
-            console.log('✅ [OCR] Tesseract pré-carregado com sucesso!');
-            return true;
-            
-        } catch (error) {
-            console.error('❌ [OCR] Erro ao pré-carregar Tesseract:', error);
-            this.tesseractCarregado = false;
-            return false;
-        }
-    },
-
-    /**
      * Modal de escaneamento
      */
     mostrarEscaneamento(petId, tipo = 'vacina') {
@@ -854,15 +712,6 @@ const OCRCartaoV2 = {
         
         document.getElementById('modal-content').innerHTML = modalContent;
         document.getElementById('modal').classList.add('show');
-        
-        // Pré-carregar Tesseract em background
-        this.preCarregarTesseract().then(sucesso => {
-            if (sucesso) {
-                console.log('✅ [OCR] Pronto para processar');
-            } else {
-                console.warn('⚠️ [OCR] Tesseract não pôde ser pré-carregado');
-            }
-        });
     },
 
     /**
@@ -958,57 +807,44 @@ const OCRCartaoV2 = {
         // Resetar progresso
         this.updateProgress(0, 'Iniciando...');
 
-        // Timeout de 10 segundos para Tesseract (depois tenta API)
+        // Timeout de 30 segundos (API é rápida, mas pode demorar em conexão lenta)
         const timeoutId = setTimeout(() => {
-            this.addDebugLog('TIMEOUT: Tesseract demorou mais de 10 segundos', 'error');
-            this.addDebugLog('Tentando método alternativo via API...', 'info');
+            this.addDebugLog('TIMEOUT: Processamento demorou mais de 30 segundos', 'error');
+            this.addDebugLog('Verifique sua conexão com a internet', 'warning');
             
-            // Manter loading visível mas mostrar erro
             document.getElementById('loading-status-v2').textContent = '❌ Timeout!';
             document.getElementById('progress-bar-v2').style.background = '#f44336';
             
-            // Mostrar erro com logs
             document.getElementById('resultado-ocr-v2').innerHTML = `
                 <div style="background: #ffebee; padding: 1rem; border-radius: 8px; border-left: 4px solid #d32f2f; margin-bottom: 1rem;">
                     <p style="margin: 0; color: #c62828;">
                         <strong>❌ Timeout: Processamento demorou demais</strong><br>
-                        <span style="font-size: 0.9rem;">O OCR não conseguiu processar em 30 segundos.</span>
+                        <span style="font-size: 0.9rem;">Verifique sua conexão e tente novamente.</span>
                     </p>
                     <button class="btn" onclick="const details = document.querySelector('details'); if(details) details.open = true;" style="margin-top: 0.5rem;">
-                        🔍 Ver logs completos (IMPORTANTE)
+                        🔍 Ver logs completos
                     </button>
                 </div>
             `;
             document.getElementById('resultado-ocr-v2').style.display = 'block';
             
-            // Esconder loading mas manter logs
             setTimeout(() => {
                 document.getElementById('loading-ocr-v2').style.display = 'none';
-                
-                // Mostrar botões para tentar novamente
                 document.getElementById('botoes-container-v2').style.display = 'block';
                 document.getElementById('btn-selecionar-v2').style.display = 'inline-block';
                 document.getElementById('btn-processar-v2').style.display = 'none';
                 document.getElementById('btn-trocar-v2').style.display = 'none';
-                
-                // Limpar foto selecionada
                 this.fotoSelecionada = null;
                 document.getElementById('preview-container-v2').style.display = 'none';
                 document.getElementById('foto-cartao-v2').value = '';
-            }, 2000); // 2 segundos para ler a mensagem
+            }, 2000);
             
-            app.showToast('❌ Timeout: Tentando método alternativo...', 'warning');
-        }, 10000); // 10 segundos
+            app.showToast('❌ Timeout: Verifique sua conexão', 'error');
+        }, 30000); // 30 segundos
 
         try {
-            this.updateProgress(10, 'Carregando biblioteca OCR...');
-            
-            // Verificar se Tesseract está disponível
-            if (typeof Tesseract === 'undefined') {
-                throw new Error('Tesseract não está carregado');
-            }
-            
-            this.updateProgress(20, 'Preparando imagem...');
+            this.updateProgress(10, 'Preparando envio...');
+            this.updateProgress(20, 'Enviando para processamento...');
             
             // Processar com OCR
             let resultado;

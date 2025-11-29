@@ -168,26 +168,35 @@ const OCRCartaoV2 = {
             }
             
             console.log('✅ [OCR] Tesseract disponível, criando worker...');
+            if (this.updateProgress) this.updateProgress(25, 'Criando worker OCR...');
+            if (this.addDebugLog) this.addDebugLog('Criando worker Tesseract...');
 
             // Etapa 2: Criar worker (Tesseract v5)
             const worker = await Tesseract.createWorker({
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         const progresso = Math.round(m.progress * 100);
+                        const progressoTotal = 30 + Math.round(progresso * 0.5); // 30% a 80%
                         console.log(`🔄 [OCR] Progresso: ${progresso}%`);
+                        if (this.updateProgress) this.updateProgress(progressoTotal, `Reconhecendo texto: ${progresso}%`);
                     }
                 }
             });
             
             console.log('✅ [OCR] Worker criado, carregando idioma português...');
+            if (this.addDebugLog) this.addDebugLog('Worker criado, carregando idioma...');
             await worker.loadLanguage('por');
             await worker.initialize('por');
             
             console.log('✅ [OCR] Idioma carregado, reconhecendo texto...');
+            if (this.addDebugLog) this.addDebugLog('Idioma carregado, iniciando reconhecimento...');
 
             // Etapa 3: Reconhecer texto
             const { data: { text } } = await worker.recognize(arquivo);
             await worker.terminate();
+            
+            if (this.addDebugLog) this.addDebugLog(`Texto extraído: ${text.length} caracteres`);
+            if (this.updateProgress) this.updateProgress(80, 'Analisando texto...');
             
             console.log('✅ [OCR] Texto extraído com sucesso!');
             console.log('=== TEXTO EXTRAÍDO ===');
@@ -624,7 +633,6 @@ const OCRCartaoV2 = {
                 <input type="file" 
                        id="foto-cartao-v2" 
                        accept="image/*" 
-                       capture="environment"
                        style="display: none;"
                        onchange="OCRCartaoV2.aoSelecionarFoto('${petId}', this.files[0], '${tipo}')">
 
@@ -632,10 +640,22 @@ const OCRCartaoV2 = {
                     <img id="preview-imagem-v2" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 </div>
 
-                <div id="loading-ocr-v2" style="display: none; text-align: center; padding: 2rem;">
-                    <div style="font-size: 3rem; animation: spin 1s linear infinite;">⌛</div>
-                    <p style="margin-top: 1rem; color: #666;">Processando imagem...</p>
-                    <p style="font-size: 0.9rem; color: #999;">Isso pode levar alguns segundos</p>
+                <div id="loading-ocr-v2" style="display: none; padding: 2rem;">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 3rem; animation: spin 1s linear infinite;">⌛</div>
+                        <p id="loading-status-v2" style="margin-top: 1rem; color: #666; font-weight: bold;">Iniciando...</p>
+                    </div>
+                    
+                    <!-- Barra de progresso -->
+                    <div style="background: #e0e0e0; border-radius: 10px; overflow: hidden; height: 24px; margin-bottom: 1rem;">
+                        <div id="progress-bar-v2" style="background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; width: 0%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.85rem;"></div>
+                    </div>
+                    
+                    <!-- Logs de debug -->
+                    <details style="margin-top: 1rem; background: #f5f5f5; padding: 0.5rem; border-radius: 4px;">
+                        <summary style="cursor: pointer; font-weight: bold; color: #666;">🔍 Ver logs de processamento</summary>
+                        <div id="debug-logs-v2" style="margin-top: 0.5rem; padding: 0.5rem; background: #fff; border-radius: 4px; font-family: monospace; font-size: 0.75rem; max-height: 200px; overflow-y: auto; color: #333;"></div>
+                    </details>
                 </div>
 
                 <div id="resultado-ocr-v2" style="display: none;"></div>
@@ -693,6 +713,46 @@ const OCRCartaoV2 = {
     },
 
     /**
+     * Adicionar log de debug
+     */
+    addDebugLog(message, type = 'info') {
+        const logsDiv = document.getElementById('debug-logs-v2');
+        if (!logsDiv) return;
+        
+        const timestamp = new Date().toLocaleTimeString('pt-BR');
+        const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '🔵';
+        const color = type === 'error' ? '#d32f2f' : type === 'success' ? '#388e3c' : type === 'warning' ? '#f57c00' : '#1976d2';
+        
+        const logEntry = document.createElement('div');
+        logEntry.style.marginBottom = '4px';
+        logEntry.style.color = color;
+        logEntry.innerHTML = `[${timestamp}] ${icon} ${message}`;
+        logsDiv.appendChild(logEntry);
+        logsDiv.scrollTop = logsDiv.scrollHeight;
+        
+        console.log(`[OCR] ${message}`);
+    },
+
+    /**
+     * Atualizar progresso
+     */
+    updateProgress(percent, status) {
+        const progressBar = document.getElementById('progress-bar-v2');
+        const statusText = document.getElementById('loading-status-v2');
+        
+        if (progressBar) {
+            progressBar.style.width = `${percent}%`;
+            progressBar.textContent = `${percent}%`;
+        }
+        
+        if (statusText) {
+            statusText.textContent = status;
+        }
+        
+        this.addDebugLog(`${status} (${percent}%)`);
+    },
+
+    /**
      * Processar foto selecionada
      */
     async processarFotoSelecionada() {
@@ -703,29 +763,65 @@ const OCRCartaoV2 = {
 
         const { petId, arquivo, tipo } = this.fotoSelecionada;
         
-        console.log('⚙️ [OCR] Iniciando processamento...');
+        // Limpar logs anteriores
+        const logsDiv = document.getElementById('debug-logs-v2');
+        if (logsDiv) logsDiv.innerHTML = '';
+        
+        this.addDebugLog(`Iniciando processamento de ${arquivo.name}`);
+        this.addDebugLog(`Tamanho: ${(arquivo.size / 1024).toFixed(2)} KB`);
+        this.addDebugLog(`Tipo: ${tipo}`);
         
         // Esconder botões e mostrar loading
         document.getElementById('botoes-container-v2').style.display = 'none';
         document.getElementById('loading-ocr-v2').style.display = 'block';
+        
+        // Resetar progresso
+        this.updateProgress(0, 'Iniciando...');
+
+        // Timeout de 60 segundos
+        const timeoutId = setTimeout(() => {
+            this.addDebugLog('TIMEOUT: Processamento demorou mais de 60 segundos', 'error');
+            document.getElementById('loading-ocr-v2').style.display = 'none';
+            document.getElementById('botoes-container-v2').style.display = 'block';
+            document.getElementById('btn-selecionar-v2').style.display = 'inline-block';
+            document.getElementById('btn-processar-v2').style.display = 'none';
+            document.getElementById('btn-trocar-v2').style.display = 'none';
+            app.showToast('❌ Timeout: Processamento demorou demais. Tente novamente.', 'error');
+        }, 60000);
 
         try {
+            this.updateProgress(10, 'Carregando biblioteca OCR...');
+            
+            // Verificar se Tesseract está disponível
+            if (typeof Tesseract === 'undefined') {
+                throw new Error('Tesseract não está carregado');
+            }
+            
+            this.updateProgress(20, 'Preparando imagem...');
+            
             // Processar com OCR
             let resultado;
             if (tipo === 'vermifugo') {
+                this.updateProgress(30, 'Processando vermífugos...');
                 resultado = await this.processarVermifugo(arquivo);
             } else {
+                this.updateProgress(30, 'Processando vacinas...');
                 resultado = await this.processarImagem(arquivo);
             }
+            
+            clearTimeout(timeoutId);
+            
+            this.updateProgress(90, 'Analisando resultados...');
 
             // Esconder loading
             document.getElementById('loading-ocr-v2').style.display = 'none';
 
             if (resultado && resultado.sucesso) {
-                console.log('✅ [OCR] Processamento concluído com sucesso');
+                this.updateProgress(100, 'Concluído!');
+                this.addDebugLog('Processamento concluído com sucesso!', 'success');
                 this.mostrarResultado(petId, resultado, tipo);
             } else {
-                console.log('⚠️ [OCR] Nenhum dado reconhecido');
+                this.addDebugLog('Nenhum dado reconhecido na imagem', 'warning');
                 const msg = tipo === 'vermifugo' ? 'vermífugos' : 'vacinas';
                 
                 // Mostrar erro e botão para tentar novamente
@@ -735,6 +831,9 @@ const OCRCartaoV2 = {
                             <strong>⚠️ Não foi possível identificar ${msg}</strong><br>
                             <span style="font-size: 0.9rem;">Tente tirar outra foto com melhor iluminação ou texto mais legível.</span>
                         </p>
+                        <button class="btn" onclick="document.getElementById('debug-logs-v2').parentElement.open = true" style="margin-top: 0.5rem;">
+                            🔍 Ver logs de debug
+                        </button>
                     </div>
                 `;
                 document.getElementById('resultado-ocr-v2').style.display = 'block';
@@ -748,9 +847,31 @@ const OCRCartaoV2 = {
                 app.showToast(`⚠️ Não foi possível identificar ${msg}`, 'warning');
             }
         } catch (error) {
+            clearTimeout(timeoutId);
+            this.addDebugLog(`ERRO: ${error.message}`, 'error');
+            this.addDebugLog(`Stack: ${error.stack}`, 'error');
             console.error('❌ [OCR] Erro no processamento:', error);
+            
             document.getElementById('loading-ocr-v2').style.display = 'none';
             document.getElementById('botoes-container-v2').style.display = 'block';
+            document.getElementById('btn-selecionar-v2').style.display = 'inline-block';
+            document.getElementById('btn-processar-v2').style.display = 'none';
+            document.getElementById('btn-trocar-v2').style.display = 'none';
+            
+            // Mostrar erro com logs
+            document.getElementById('resultado-ocr-v2').innerHTML = `
+                <div style="background: #ffebee; padding: 1rem; border-radius: 8px; border-left: 4px solid #d32f2f; margin-bottom: 1rem;">
+                    <p style="margin: 0; color: #c62828;">
+                        <strong>❌ Erro ao processar imagem</strong><br>
+                        <span style="font-size: 0.9rem;">${error.message}</span>
+                    </p>
+                    <button class="btn" onclick="document.getElementById('debug-logs-v2').parentElement.open = true" style="margin-top: 0.5rem;">
+                        🔍 Ver logs completos
+                    </button>
+                </div>
+            `;
+            document.getElementById('resultado-ocr-v2').style.display = 'block';
+            
             app.showToast('❌ Erro ao processar imagem', 'error');
         }
     },

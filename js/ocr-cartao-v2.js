@@ -5,6 +5,70 @@
 
 const OCRCartaoV2 = {
     /**
+     * Configuração da API OCR.space (fallback)
+     */
+    OCR_SPACE_API_KEY: 'K84642426988957', // API Key OCR.space
+    
+    /**
+     * OCR via API OCR.space (fallback rápido)
+     */
+    async processarComAPI(arquivo) {
+        try {
+            console.log('🌐 [OCR] Usando OCR.space API (fallback)...');
+            if (this.addDebugLog) this.addDebugLog('Tentando OCR via API (rápido)...', 'info');
+            if (this.updateProgress) this.updateProgress(40, 'Enviando para API OCR...');
+            
+            // Criar FormData
+            const formData = new FormData();
+            formData.append('file', arquivo);
+            formData.append('language', 'por');
+            formData.append('isOverlayRequired', 'false');
+            formData.append('detectOrientation', 'true');
+            formData.append('scale', 'true');
+            formData.append('OCREngine', '2'); // Engine 2 é melhor para português
+            formData.append('apikey', this.OCR_SPACE_API_KEY);
+            
+            if (this.updateProgress) this.updateProgress(50, 'Aguardando resposta da API...');
+            
+            // Fazer requisição
+            const response = await fetch('https://api.ocr.space/parse/image', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API retornou erro: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (this.updateProgress) this.updateProgress(70, 'Processando resposta...');
+            
+            // Verificar se teve sucesso
+            if (result.IsErroredOnProcessing) {
+                throw new Error(result.ErrorMessage?.[0] || 'Erro desconhecido na API');
+            }
+            
+            // Extrair texto
+            const texto = result.ParsedResults?.[0]?.ParsedText || '';
+            
+            if (!texto || texto.length < 10) {
+                throw new Error('Texto extraído muito curto ou vazio');
+            }
+            
+            console.log('✅ [OCR] API retornou texto com sucesso!');
+            if (this.addDebugLog) this.addDebugLog(`API retornou ${texto.length} caracteres`, 'success');
+            
+            return texto;
+            
+        } catch (error) {
+            console.error('❌ [OCR] Erro na API OCR.space:', error);
+            if (this.addDebugLog) this.addDebugLog(`Erro na API: ${error.message}`, 'error');
+            throw error;
+        }
+    },
+    
+    /**
      * Banco de dados expandido de vacinas conhecidas
      */
     vacinasConhecidas: {
@@ -145,8 +209,9 @@ const OCRCartaoV2 = {
 
     /**
      * Processa imagem com OCR e análise local inteligente
+     * Tenta Tesseract.js primeiro, fallback para API se falhar
      */
-    async processarImagem(arquivo) {
+    async processarImagem(arquivo, tentarAPI = true) {
         console.log('🔍 [OCR] Iniciando processamento...');
         console.log('🔍 [OCR] Arquivo:', arquivo ? arquivo.name : 'sem arquivo');
         
@@ -231,7 +296,8 @@ const OCRCartaoV2 = {
             
             if (resultado.vacinas && resultado.vacinas.length > 0) {
                 console.log(`✅ [OCR] ${resultado.vacinas.length} vacina(s) identificada(s)!`);
-                app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)!`, 'success');
+                const metodo = resultado.metodo === 'api' ? ' (via API rápida)' : '';
+                app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)${metodo}!`, 'success');
                 resultado.sucesso = true;
             } else {
                 console.log('⚠️ [OCR] Nenhuma vacina identificada');
@@ -242,11 +308,47 @@ const OCRCartaoV2 = {
             return resultado;
 
         } catch (error) {
-            console.error('❌ [OCR] ERRO CAPTURADO:', error);
+            console.error('❌ [OCR] ERRO no Tesseract:', error);
             console.error('❌ [OCR] Stack:', error.stack);
             console.error('❌ [OCR] Mensagem:', error.message);
-            app.showToast(`❌ Erro: ${error.message}`, 'error');
-            return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
+            
+            // FALLBACK: Tentar API se Tesseract falhar
+            if (tentarAPI && this.OCR_SPACE_API_KEY !== 'PLACEHOLDER_API_KEY') {
+                console.log('🔄 [OCR] Tesseract falhou, tentando API...');
+                if (this.addDebugLog) this.addDebugLog('Tesseract falhou, usando API como fallback...', 'warning');
+                app.showToast('🔄 Tentando método alternativo...', 'info');
+                
+                try {
+                    // Processar com API
+                    const text = await this.processarComAPI(arquivo);
+                    
+                    // Analisar texto da mesma forma
+                    if (this.updateProgress) this.updateProgress(80, 'Analisando texto...');
+                    const resultado = await this.analisarTextoLocal(text, 'vacina');
+                    
+                    if (resultado.vacinas && resultado.vacinas.length > 0) {
+                        console.log(`✅ [OCR] ${resultado.vacinas.length} vacina(s) identificada(s) via API!`);
+                        app.showToast(`✅ ${resultado.vacinas.length} vacina(s) identificada(s)!`, 'success');
+                        resultado.sucesso = true;
+                        resultado.metodo = 'api'; // Marcar que foi via API
+                    } else {
+                        console.log('⚠️ [OCR] Nenhuma vacina identificada');
+                        app.showToast('⚠️ Nenhuma vacina identificada', 'warning');
+                        resultado.sucesso = false;
+                    }
+                    
+                    return resultado;
+                    
+                } catch (apiError) {
+                    console.error('❌ [OCR] API também falhou:', apiError);
+                    if (this.addDebugLog) this.addDebugLog(`API falhou: ${apiError.message}`, 'error');
+                    app.showToast(`❌ Ambos métodos falharam: ${apiError.message}`, 'error');
+                    return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
+                }
+            } else {
+                app.showToast(`❌ Erro: ${error.message}`, 'error');
+                return { sucesso: false, vacinas: [], textoCompleto: '', tipo: 'vacina' };
+            }
         }
     },
 
@@ -856,11 +958,10 @@ const OCRCartaoV2 = {
         // Resetar progresso
         this.updateProgress(0, 'Iniciando...');
 
-        // Timeout de 30 segundos (mais realista para mobile)
+        // Timeout de 10 segundos para Tesseract (depois tenta API)
         const timeoutId = setTimeout(() => {
-            this.addDebugLog('TIMEOUT: Processamento demorou mais de 30 segundos', 'error');
-            this.addDebugLog('Possíveis causas: imagem muito grande, conexão lenta, ou erro no Tesseract', 'warning');
-            this.addDebugLog('Tente: foto menor, melhor conexão, ou recarregue a página', 'warning');
+            this.addDebugLog('TIMEOUT: Tesseract demorou mais de 10 segundos', 'error');
+            this.addDebugLog('Tentando método alternativo via API...', 'info');
             
             // Manter loading visível mas mostrar erro
             document.getElementById('loading-status-v2').textContent = '❌ Timeout!';
@@ -873,7 +974,7 @@ const OCRCartaoV2 = {
                         <strong>❌ Timeout: Processamento demorou demais</strong><br>
                         <span style="font-size: 0.9rem;">O OCR não conseguiu processar em 30 segundos.</span>
                     </p>
-                    <button class="btn" onclick="document.getElementById('debug-logs-v2').parentElement.open = true" style="margin-top: 0.5rem;">
+                    <button class="btn" onclick="const details = document.querySelector('details'); if(details) details.open = true;" style="margin-top: 0.5rem;">
                         🔍 Ver logs completos (IMPORTANTE)
                     </button>
                 </div>
@@ -896,8 +997,8 @@ const OCRCartaoV2 = {
                 document.getElementById('foto-cartao-v2').value = '';
             }, 2000); // 2 segundos para ler a mensagem
             
-            app.showToast('❌ Timeout: Veja os logs para entender o problema', 'error');
-        }, 30000);
+            app.showToast('❌ Timeout: Tentando método alternativo...', 'warning');
+        }, 10000); // 10 segundos
 
         try {
             this.updateProgress(10, 'Carregando biblioteca OCR...');
@@ -975,7 +1076,7 @@ const OCRCartaoV2 = {
                         <strong>❌ Erro ao processar imagem</strong><br>
                         <span style="font-size: 0.9rem;">${error.message}</span>
                     </p>
-                    <button class="btn" onclick="document.getElementById('debug-logs-v2').parentElement.open = true" style="margin-top: 0.5rem;">
+                    <button class="btn" onclick="const details = document.querySelector('details'); if(details) details.open = true;" style="margin-top: 0.5rem;">
                         🔍 Ver logs completos
                     </button>
                 </div>

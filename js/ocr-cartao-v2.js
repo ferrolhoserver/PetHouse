@@ -194,9 +194,9 @@ const OCRCartaoV2 = {
             console.log(text);
             console.log('=== FIM DO TEXTO ===');
 
-            // Etapa 4: Análise inteligente LOCAL
+            // Etapa 4: Análise inteligente LOCAL + IA
             console.log('🧠 [OCR] Analisando texto...');
-            const resultado = this.analisarTextoLocal(text, 'vacina');
+            const resultado = await this.analisarTextoLocal(text, 'vacina');
             
             console.log('📊 [OCR] Resultado da análise:', resultado);
             
@@ -238,8 +238,8 @@ const OCRCartaoV2 = {
             console.log('=== TEXTO EXTRAÍDO (VERMÍFUGO) ===');
             console.log(text);
 
-            // Análise inteligente LOCAL
-            const resultado = this.analisarTextoLocal(text, 'vermifugo');
+            // Análise inteligente LOCAL + IA
+            const resultado = await this.analisarTextoLocal(text, 'vermifugo');
             
             if (resultado.vermifugos && resultado.vermifugos.length > 0) {
                 app.showToast(`✅ ${resultado.vermifugos.length} vermífugo(s) identificado(s)!`, 'success');
@@ -259,7 +259,7 @@ const OCRCartaoV2 = {
     /**
      * Análise inteligente LOCAL do texto extraído
      */
-    analisarTextoLocal(texto, tipo = 'vacina') {
+    async analisarTextoLocal(texto, tipo = 'vacina') {
         const textoLower = texto.toLowerCase();
         const linhas = texto.split('\n');
         
@@ -268,18 +268,50 @@ const OCRCartaoV2 = {
         console.log(`Datas encontradas: ${datas.length}`, datas);
         
         if (tipo === 'vacina') {
-            return this.analisarVacinas(texto, textoLower, linhas, datas);
+            return await this.analisarVacinas(texto, textoLower, linhas, datas);
         } else {
-            return this.analisarVermifugos(texto, textoLower, linhas, datas);
+            return await this.analisarVermifugos(texto, textoLower, linhas, datas);
         }
     },
 
     /**
      * Analisa vacinas no texto
      */
-    analisarVacinas(texto, textoLower, linhas, datas) {
+    async analisarVacinas(texto, textoLower, linhas, datas) {
         const vacinas = [];
         const vacinasEncontradas = new Set();
+        
+        // 🤖 BUSCA COM IA (se disponível)
+        if (typeof conhecimentoIA !== 'undefined') {
+            console.log('🤖 [OCR] Tentando busca com IA...');
+            try {
+                const resultadosIA = await conhecimentoIA.buscarParaOCR(texto, 'vacinas');
+                if (resultadosIA && resultadosIA.length > 0) {
+                    console.log(`✅ [OCR] IA encontrou ${resultadosIA.length} vacinas`);
+                    
+                    // Adicionar vacinas encontradas pela IA ao banco local
+                    resultadosIA.forEach(item => {
+                        const chave = item.nome.toLowerCase().replace(/\s+/g, '');
+                        if (!this.vacinasConhecidas[chave]) {
+                            this.vacinasConhecidas[chave] = {
+                                nome: item.nome,
+                                tipo: item.metadados?.tipo_vacina || 'Desconhecido',
+                                laboratorio: item.fabricante || '',
+                                aliases: item.aliases || [item.nome.toLowerCase()],
+                                keywords: item.keywords || [item.nome.toLowerCase()],
+                                fonte: 'ia'
+                            };
+                        }
+                        vacinasEncontradas.add(chave);
+                        
+                        // Registrar uso
+                        conhecimentoIA.registrarUso(item.id, true);
+                    });
+                }
+            } catch (error) {
+                console.error('❌ [OCR] Erro na busca com IA:', error);
+            }
+        }
         
         // Identificar vacinas presentes
         for (const [chave, vacina] of Object.entries(this.vacinasConhecidas)) {
@@ -722,6 +754,19 @@ const OCRCartaoV2 = {
                 
                 ${vacinasHTML}
 
+                <!-- Botão para adicionar vacina não reconhecida -->
+                <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #856404;">
+                        ⚠️ <strong>Vacina não reconhecida?</strong>
+                    </p>
+                    <p style="margin: 0 0 1rem 0; font-size: 0.85rem; color: #856404;">
+                        Ajude a melhorar o sistema adicionando esta vacina ao banco de dados!
+                    </p>
+                    <button class="btn" onclick="VacinasColaborativas.mostrarModalNovaVacina(\`${resultado.textoCompleto.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" style="background: #ffc107; color: #000;">
+                        🎓 Adicionar Nova Vacina
+                    </button>
+                </div>
+
                 <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
                     <button class="btn" onclick="OCRCartaoV2.mostrarEscaneamento('${petId}', '${tipo}')">
                         🔄 ${botaoTexto} Novamente
@@ -740,6 +785,12 @@ const OCRCartaoV2 = {
         
         document.getElementById('resultado-ocr-v2').innerHTML = resultadoHTML;
         document.getElementById('resultado-ocr-v2').style.display = 'block';
+        
+        // Esconder botão de seleção após processar
+        const botaoSelecionar = document.querySelector('[onclick*="foto-cartao-v2"]');
+        if (botaoSelecionar) {
+            botaoSelecionar.style.display = 'none';
+        }
     },
 
     /**

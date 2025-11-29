@@ -733,25 +733,40 @@ const OCRCartaoV2 = {
         
         const modalContent = `
             <div class="modal-header">
-                <h2>📸 Escanear Cartão de ${tituloTipo}</h2>
+                <h2>${iconeTipo} Adicionar ${tituloTipo}</h2>
                 <button class="modal-close" onclick="app.closeModal()">×</button>
             </div>
             <div class="modal-body">
-                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <h4 style="margin: 0 0 0.5rem 0; color: #1976d2;">📱 Como usar:</h4>
-                    <ol style="margin: 0; padding-left: 1.5rem; color: #555;">
-                        <li>Tire uma foto clara do cartão de ${tipo === 'vermifugo' ? 'vermifugação' : 'vacinação'}</li>
-                        <li>Certifique-se de que o texto está legível</li>
-                        <li>Clique em "Processar" para o sistema ler as informações</li>
-                        <li>Revise os dados antes de salvar</li>
-                    </ol>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #666;">
-                        ${iconeTipo} <strong>Dica:</strong> Boa iluminação e foto nítida melhoram o resultado!<br>
-                        Formatos aceitos: JPG, PNG
-                    </p>
+                <!-- TABS -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #e0e0e0;">
+                    <button id="tab-manual" class="tab-btn active" onclick="OCRCartaoV2.trocarTab('manual')" style="flex: 1; padding: 0.75rem; background: #2196F3; color: white; border: none; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: bold;">
+                        ✏️ Entrada Manual
+                    </button>
+                    <button id="tab-ocr" class="tab-btn" onclick="OCRCartaoV2.trocarTab('ocr')" style="flex: 1; padding: 0.75rem; background: #e0e0e0; color: #666; border: none; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: bold;">
+                        📸 Escanear Cartão
+                    </button>
                 </div>
-
-                <input type="file" 
+                
+                <!-- TAB: ENTRADA MANUAL -->
+                <div id="tab-content-manual" class="tab-content" style="display: block;">
+                    <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <p style="margin: 0; color: #2e7d32;">
+                            <strong>✅ Recomendado:</strong> Rápido, preciso e sempre funciona!
+                        </p>
+                    </div>
+                    
+                    <div id="formulario-manual-container"></div>
+                </div>
+                
+                <!-- TAB: OCR -->
+                <div id="tab-content-ocr" class="tab-content" style="display: none;">
+                    <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <p style="margin: 0; color: #856404;">
+                            <strong>⚠️ Experimental:</strong> Pode demorar ou falhar. Use entrada manual se tiver problemas.
+                        </p>
+                    </div>
+                    
+                    <input type="file" 
                        id="foto-cartao-v2" 
                        accept="image/*" 
                        style="display: none;"
@@ -792,6 +807,7 @@ const OCRCartaoV2 = {
                         🔄 Trocar Foto
                     </button>
                 </div>
+                </div>
             </div>
             
             <style>
@@ -804,6 +820,28 @@ const OCRCartaoV2 = {
         
         document.getElementById('modal-content').innerHTML = modalContent;
         document.getElementById('modal').classList.add('show');
+        
+        // Carregar formulário manual
+        document.getElementById('formulario-manual-container').innerHTML = EntradaManualVacina.renderizarFormulario(petId, tipo);
+    },
+    
+    /**
+     * Trocar entre tabs
+     */
+    trocarTab(tab) {
+        // Atualizar botões
+        document.getElementById('tab-manual').className = tab === 'manual' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('tab-ocr').className = tab === 'ocr' ? 'tab-btn active' : 'tab-btn';
+        
+        document.getElementById('tab-manual').style.background = tab === 'manual' ? '#2196F3' : '#e0e0e0';
+        document.getElementById('tab-manual').style.color = tab === 'manual' ? 'white' : '#666';
+        
+        document.getElementById('tab-ocr').style.background = tab === 'ocr' ? '#2196F3' : '#e0e0e0';
+        document.getElementById('tab-ocr').style.color = tab === 'ocr' ? 'white' : '#666';
+        
+        // Mostrar/esconder conteúdo
+        document.getElementById('tab-content-manual').style.display = tab === 'manual' ? 'block' : 'none';
+        document.getElementById('tab-content-ocr').style.display = tab === 'ocr' ? 'block' : 'none';
     },
 
     /**

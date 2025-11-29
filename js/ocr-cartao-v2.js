@@ -612,7 +612,7 @@ const OCRCartaoV2 = {
                     <ol style="margin: 0; padding-left: 1.5rem; color: #555;">
                         <li>Tire uma foto clara do cartão de ${tipo === 'vermifugo' ? 'vermifugação' : 'vacinação'}</li>
                         <li>Certifique-se de que o texto está legível</li>
-                        <li>O sistema lerá automaticamente as ${tipo === 'vermifugo' ? 'vermifugações' : 'vacinas'}, datas e lotes</li>
+                        <li>Clique em "Processar" para o sistema ler as informações</li>
                         <li>Revise os dados antes de salvar</li>
                     </ol>
                     <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #666;">
@@ -624,21 +624,41 @@ const OCRCartaoV2 = {
                 <input type="file" 
                        id="foto-cartao-v2" 
                        accept="image/*" 
+                       capture="environment"
                        style="display: none;"
-                       onchange="OCRCartaoV2.processarArquivo('${petId}', this.files[0], '${tipo}')">
+                       onchange="OCRCartaoV2.aoSelecionarFoto('${petId}', this.files[0], '${tipo}')">
 
                 <div id="preview-container-v2" style="display: none; margin-bottom: 1rem;">
                     <img id="preview-imagem-v2" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 </div>
 
+                <div id="loading-ocr-v2" style="display: none; text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem; animation: spin 1s linear infinite;">⌛</div>
+                    <p style="margin-top: 1rem; color: #666;">Processando imagem...</p>
+                    <p style="font-size: 0.9rem; color: #999;">Isso pode levar alguns segundos</p>
+                </div>
+
                 <div id="resultado-ocr-v2" style="display: none;"></div>
 
-                <div style="text-align: center; margin-top: 1rem;">
-                    <button class="btn btn-primary" onclick="document.getElementById('foto-cartao-v2').click()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                <div id="botoes-container-v2" style="text-align: center; margin-top: 1rem;">
+                    <button id="btn-selecionar-v2" class="btn btn-primary" onclick="document.getElementById('foto-cartao-v2').click()" style="font-size: 1.1rem; padding: 1rem 2rem;">
                         📸 Selecionar Foto do Cartão
+                    </button>
+                    <button id="btn-processar-v2" class="btn btn-primary" onclick="OCRCartaoV2.processarFotoSelecionada()" style="display: none; font-size: 1.1rem; padding: 1rem 2rem;">
+                        ⚙️ Processar Foto
+                    </button>
+                    <button id="btn-trocar-v2" class="btn" onclick="OCRCartaoV2.trocarFoto()" style="display: none; margin-left: 0.5rem;">
+                        🔄 Trocar Foto
                     </button>
                 </div>
             </div>
+            
+            <style>
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            </style>
         `;
         
         document.getElementById('modal-content').innerHTML = modalContent;
@@ -646,7 +666,120 @@ const OCRCartaoV2 = {
     },
 
     /**
-     * Processa arquivo selecionado
+     * Ao selecionar foto (apenas preview)
+     */
+    aoSelecionarFoto(petId, arquivo, tipo = 'vacina') {
+        if (!arquivo) return;
+
+        console.log('📸 [OCR] Foto selecionada:', arquivo.name);
+
+        // Armazenar para processar depois
+        this.fotoSelecionada = { petId, arquivo, tipo };
+
+        // Mostrar preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('preview-imagem-v2').src = e.target.result;
+            document.getElementById('preview-container-v2').style.display = 'block';
+            
+            // Atualizar botões
+            document.getElementById('btn-selecionar-v2').style.display = 'none';
+            document.getElementById('btn-processar-v2').style.display = 'inline-block';
+            document.getElementById('btn-trocar-v2').style.display = 'inline-block';
+            
+            console.log('✅ [OCR] Preview carregado');
+        };
+        reader.readAsDataURL(arquivo);
+    },
+
+    /**
+     * Processar foto selecionada
+     */
+    async processarFotoSelecionada() {
+        if (!this.fotoSelecionada) {
+            app.showToast('⚠️ Selecione uma foto primeiro', 'warning');
+            return;
+        }
+
+        const { petId, arquivo, tipo } = this.fotoSelecionada;
+        
+        console.log('⚙️ [OCR] Iniciando processamento...');
+        
+        // Esconder botões e mostrar loading
+        document.getElementById('botoes-container-v2').style.display = 'none';
+        document.getElementById('loading-ocr-v2').style.display = 'block';
+
+        try {
+            // Processar com OCR
+            let resultado;
+            if (tipo === 'vermifugo') {
+                resultado = await this.processarVermifugo(arquivo);
+            } else {
+                resultado = await this.processarImagem(arquivo);
+            }
+
+            // Esconder loading
+            document.getElementById('loading-ocr-v2').style.display = 'none';
+
+            if (resultado && resultado.sucesso) {
+                console.log('✅ [OCR] Processamento concluído com sucesso');
+                this.mostrarResultado(petId, resultado, tipo);
+            } else {
+                console.log('⚠️ [OCR] Nenhum dado reconhecido');
+                const msg = tipo === 'vermifugo' ? 'vermífugos' : 'vacinas';
+                
+                // Mostrar erro e botão para tentar novamente
+                document.getElementById('resultado-ocr-v2').innerHTML = `
+                    <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 1rem;">
+                        <p style="margin: 0; color: #856404;">
+                            <strong>⚠️ Não foi possível identificar ${msg}</strong><br>
+                            <span style="font-size: 0.9rem;">Tente tirar outra foto com melhor iluminação ou texto mais legível.</span>
+                        </p>
+                    </div>
+                `;
+                document.getElementById('resultado-ocr-v2').style.display = 'block';
+                
+                // Mostrar botão para tentar novamente
+                document.getElementById('botoes-container-v2').style.display = 'block';
+                document.getElementById('btn-selecionar-v2').style.display = 'inline-block';
+                document.getElementById('btn-processar-v2').style.display = 'none';
+                document.getElementById('btn-trocar-v2').style.display = 'none';
+                
+                app.showToast(`⚠️ Não foi possível identificar ${msg}`, 'warning');
+            }
+        } catch (error) {
+            console.error('❌ [OCR] Erro no processamento:', error);
+            document.getElementById('loading-ocr-v2').style.display = 'none';
+            document.getElementById('botoes-container-v2').style.display = 'block';
+            app.showToast('❌ Erro ao processar imagem', 'error');
+        }
+    },
+
+    /**
+     * Trocar foto
+     */
+    trocarFoto() {
+        console.log('🔄 [OCR] Trocando foto...');
+        
+        // Limpar foto selecionada
+        this.fotoSelecionada = null;
+        
+        // Esconder preview e resultado
+        document.getElementById('preview-container-v2').style.display = 'none';
+        document.getElementById('resultado-ocr-v2').style.display = 'none';
+        document.getElementById('resultado-ocr-v2').innerHTML = '';
+        
+        // Resetar botões
+        document.getElementById('btn-selecionar-v2').style.display = 'inline-block';
+        document.getElementById('btn-processar-v2').style.display = 'none';
+        document.getElementById('btn-trocar-v2').style.display = 'none';
+        
+        // Limpar input file
+        document.getElementById('foto-cartao-v2').value = '';
+    },
+
+    /**
+     * Processa arquivo selecionado (LEGADO - manter para compatibilidade)
      */
     async processarArquivo(petId, arquivo, tipo = 'vacina') {
         if (!arquivo) return;

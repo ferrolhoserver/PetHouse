@@ -10,17 +10,109 @@ const OCRCartaoV2 = {
     OCR_SPACE_API_KEY: 'K84642426988957', // API Key OCR.space
     
     /**
+     * Comprimir imagem para respeitar limite de 1MB da API
+     */
+    async comprimirImagem(arquivo, maxSizeKB = 1024) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                const img = new Image();
+                
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // Reduzir dimensões se necessário (max 1920px)
+                    const maxDimension = 1920;
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = (height / width) * maxDimension;
+                            width = maxDimension;
+                        } else {
+                            width = (width / height) * maxDimension;
+                            height = maxDimension;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Tentar diferentes qualidades até ficar < 1MB
+                    let quality = 0.9;
+                    let blob = null;
+                    
+                    const tryCompress = () => {
+                        canvas.toBlob((b) => {
+                            if (!b) {
+                                reject(new Error('Falha ao comprimir imagem'));
+                                return;
+                            }
+                            
+                            const sizeKB = b.size / 1024;
+                            
+                            if (sizeKB <= maxSizeKB || quality <= 0.1) {
+                                // Criar arquivo com nome original
+                                const compressedFile = new File([b], arquivo.name, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                
+                                console.log(`✅ [OCR] Imagem comprimida: ${(arquivo.size/1024).toFixed(0)}KB → ${sizeKB.toFixed(0)}KB`);
+                                if (this.addDebugLog) this.addDebugLog(`Imagem comprimida: ${sizeKB.toFixed(0)}KB (qualidade ${Math.round(quality*100)}%)`);
+                                
+                                resolve(compressedFile);
+                            } else {
+                                // Tentar com qualidade menor
+                                quality -= 0.1;
+                                tryCompress();
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    
+                    tryCompress();
+                };
+                
+                img.onerror = () => reject(new Error('Falha ao carregar imagem'));
+                img.src = e.target.result;
+            };
+            
+            reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
+            reader.readAsDataURL(arquivo);
+        });
+    },
+    
+    /**
      * OCR via API OCR.space (fallback rápido)
      */
     async processarComAPI(arquivo) {
         try {
-            console.log('🌐 [OCR] Usando OCR.space API (fallback)...');
-            if (this.addDebugLog) this.addDebugLog('Tentando OCR via API (rápido)...', 'info');
+            console.log('🌐 [OCR] Usando OCR.space API...');
+            if (this.addDebugLog) this.addDebugLog('Preparando imagem para envio...', 'info');
+            if (this.updateProgress) this.updateProgress(30, 'Comprimindo imagem...');
+            
+            // Comprimir imagem se necessário
+            let arquivoFinal = arquivo;
+            const sizeKB = arquivo.size / 1024;
+            
+            if (sizeKB > 1024) {
+                console.log(`⚠️ [OCR] Imagem grande (${sizeKB.toFixed(0)}KB), comprimindo...`);
+                if (this.addDebugLog) this.addDebugLog(`Imagem ${sizeKB.toFixed(0)}KB > 1MB, comprimindo...`, 'warning');
+                arquivoFinal = await this.comprimirImagem(arquivo);
+            } else {
+                console.log(`✅ [OCR] Imagem OK (${sizeKB.toFixed(0)}KB)`);
+                if (this.addDebugLog) this.addDebugLog(`Imagem ${sizeKB.toFixed(0)}KB (OK)`);
+            }
+            
             if (this.updateProgress) this.updateProgress(40, 'Enviando para API OCR...');
             
             // Criar FormData
             const formData = new FormData();
-            formData.append('file', arquivo);
+            formData.append('file', arquivoFinal);
             formData.append('language', 'por');
             formData.append('isOverlayRequired', 'false');
             formData.append('detectOrientation', 'true');
@@ -878,7 +970,7 @@ const OCRCartaoV2 = {
                             <strong>⚠️ Não foi possível identificar ${msg}</strong><br>
                             <span style="font-size: 0.9rem;">Tente tirar outra foto com melhor iluminação ou texto mais legível.</span>
                         </p>
-                        <button class="btn" onclick="document.getElementById('debug-logs-v2').parentElement.open = true" style="margin-top: 0.5rem;">
+                        <button class="btn" onclick="const details = document.querySelector('#loading-ocr-v2 details'); if(details) details.open = true;" style="margin-top: 0.5rem;">
                             🔍 Ver logs de debug
                         </button>
                     </div>

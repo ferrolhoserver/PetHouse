@@ -164,8 +164,16 @@ const TimelineProntuario = {
             pet.vacinas.forEach(v => {
                 if (v.proxima) {
                     const dataProx = new Date(v.proxima);
-                    if (dataProx > hoje) proximasVacinas++;
-                    else atrasados++;
+                    const dataAplicacao = new Date(v.data);
+                    
+                    // Só conta como atrasado se:
+                    // 1. Próxima < hoje
+                    // 2. Data de aplicação < próxima (não foi aplicada depois)
+                    if (dataProx < hoje && dataAplicacao < dataProx) {
+                        atrasados++;
+                    } else if (dataProx > hoje) {
+                        proximasVacinas++;
+                    }
                 }
             });
         }
@@ -174,8 +182,16 @@ const TimelineProntuario = {
             pet.vermifugo.forEach(v => {
                 if (v.proxima) {
                     const dataProx = new Date(v.proxima);
-                    if (dataProx > hoje) proximosVermifugos++;
-                    else atrasados++;
+                    const dataAplicacao = new Date(v.data);
+                    
+                    // Só conta como atrasado se:
+                    // 1. Próxima < hoje
+                    // 2. Data de aplicação < próxima (não foi aplicada depois)
+                    if (dataProx < hoje && dataAplicacao < dataProx) {
+                        atrasados++;
+                    } else if (dataProx > hoje) {
+                        proximosVermifugos++;
+                    }
                 }
             });
         }

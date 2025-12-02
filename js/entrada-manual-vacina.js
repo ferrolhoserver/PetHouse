@@ -229,6 +229,24 @@ const EntradaManualVacina = {
             } else {
                 await app.carregarVacinas(petId);
             }
+            
+            // IMPORTANTE: Recarregar alertas para atualizar cards
+            if (typeof Alertas !== 'undefined' && Alertas.carregarAlertas) {
+                await Alertas.carregarAlertas();
+            }
+            
+            // Atualizar contador de atrasados
+            if (typeof app.atualizarContadores === 'function') {
+                await app.atualizarContadores();
+            }
+            
+            // Atualizar timeline/prontuário para refletir mudanças nos cards
+            if (typeof TimelineProntuario !== 'undefined' && TimelineProntuario.renderizar) {
+                const petAtual = app.pets.find(p => p.id === petId);
+                if (petAtual) {
+                    TimelineProntuario.renderizar(petAtual);
+                }
+            }
 
             // Registrar uso no conhecimento colaborativo
             this.registrarUso(nome, tipo);

@@ -44,28 +44,24 @@ const Cuidados = {
         let html = `
             <div class="tab-content">
                 <h3 style="margin-bottom: 1rem;">💝 Cuidados</h3>
-                <div class="cuidados-buttons" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-success btn-small" onclick="VacinasRapido.mostrarSelecao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);">
-                        💉 Registro Rápido de Vacina
+                
+                <!-- Botões Principais (Simplificados) -->
+                <div class="cuidados-buttons" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+                    <button class="btn btn-success" onclick="OCRCartaoV2.mostrarEscaneamento('${pet.id}', 'vacina')" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); padding: 1rem; font-size: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);">
+                        💉 Adicionar Vacina
                     </button>
-                    <button class="btn btn-primary btn-small" onclick="VermifugosRapido.mostrarSelecao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: linear-gradient(135deg, #2196F3 0%, #42a5f5 100%);">
-                        💊 Registro Rápido de Vermífugo
+                    <button class="btn btn-primary" onclick="OCRCartaoV2.mostrarEscaneamento('${pet.id}', 'vermifugo')" style="background: linear-gradient(135deg, #2196F3 0%, #42a5f5 100%); padding: 1rem; font-size: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);">
+                        🐛 Adicionar Vermífugo
                     </button>
-
                 </div>
                 
-                <div class="cuidados-buttons" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-small" onclick="OCRCartaoV2.mostrarEscaneamento('${pet.id}', 'vacina')" style="background: #9c27b0; color: white;">
-                        📸 Escanear Vacinas
+                <!-- Botões Secundários (Compactos) -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; justify-content: center;">
+                    <button class="btn btn-small" onclick="Calendario.mostrarExportacao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: #ff9800; color: white; font-size: 0.85rem;">
+                        📅 Calendário
                     </button>
-                    <button class="btn btn-small" onclick="OCRCartaoV2.mostrarEscaneamento('${pet.id}', 'vermifugo')" style="background: #ff5722; color: white;">
-                        🐛 Escanear Vermífugos
-                    </button>
-                    <button class="btn btn-small" onclick="Calendario.mostrarExportacao(app.data.pets.find(p => p.id === '${pet.id}'))" style="background: #ff9800; color: white;">
-                        📅 Exportar para Calendário
-                    </button>
-                    <button class="btn btn-small" onclick="Alarmes.mostrarGerenciador()" style="background: #f44336; color: white;">
-                        🔔 Gerenciar Alarmes
+                    <button class="btn btn-small" onclick="Alarmes.mostrarGerenciador()" style="background: #f44336; color: white; font-size: 0.85rem;">
+                        🔔 Alarmes
                     </button>
                 </div>
                 

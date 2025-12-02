@@ -154,21 +154,36 @@ const TimelineProntuario = {
         const totalVacinas = pet.vacinas ? pet.vacinas.length : 0;
         const totalVermifugos = pet.vermifugo ? pet.vermifugo.length : 0;
 
-        // Verificar próximas aplicações
+        // Verificar próximas aplicações usando AGRUPAMENTO por protocolo
         const hoje = new Date();
         let proximasVacinas = 0;
         let proximosVermifugos = 0;
         let atrasados = 0;
 
-        if (pet.vacinas) {
+        // USAR PROTOCOLOS VACINAIS para agrupar corretamente
+        if (pet.vacinas && typeof ProtocolosVacinais !== 'undefined') {
+            // Agrupar vacinas pelo nome (mesma vacina = mesmo protocolo)
+            const vacinasAgrupadas = ProtocolosVacinais.agruparVacinasPorNome(pet.vacinas);
+            
+            // Contar apenas a ÚLTIMA dose de cada vacina
+            vacinasAgrupadas.forEach(v => {
+                if (v.proximaDose) {
+                    const dataProx = new Date(v.proximaDose);
+                    
+                    if (dataProx < hoje) {
+                        atrasados++;
+                    } else {
+                        proximasVacinas++;
+                    }
+                }
+            });
+        } else if (pet.vacinas) {
+            // Fallback se ProtocolosVacinais não estiver disponível
             pet.vacinas.forEach(v => {
                 if (v.proxima) {
                     const dataProx = new Date(v.proxima);
                     const dataAplicacao = new Date(v.data);
                     
-                    // Só conta como atrasado se:
-                    // 1. Próxima < hoje
-                    // 2. Data de aplicação < próxima (não foi aplicada depois)
                     if (dataProx < hoje && dataAplicacao < dataProx) {
                         atrasados++;
                     } else if (dataProx > hoje) {
@@ -178,15 +193,28 @@ const TimelineProntuario = {
             });
         }
 
-        if (pet.vermifugo) {
+        // Vermífugos (lógica similar)
+        if (pet.vermifugo && typeof ProtocolosVacinais !== 'undefined') {
+            const vermifugosAgrupados = ProtocolosVacinais.agruparVacinasPorNome(pet.vermifugo);
+            
+            vermifugosAgrupados.forEach(v => {
+                if (v.proximaDose) {
+                    const dataProx = new Date(v.proximaDose);
+                    
+                    if (dataProx < hoje) {
+                        atrasados++;
+                    } else {
+                        proximosVermifugos++;
+                    }
+                }
+            });
+        } else if (pet.vermifugo) {
+            // Fallback
             pet.vermifugo.forEach(v => {
                 if (v.proxima) {
                     const dataProx = new Date(v.proxima);
                     const dataAplicacao = new Date(v.data);
                     
-                    // Só conta como atrasado se:
-                    // 1. Próxima < hoje
-                    // 2. Data de aplicação < próxima (não foi aplicada depois)
                     if (dataProx < hoje && dataAplicacao < dataProx) {
                         atrasados++;
                     } else if (dataProx > hoje) {

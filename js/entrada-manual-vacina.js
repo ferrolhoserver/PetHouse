@@ -199,11 +199,46 @@ const EntradaManualVacina = {
         try {
             app.showToast('💾 Salvando...', 'info');
 
+            // CALCULAR PRÓXIMA DOSE AUTOMATICAMENTE usando protocolos veterinários
+            let proximaCalculada = proximaAplicacao;
+            
+            if (!proximaCalculada && typeof ProtocolosVacinais !== 'undefined') {
+                // Buscar histórico dessa vacina para saber qual dose é
+                const tabela = tipo === 'vermifugo' ? 'vermifugos' : 'vacinas';
+                const { data: historico } = await supabase
+                    .from(tabela)
+                    .select('*')
+                    .eq('pet_id', petId)
+                    .order('data_aplicacao', { ascending: false });
+                
+                // Contar quantas doses dessa vacina já foram aplicadas
+                const protocolo = ProtocolosVacinais.identificarProtocolo(nome);
+                const vacinasMesmoNome = (historico || []).filter(v => {
+                    const prot = ProtocolosVacinais.identificarProtocolo(v.nome);
+                    return prot.key === protocolo.key;
+                });
+                
+                const numeroDose = vacinasMesmoNome.length + 1; // +1 porque ainda não salvou a atual
+                
+                // Calcular próxima dose baseado no protocolo
+                const proxima = ProtocolosVacinais.calcularProximaDose(
+                    nome,
+                    dataAplicacao,
+                    numeroDose,
+                    vacinasMesmoNome
+                );
+                
+                if (proxima) {
+                    proximaCalculada = proxima.toISOString().split('T')[0];
+                    console.log(`✅ Próxima dose calculada automaticamente: ${proximaCalculada} (dose ${numeroDose})`);
+                }
+            }
+
             // Preparar dados
             const dados = {
                 nome,
                 data_aplicacao: dataAplicacao,
-                proxima_aplicacao: proximaAplicacao || null,
+                proxima_aplicacao: proximaCalculada || null,
                 lote: lote || null,
                 veterinario: veterinario || null,
                 observacoes: observacoes || null,

@@ -179,7 +179,7 @@ const PDFAvancado = {
                     ${resumo.tosas > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.tosas}</span><span class="resumo-label">Tosas</span></div>` : ''}
                     ${resumo.consultas > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.consultas}</span><span class="resumo-label">Consultas</span></div>` : ''}
                     ${resumo.cirurgias > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.cirurgias}</span><span class="resumo-label">Cirurgias</span></div>` : ''}
-                    ${resumo.tratamentos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.tratamentos}</span><span class="resumo-label">Tratamentos</span></div>` : ''
+                    ${resumo.tratamentos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.tratamentos}</span><span class="resumo-label">Tratamentos</span></div>` : ''}
                     ${resumo.diagnosticos > 0 ? `<div class="resumo-item"><span class="resumo-numero">${resumo.diagnosticos}</span><span class="resumo-label">Diagnósticos</span></div>` : ''}
                 </div>
             </div>

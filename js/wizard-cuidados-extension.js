@@ -5,7 +5,9 @@
 // Interceptar renderContent do módulo Cuidados
 const _originalCuidadosRender = Cuidados.renderContent;
 Cuidados.renderContent = function(pet) {
-    const originalHTML = _originalCuidadosRender.call(this, pet);
+    try {
+        if (!pet) return '';
+        const originalHTML = _originalCuidadosRender.call(this, pet);
     
     // Adicionar botão wizard no topo
     const botaoWizard = `
@@ -17,16 +19,21 @@ Cuidados.renderContent = function(pet) {
         </button>
     `;
     
-    // Inserir botão após o <h3>
-    return originalHTML.replace(
-        '<h3 style="margin-bottom: 1rem;">💝 Cuidados</h3>',
-        `<h3 style="margin-bottom: 1rem;">💝 Cuidados</h3>${botaoWizard}`
-    );
+        // Inserir botão após o <h3>
+        return originalHTML.replace(
+            '<h3 style="margin-bottom: 1rem;">💝 Cuidados</h3>',
+            `<h3 style="margin-bottom: 1rem;">💝 Cuidados</h3>${botaoWizard}`
+        );
+    } catch (error) {
+        console.error('Erro ao renderizar extensão cuidados:', error);
+        return _originalCuidadosRender.call(this, pet);
+    }
 };
 
 // Renderizar lista de vacinas do wizard
 function renderVacinasWizard(pet) {
-    if (!pet.vacinas_wizard || pet.vacinas_wizard.length === 0) return '';
+    try {
+        if (!pet || !pet.vacinas_wizard || pet.vacinas_wizard.length === 0) return '';
     
     const lista = pet.vacinas_wizard.sort((a,b) => new Date(b.data) - new Date(a.data)).map(v => {
         const dataFormatada = new Date(v.data).toLocaleDateString('pt-BR');
@@ -55,7 +62,7 @@ function renderVacinasWizard(pet) {
                         </div>
                         ${proximaDoseHTML}
                     </div>
-                    <button onclick="if(confirm('Deletar?')){const pet=window.app.data.pets.find(p=>p.id===window.app.currentPet);pet.vacinas_wizard=pet.vacinas_wizard.filter(x=>x.id!==${v.id});window.app.saveData();window.app.loadPetDetails(pet.id)}" 
+                    <button onclick="if(confirm('Deletar?')){const pet=app.data.pets.find(p=>p.id===app.currentPet);pet.vacinas_wizard=pet.vacinas_wizard.filter(x=>x.id!==${v.id});app.saveData();app.render()}" 
                             style="background:#f44336;color:white;padding:0.5rem 0.75rem;border-radius:8px;border:none;cursor:pointer;font-size:1.2rem">🗑️</button>
                 </div>
             </div>
@@ -63,9 +70,13 @@ function renderVacinasWizard(pet) {
     }).join('');
     
     return `
-        <h3 style="margin:2rem 0 1rem 0;color:#2196F3;font-size:1.3rem">💉 Vacinas (Wizard) - ${pet.vacinas_wizard.length}</h3>
-        ${lista}
-    `;
+            <h3 style="margin:2rem 0 1rem 0;color:#2196F3;font-size:1.3rem">💉 Vacinas (Wizard) - ${pet.vacinas_wizard.length}</h3>
+            ${lista}
+        `;
+    } catch (error) {
+        console.error('Erro ao renderizar vacinas wizard:', error);
+        return '';
+    }
 }
 
 // Adicionar renderização das vacinas wizard no final da aba

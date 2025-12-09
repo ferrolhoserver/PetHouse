@@ -128,6 +128,18 @@ const WizardCuidados = {
         const tipoSelecionado = this.tipos.find(t => t.id === this.dados.tipo);
         const localSelecionado = this.locais.find(l => l.id === this.dados.local);
         
+        // Se for tosa, mostrar tipos de tosa
+        const mostrarTiposTosa = tipoSelecionado.id === 'tosa' || tipoSelecionado.id === 'banho_tosa';
+        const tiposTosa = [
+            { id: 'higienica', nome: 'Higiênica' },
+            { id: 'completa', nome: 'Completa' },
+            { id: 'baby', nome: 'Baby' },
+            { id: 'gemea', nome: 'Gêmea' },
+            { id: 'tesoura', nome: 'Na Tesoura' },
+            { id: 'raca', nome: 'De Raça' },
+            { id: 'verao', nome: 'De Verão' }
+        ];
+        
         return `
             <div style="padding:0 1.5rem 1.5rem 1.5rem;max-height:70vh;overflow-y:auto">
                 <button onclick="WizardCuidados.voltarEtapa()" style="background:none;border:none;color:#666;cursor:pointer;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem">
@@ -139,6 +151,14 @@ const WizardCuidados = {
                         ${tipoSelecionado.icon} ${tipoSelecionado.nome} ${localSelecionado.icon} ${localSelecionado.nome}
                     </div>
                 </div>
+                
+                ${mostrarTiposTosa ? `
+                <div style="margin-bottom:1.5rem">
+                    <label style="display:block;margin-bottom:0.75rem;font-weight:600;color:#333">Tipo de Tosa</label>
+                    <select id="wizard-tipo-tosa" style="width:100%;padding:1rem;border:2px solid #e0e0e0;border-radius:12px;font-size:1rem">
+                        ${tiposTosa.map(t => `<option value="${t.id}">${t.nome}</option>`).join('')}
+                    </select>
+                </div>` : ''}
                 
                 <div style="margin-bottom:1.5rem">
                     <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#333">Data</label>
@@ -231,6 +251,7 @@ const WizardCuidados = {
             const valor = parseFloat(document.getElementById('wizard-valor')?.value) || 0;
             const obs = document.getElementById('wizard-obs')?.value || '';
             const adicionais = Array.from(document.querySelectorAll('input[name="wizard-add"]:checked')).map(cb => cb.value);
+            const tipoTosa = document.getElementById('wizard-tipo-tosa')?.value || null;
             
             // Inicializar array se não existir
             if (!pet.cuidados_wizard) pet.cuidados_wizard = [];
@@ -249,6 +270,7 @@ const WizardCuidados = {
                 tipoNome: tipoInfo.nome,
                 tipoIcon: tipoInfo.icon,
                 tipoCor: tipoInfo.cor,
+                tipoTosa: tipoTosa,
                 local: this.dados.local,
                 localNome: localInfo.nome,
                 localIcon: localInfo.icon,
@@ -303,9 +325,10 @@ PetHouse.prototype.renderTabContent = function(pet) {
                     <div style="background:white;border-radius:16px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 2px 12px rgba(0,0,0,0.08);border-left:4px solid ${c.tipoCor}">
                         <div style="display:flex;justify-content:space-between;align-items:start">
                             <div style="flex:1">
-                                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
+                                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap">
                                     <span style="font-size:1.5rem">${c.tipoIcon}</span>
                                     <strong style="font-size:1.1rem">${c.tipoNome}</strong>
+                                    ${c.tipoTosa ? `<span style="background:${c.tipoCor}20;color:${c.tipoCor};padding:0.25rem 0.5rem;border-radius:8px;font-size:0.85rem;font-weight:600">${c.tipoTosa.charAt(0).toUpperCase() + c.tipoTosa.slice(1)}</span>` : ''}
                                     <span style="font-size:1.2rem">${c.localIcon}</span>
                                     <span style="color:#666">${c.localNome}</span>
                                 </div>

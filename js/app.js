@@ -389,7 +389,13 @@ class PetHouse {
         if (this.currentTab === 'exames' && window.VisualizacaoExames) {
             return window.VisualizacaoExames.renderizar(pet);
         }
-        if (this.currentTab === 'banhos_tosas' && window.BanhosTosas) {
+        if (this.currentTab === 'banhos_tosas') {
+            // Usar dashboard profissional se disponível
+            if (window.DashboardBanhoTosa) {
+                return window.DashboardBanhoTosa.render(pet);
+            }
+            // Fallback para sistema antigo
+            if (window.BanhosTosas) {
             // Inicializar arrays se não existirem
             if (!pet.banhos) pet.banhos = [];
             if (!pet.tosas) pet.tosas = [];
@@ -461,6 +467,9 @@ class PetHouse {
                 <h3 style="margin-top: 1.5rem; color: #2196F3;">✂️ Tosas (${pet.tosas.length})</h3>
                 ${window.BanhosTosas.renderTosasList(pet.tosas)}
             `;
+            }
+            // Se nenhum sistema estiver disponível, mostrar mensagem
+            return '<p class="text-center">Sistema de Banho & Tosa não disponível.</p>';
         }
         
         // Abas antigas (peso, consultas, cirurgias)

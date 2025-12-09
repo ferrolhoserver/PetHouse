@@ -304,6 +304,37 @@ const WizardCuidados = {
             console.error('Erro ao finalizar wizard:', error);
             alert('❌ Erro ao salvar: ' + error.message);
         }
+    },
+    
+    deletar(id) {
+        try {
+            if (!confirm('Deletar este cuidado?')) return;
+            
+            if (typeof app === 'undefined') {
+                alert('Erro: app não encontrado');
+                return;
+            }
+            
+            const pet = app.data.pets.find(p => p.id === app.currentPet);
+            if (!pet) {
+                alert('Erro: pet não encontrado');
+                return;
+            }
+            
+            if (!pet.cuidados_wizard) {
+                alert('Erro: nenhum cuidado para deletar');
+                return;
+            }
+            
+            pet.cuidados_wizard = pet.cuidados_wizard.filter(c => c.id !== id);
+            app.saveData();
+            app.render();
+            
+            console.log('Cuidado deletado com sucesso');
+        } catch (error) {
+            console.error('Erro ao deletar cuidado:', error);
+            alert('❌ Erro ao deletar: ' + error.message);
+        }
     }
 };
 
@@ -339,7 +370,7 @@ PetHouse.prototype.renderTabContent = function(pet) {
                                 ${c.obs ? `<div style="margin-top:0.75rem;padding:0.75rem;background:#f8f9fa;border-radius:8px;font-size:0.9rem">${c.obs}</div>` : ''}
                                 ${adicionaisHTML}
                             </div>
-                            <button onclick="if(confirm('Deletar?')){try{const pet=app.data.pets.find(p=>p.id===app.currentPet);if(pet){pet.cuidados_wizard=pet.cuidados_wizard.filter(x=>x.id!==${c.id});app.saveData();app.render();}}catch(e){console.error(e);alert('Erro ao deletar')}}" 
+                            <button onclick="WizardCuidados.deletar(${c.id})" 
                                     style="background:#f44336;color:white;padding:0.5rem 0.75rem;border-radius:8px;border:none;cursor:pointer;font-size:1.2rem">🗑️</button>
                         </div>
                     </div>

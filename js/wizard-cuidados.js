@@ -367,6 +367,12 @@ const WizardCuidados = {
 const _originalRenderBanhosTab = PetHouse.prototype.renderTabContent;
 PetHouse.prototype.renderTabContent = function(pet) {
     if (this.currentTab === 'banhos_tosas') {
+        // PRIORIZAR dashboard profissional se disponível
+        if (window.DashboardBanhoTosa && window.DashboardBanhoTosa.render) {
+            return window.DashboardBanhoTosa.render(pet);
+        }
+        
+        // Fallback: Wizard simples
         // Inicializar array
         if (!pet.cuidados_wizard) pet.cuidados_wizard = [];
         

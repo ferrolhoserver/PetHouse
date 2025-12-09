@@ -114,8 +114,19 @@ const DashboardBanhoTosa = {
      * Renderizar cards de estatísticas
      */
     renderCards(stats, pet) {
-        const porte = this.determinarPorte(pet.peso?.[pet.peso.length - 1]?.valor || 10);
-        const recomendacao = this.recomendacoes[porte];
+        // Usar base de raças se disponível
+        let recomendacao;
+        if (window.BaseRacas) {
+            const infoRaca = window.BaseRacas.obterRecomendacoes(pet);
+            recomendacao = {
+                dias: infoRaca.banho.frequencia,
+                descricao: infoRaca.banho.descricao
+            };
+        } else {
+            // Fallback para sistema antigo baseado em peso
+            const porte = this.determinarPorte(pet.peso?.[pet.peso.length - 1]?.valor || 10);
+            recomendacao = this.recomendacoes[porte];
+        }
         
         const statusBanho = stats.diasDesdeUltimo === null 
             ? { cor: '#999', texto: 'Sem registro', icon: '❓' }
@@ -126,28 +137,28 @@ const DashboardBanhoTosa = {
         return `
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem">
                 <!-- Card: Total de Banhos -->
-                <div style="background:linear-gradient(135deg,#2196F3,#1976D2);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px rgba(33,150,243,0.3)">
+                <div data-filtro="banhos" style="background:linear-gradient(135deg,#2196F3,#1976D2);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px rgba(33,150,243,0.3)">
                     <div style="font-size:2.5rem;margin-bottom:0.5rem">🛁</div>
                     <div style="font-size:2rem;font-weight:700">${stats.totalBanhos}</div>
                     <div style="opacity:0.9">Banhos realizados</div>
                 </div>
                 
                 <!-- Card: Total de Tosas -->
-                <div style="background:linear-gradient(135deg,#9C27B0,#7B1FA2);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px rgba(156,39,176,0.3)">
+                <div data-filtro="tosas" style="background:linear-gradient(135deg,#9C27B0,#7B1FA2);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px rgba(156,39,176,0.3)">
                     <div style="font-size:2.5rem;margin-bottom:0.5rem">✂️</div>
                     <div style="font-size:2rem;font-weight:700">${stats.totalTosas}</div>
                     <div style="opacity:0.9">Tosas realizadas</div>
                 </div>
                 
                 <!-- Card: Gasto Total -->
-                <div style="background:linear-gradient(135deg,#4CAF50,#388E3C);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px rgba(76,175,80,0.3)">
+                <div data-filtro="gastos" style="background:linear-gradient(135deg,#4CAF50,#388E3C);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px rgba(76,175,80,0.3)">
                     <div style="font-size:2.5rem;margin-bottom:0.5rem">💰</div>
                     <div style="font-size:2rem;font-weight:700">R$ ${stats.gastoTotal.toFixed(2)}</div>
                     <div style="opacity:0.9">Gasto total</div>
                 </div>
                 
                 <!-- Card: Status -->
-                <div style="background:linear-gradient(135deg,${statusBanho.cor},${statusBanho.cor}dd);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px ${statusBanho.cor}40">
+                <div data-filtro="status" style="background:linear-gradient(135deg,${statusBanho.cor},${statusBanho.cor}dd);padding:1.5rem;border-radius:16px;color:white;box-shadow:0 4px 12px ${statusBanho.cor}40">
                     <div style="font-size:2.5rem;margin-bottom:0.5rem">${statusBanho.icon}</div>
                     <div style="font-size:1.5rem;font-weight:700">${stats.diasDesdeUltimo !== null ? `Há ${stats.diasDesdeUltimo} dias` : 'Sem registro'}</div>
                     <div style="opacity:0.9">${statusBanho.texto}</div>
@@ -183,12 +194,12 @@ const DashboardBanhoTosa = {
                         const data = new Date(c.data).toLocaleDateString('pt-BR');
                         
                         return `
-                            <div style="position:relative;margin-bottom:1.5rem;padding-left:2rem">
+                            <div data-tipo="${c.tipo}" data-item-timeline style="position:relative;margin-bottom:1.5rem;padding-left:2rem">
                                 <!-- Bolinha -->
                                 <div style="position:absolute;left:-1.5rem;top:0.25rem;width:1rem;height:1rem;border-radius:50%;background:${cor};border:3px solid white;box-shadow:0 0 0 2px ${cor}"></div>
                                 
                                 <!-- Card -->
-                                <div style="background:white;padding:1rem;border-radius:12px;border-left:4px solid ${cor};box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+                                <div style="background:white;padding:1rem;border-radius:12px;border-left:4px solid ${cor};box-shadow:0 2px 8px rgba(0,0,0,0.1);position:relative">
                                     <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
                                         <span style="font-size:1.5rem">${icon}</span>
                                         <strong style="color:${cor}">${c.tipo === 'banho' ? 'Banho' : c.tipo === 'tosa' ? 'Tosa' : 'Banho + Tosa'}</strong>
@@ -199,6 +210,16 @@ const DashboardBanhoTosa = {
                                     </div>
                                     ${c.valor > 0 ? `<div style="font-size:0.9rem;color:#4CAF50;font-weight:600">💰 R$ ${c.valor.toFixed(2)}</div>` : ''}
                                     ${c.obs ? `<div style="font-size:0.85rem;color:#999;margin-top:0.5rem;font-style:italic">${c.obs}</div>` : ''}
+                                    
+                                    <!-- Botões de ação -->
+                                    <div style="position:absolute;top:0.5rem;right:0.5rem;display:flex;gap:0.5rem">
+                                        <button onclick="editarCuidado(${i})" style="background:#2196F3;color:white;border:none;padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.85rem" title="Editar">
+                                            ✏️ Editar
+                                        </button>
+                                        <button onclick="deletarCuidado(${i})" style="background:#f44336;color:white;border:none;padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.85rem" title="Deletar">
+                                            🗑️ Deletar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -212,9 +233,21 @@ const DashboardBanhoTosa = {
      * Renderizar recomendações inteligentes
      */
     renderRecomendacoes(pet, stats) {
-        const pesoAtual = pet.peso?.[pet.peso.length - 1]?.valor || 10;
-        const porte = this.determinarPorte(pesoAtual);
-        const recomendacao = this.recomendacoes[porte];
+        // Usar base de raças se disponível
+        let infoRaca, recomendacao;
+        if (window.BaseRacas) {
+            infoRaca = window.BaseRacas.obterRecomendacoes(pet);
+            recomendacao = {
+                dias: infoRaca.banho.frequencia,
+                descricao: infoRaca.banho.descricao
+            };
+        } else {
+            // Fallback
+            const pesoAtual = pet.peso?.[pet.peso.length - 1]?.valor || 10;
+            const porte = this.determinarPorte(pesoAtual);
+            recomendacao = this.recomendacoes[porte];
+            infoRaca = { porte, caracteristicas: [], cuidadosEspeciais: [] };
+        }
         
         const proximoBanho = stats.ultimoCuidado 
             ? new Date(new Date(stats.ultimoCuidado.data).getTime() + recomendacao.dias * 24 * 60 * 60 * 1000)
@@ -227,8 +260,10 @@ const DashboardBanhoTosa = {
                 <h3 style="margin-bottom:1rem;color:#1976D2">💡 Recomendações Inteligentes</h3>
                 
                 <div style="background:white;padding:1rem;border-radius:12px;margin-bottom:1rem">
-                    <div style="font-weight:600;color:#333;margin-bottom:0.5rem">🐕 Porte: ${porte.charAt(0).toUpperCase() + porte.slice(1)}</div>
+                    <div style="font-weight:600;color:#333;margin-bottom:0.5rem">🐾 Raça: ${pet.raca || 'Não informada'}</div>
+                    <div style="color:#666;font-size:0.9rem;margin-bottom:0.5rem">🐕 Porte: ${infoRaca.porte.charAt(0).toUpperCase() + infoRaca.porte.slice(1)}</div>
                     <div style="color:#666;font-size:0.9rem">${recomendacao.descricao}</div>
+                    ${infoRaca.pelagem ? `<div style="color:#666;font-size:0.9rem;margin-top:0.5rem">✂️ Pelagem: ${infoRaca.pelagem}</div>` : ''}
                 </div>
                 
                 ${stats.ultimoCuidado ? `
@@ -259,13 +294,63 @@ const DashboardBanhoTosa = {
         const cuidados = this.coletarCuidados(pet);
         const stats = this.calcularEstatisticas(cuidados);
         
+        // Inicializar filtros após renderização
+        setTimeout(() => this.inicializarFiltros(cuidados), 100);
+        
         return `
-            <div style="padding:1.5rem">
+            <div id="dashboard-banho-tosa" style="padding:1.5rem">
                 ${this.renderCards(stats, pet)}
                 ${this.renderRecomendacoes(pet, stats)}
                 ${this.renderTimeline(cuidados)}
             </div>
         `;
+    },
+    
+    /**
+     * Inicializar sistema de filtros interativos
+     */
+    inicializarFiltros(cuidados) {
+        if (!window.FiltrosInterativos) return;
+        
+        const cards = [
+            { filtro: 'banhos' },
+            { filtro: 'tosas' },
+            { filtro: 'gastos' },
+            { filtro: 'status' }
+        ];
+        
+        window.FiltrosInterativos.inicializar(
+            'dashboard-banho-tosa',
+            cards,
+            (filtro) => this.aplicarFiltro(filtro, cuidados)
+        );
+    },
+    
+    /**
+     * Aplicar filtro na timeline
+     */
+    aplicarFiltro(filtro, cuidados) {
+        const itens = document.querySelectorAll('[data-item-timeline]');
+        
+        itens.forEach(item => {
+            const tipo = item.dataset.tipo;
+            let deveExibir = true;
+            
+            if (filtro === 'banhos') {
+                deveExibir = tipo === 'banho' || tipo === 'banho_tosa';
+            } else if (filtro === 'tosas') {
+                deveExibir = tipo === 'tosa' || tipo === 'banho_tosa';
+            } else if (filtro === null) {
+                deveExibir = true; // Mostrar tudo
+            }
+            
+            if (deveExibir) {
+                item.style.display = '';
+                item.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     }
 };
 

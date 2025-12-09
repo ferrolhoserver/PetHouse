@@ -41,16 +41,21 @@ const DashboardPeso = {
      * Renderizar cards de estatísticas
      */
     renderCards(stats) {
+        // Tratar valores undefined/NaN
+        const pesoAtual = stats.pesoAtual || 0;
+        const variacao = stats.variacao || 0;
+        const totalRegistros = stats.totalRegistros || 0;
+        
         const iconeTendencia = stats.tendencia === 'subindo' ? '📈' : stats.tendencia === 'descendo' ? '📉' : '➡️';
         const corTendencia = stats.tendencia === 'subindo' ? '#4CAF50' : stats.tendencia === 'descendo' ? '#ff9800' : '#2196F3';
-        const textoVariacao = stats.variacao > 0 ? `+${stats.variacao.toFixed(1)}` : stats.variacao.toFixed(1);
+        const textoVariacao = variacao > 0 ? `+${variacao.toFixed(1)}` : variacao.toFixed(1);
         
         return `
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem">
                 <!-- Peso Atual -->
                 <div style="background:linear-gradient(135deg,#2196F3,#64B5F6);color:white;padding:2rem;border-radius:16px;box-shadow:0 4px 16px rgba(33,150,243,0.3)">
                     <div style="font-size:0.9rem;opacity:0.9;margin-bottom:0.5rem">⚖️ Peso Atual</div>
-                    <div style="font-size:2.5rem;font-weight:700">${stats.pesoAtual} kg</div>
+                    <div style="font-size:2.5rem;font-weight:700">${pesoAtual.toFixed(1)} kg</div>
                 </div>
                 
                 <!-- Variação -->
@@ -62,7 +67,7 @@ const DashboardPeso = {
                 <!-- Total de Registros -->
                 <div style="background:linear-gradient(135deg,#9C27B0,#BA68C8);color:white;padding:2rem;border-radius:16px;box-shadow:0 4px 16px rgba(156,39,176,0.3)">
                     <div style="font-size:0.9rem;opacity:0.9;margin-bottom:0.5rem">📊 Registros</div>
-                    <div style="font-size:2.5rem;font-weight:700">${stats.totalRegistros}</div>
+                    <div style="font-size:2.5rem;font-weight:700">${totalRegistros}</div>
                 </div>
             </div>
         `;
@@ -188,7 +193,12 @@ const DashboardPeso = {
             return '';
         }
         
-        const pesoIdeal = pet.pesoIdeal || stats.pesoAtual;
+        // Obter peso ideal da raça
+        let pesoIdeal = pet.pesoIdeal || stats.pesoAtual;
+        if (window.BaseRacas) {
+            const infoRaca = window.BaseRacas.obterRecomendacoes(pet);
+            pesoIdeal = (infoRaca.pesoIdeal.min + infoRaca.pesoIdeal.max) / 2;
+        }
         const diferenca = stats.pesoAtual - pesoIdeal;
         
         let statusCor = '#4CAF50';

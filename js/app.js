@@ -374,6 +374,12 @@ class PetHouse {
 
     renderTabContent(pet) {
         // Usar módulos específicos para novas abas
+        
+        // Dashboard de Peso
+        if (this.currentTab === 'peso' && window.DashboardPeso) {
+            return window.DashboardPeso.render(pet);
+        }
+        
         if (this.currentTab === 'cuidados' && window.Cuidados) {
             return window.Cuidados.renderContent(pet);
         }

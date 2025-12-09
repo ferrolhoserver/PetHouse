@@ -175,7 +175,7 @@ const Analytics = {
     analyzeVaccines(pets) {
         const vaccineTypes = {};
         let totalVaccines = 0;
-        const petsWith Vaccines = pets.filter(p => p.vacinas && p.vacinas.length > 0).length;
+        const petsWithVaccines = pets.filter(p => p.vacinas && p.vacinas.length > 0).length;
         
         pets.forEach(pet => {
             if (pet.vacinas) {

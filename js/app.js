@@ -390,11 +390,8 @@ class PetHouse {
             return window.VisualizacaoExames.renderizar(pet);
         }
         if (this.currentTab === 'banhos_tosas') {
-            console.log('[DEBUG] Entrando em banhos_tosas');
-            console.log('[DEBUG] window.DashboardBanhoTosa existe?', !!window.DashboardBanhoTosa);
-            // Usar dashboard profissional se disponível
-            if (window.DashboardBanhoTosa) {
-                console.log('[DEBUG] Usando DashboardBanhoTosa.render()');
+            // SEMPRE usar dashboard profissional
+            if (window.DashboardBanhoTosa && window.DashboardBanhoTosa.render) {
                 return window.DashboardBanhoTosa.render(pet);
             }
             // Fallback para sistema antigo

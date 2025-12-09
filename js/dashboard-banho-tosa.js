@@ -356,3 +356,80 @@ const DashboardBanhoTosa = {
 
 // Exportar para uso global
 window.DashboardBanhoTosa = DashboardBanhoTosa;
+
+/**
+ * Funções globais para editar e deletar cuidados
+ */
+window.editarCuidado = function(index) {
+    if (!window.app || !window.app.currentPet) {
+        alert('Erro: Pet não encontrado');
+        return;
+    }
+    
+    const pet = window.app.currentPet;
+    const cuidados = [];
+    
+    // Coletar todos os cuidados
+    if (pet.banhos) cuidados.push(...pet.banhos.map((c, i) => ({ ...c, tipo: 'banho', index: i, array: 'banhos' })));
+    if (pet.tosas) cuidados.push(...pet.tosas.map((c, i) => ({ ...c, tipo: 'tosa', index: i, array: 'tosas' })));
+    if (pet.cuidados_wizard) cuidados.push(...pet.cuidados_wizard.map((c, i) => ({ ...c, index: i, array: 'cuidados_wizard' })));
+    
+    // Ordenar por data
+    cuidados.sort((a, b) => new Date(b.data) - new Date(a.data));
+    
+    const cuidado = cuidados[index];
+    if (!cuidado) {
+        alert('Erro: Cuidado não encontrado');
+        return;
+    }
+    
+    // Abrir wizard de edição
+    if (window.WizardCuidados && window.WizardCuidados.editarCuidado) {
+        window.WizardCuidados.editarCuidado(pet, cuidado.array, cuidado.index);
+    } else {
+        alert('Funcionalidade de edição em desenvolvimento');
+    }
+};
+
+window.deletarCuidado = function(index) {
+    if (!window.app || !window.app.currentPet) {
+        alert('Erro: Pet não encontrado');
+        return;
+    }
+    
+    if (!confirm('Tem certeza que deseja deletar este cuidado?')) {
+        return;
+    }
+    
+    const pet = window.app.currentPet;
+    const cuidados = [];
+    
+    // Coletar todos os cuidados
+    if (pet.banhos) cuidados.push(...pet.banhos.map((c, i) => ({ ...c, tipo: 'banho', index: i, array: 'banhos' })));
+    if (pet.tosas) cuidados.push(...pet.tosas.map((c, i) => ({ ...c, tipo: 'tosa', index: i, array: 'tosas' })));
+    if (pet.cuidados_wizard) cuidados.push(...pet.cuidados_wizard.map((c, i) => ({ ...c, index: i, array: 'cuidados_wizard' })));
+    
+    // Ordenar por data
+    cuidados.sort((a, b) => new Date(b.data) - new Date(a.data));
+    
+    const cuidado = cuidados[index];
+    if (!cuidado) {
+        alert('Erro: Cuidado não encontrado');
+        return;
+    }
+    
+    // Deletar do array correto
+    pet[cuidado.array].splice(cuidado.index, 1);
+    
+    // Salvar e recarregar
+    if (window.app.saveData) {
+        window.app.saveData();
+    }
+    
+    // Recarregar aba
+    if (window.app.renderTabContent) {
+        window.app.renderTabContent(pet);
+    }
+    
+    alert('Cuidado deletado com sucesso!');
+};

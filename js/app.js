@@ -1772,8 +1772,29 @@ END:VEVENT
     }
     
     calcularUltimoBanho(pet) {
-        // Verificar se existe campo de banho (pode não existir ainda)
-        if (!pet.banho_tosa || pet.banho_tosa.length === 0) {
+        // Coletar banhos de AMBOS os formatos (antigo e wizard)
+        const todosBanhos = [];
+        
+        // Formato antigo: pet.banho_tosa
+        if (pet.banho_tosa && pet.banho_tosa.length > 0) {
+            todosBanhos.push(...pet.banho_tosa);
+        }
+        
+        // Formato antigo: pet.banhos
+        if (pet.banhos && pet.banhos.length > 0) {
+            todosBanhos.push(...pet.banhos);
+        }
+        
+        // Formato wizard: pet.cuidados_wizard (filtrar apenas banhos)
+        if (pet.cuidados_wizard && pet.cuidados_wizard.length > 0) {
+            const banhosWizard = pet.cuidados_wizard.filter(c => 
+                c.tipo === 'banho' || c.tipo === 'banho_tosa'
+            );
+            todosBanhos.push(...banhosWizard);
+        }
+        
+        // Se não tem nenhum banho
+        if (todosBanhos.length === 0) {
             return {
                 texto: 'Sem registro',
                 badge: '',
@@ -1781,7 +1802,7 @@ END:VEVENT
             };
         }
         
-        const banhosOrdenados = [...pet.banho_tosa].sort((a, b) => new Date(b.data) - new Date(a.data));
+        const banhosOrdenados = [...todosBanhos].sort((a, b) => new Date(b.data) - new Date(a.data));
         const ultimoBanho = banhosOrdenados[0];
         const dataUltimoBanho = new Date(ultimoBanho.data);
         const hoje = new Date();

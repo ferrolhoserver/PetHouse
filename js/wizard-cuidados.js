@@ -283,6 +283,31 @@ const WizardCuidados = {
             console.log('Salvando cuidado:', cuidado);
             
             pet.cuidados_wizard.push(cuidado);
+            
+            // COMPATIBILIDADE: Salvar também no formato antigo para alertas/gráficos
+            if (this.dados.tipo === 'banho' || this.dados.tipo === 'banho_tosa') {
+                if (!pet.banhos) pet.banhos = [];
+                pet.banhos.push({
+                    data: data,
+                    local: localInfo.nome,
+                    valor: valor,
+                    observacoes: obs
+                });
+                console.log('✅ Salvo também em pet.banhos');
+            }
+            
+            if (this.dados.tipo === 'tosa' || this.dados.tipo === 'banho_tosa') {
+                if (!pet.tosas) pet.tosas = [];
+                pet.tosas.push({
+                    data: data,
+                    tipo: tipoTosa || 'completa',
+                    local: localInfo.nome,
+                    valor: valor,
+                    observacoes: obs
+                });
+                console.log('✅ Salvo também em pet.tosas');
+            }
+            
             app.saveData();
             
             console.log('Cuidado salvo com sucesso!');

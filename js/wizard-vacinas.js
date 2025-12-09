@@ -251,48 +251,83 @@ const WizardVacinas = {
     },
     
     finalizar() {
-        const pet = window.app.data.pets.find(p => p.id === window.app.currentPet);
-        if (!pet) return;
+        try {
+            console.log('Finalizando wizard vacinas...');
+            
+            // Acessar app global (sem window)
+            if (typeof app === 'undefined') {
+                alert('Erro: app não encontrado');
+                return;
+            }
+            
+            const pet = app.data.pets.find(p => p.id === app.currentPet);
+            if (!pet) {
+                alert('Erro: pet não encontrado');
+                return;
+            }
         
-        const data = document.getElementById('wizard-vac-data').value;
-        if (!data) {
-            alert('Por favor, informe a data');
-            return;
+            const data = document.getElementById('wizard-vac-data')?.value;
+            if (!data) {
+                alert('Por favor, informe a data');
+                return;
+            }
+        
+            if (!pet.vacinas_wizard) pet.vacinas_wizard = [];
+        
+            const vacinaSelecionada = this.vacinas.find(v => v.id === this.dados.vacina);
+            const localSelecionado = this.locais.find(l => l.id === this.dados.local);
+            const dose = parseInt(document.getElementById('wizard-vac-dose')?.value || 1);
+            
+            if (!vacinaSelecionada || !localSelecionado) {
+                alert('Erro: dados incompletos');
+                return;
+            }
+        
+            // Calcular próxima dose
+            const dataAplicacao = new Date(data + 'T00:00:00');
+            const proximaData = new Date(dataAplicacao);
+            proximaData.setDate(proximaData.getDate() + vacinaSelecionada.intervalo);
+        
+            const vacina = {
+                id: Date.now(),
+                vacina: this.dados.vacina,
+                vacinaNome: vacinaSelecionada.nome,
+                vacinaIcon: vacinaSelecionada.icon,
+                vacinaCor: vacinaSelecionada.cor,
+                local: this.dados.local,
+                localNome: localSelecionado.nome,
+                localIcon: localSelecionado.icon,
+                data: data,
+                dose: dose,
+                totalDoses: vacinaSelecionada.doses,
+                proximaDose: dose < vacinaSelecionada.doses ? proximaData.toISOString().split('T')[0] : null,
+                lote: document.getElementById('wizard-vac-lote')?.value || '',
+                veterinario: document.getElementById('wizard-vac-vet')?.value || ''
+            };
+        
+            console.log('Salvando vacina:', vacina);
+            
+            pet.vacinas_wizard.push(vacina);
+            app.saveData();
+            
+            console.log('Vacina salva com sucesso!');
+            
+            // Fechar modal
+            const modal = document.getElementById('wizard-vacina-modal');
+            if (modal) modal.remove();
+            
+            // Recarregar detalhes do pet
+            if (app.loadPetDetails) {
+                app.loadPetDetails(pet.id);
+            } else {
+                app.render();
+            }
+            
+            alert('✅ Vacina salva com sucesso!');
+        } catch (error) {
+            console.error('Erro ao finalizar wizard vacinas:', error);
+            alert('❌ Erro ao salvar: ' + error.message);
         }
-        
-        if (!pet.vacinas_wizard) pet.vacinas_wizard = [];
-        
-        const vacinaSelecionada = this.vacinas.find(v => v.id === this.dados.vacina);
-        const localSelecionado = this.locais.find(l => l.id === this.dados.local);
-        const dose = parseInt(document.getElementById('wizard-vac-dose').value);
-        
-        // Calcular próxima dose
-        const dataAplicacao = new Date(data + 'T00:00:00');
-        const proximaData = new Date(dataAplicacao);
-        proximaData.setDate(proximaData.getDate() + vacinaSelecionada.intervalo);
-        
-        const vacina = {
-            id: Date.now(),
-            vacina: this.dados.vacina,
-            vacinaNome: vacinaSelecionada.nome,
-            vacinaIcon: vacinaSelecionada.icon,
-            vacinaCor: vacinaSelecionada.cor,
-            local: this.dados.local,
-            localNome: localSelecionado.nome,
-            localIcon: localSelecionado.icon,
-            data: data,
-            dose: dose,
-            totalDoses: vacinaSelecionada.doses,
-            proximaDose: dose < vacinaSelecionada.doses ? proximaData.toISOString().split('T')[0] : null,
-            lote: document.getElementById('wizard-vac-lote').value,
-            veterinario: document.getElementById('wizard-vac-vet').value
-        };
-        
-        pet.vacinas_wizard.push(vacina);
-        window.app.saveData();
-        
-        document.getElementById('wizard-vacina-modal').remove();
-        window.app.loadPetDetails(pet.id);
     }
 };
 

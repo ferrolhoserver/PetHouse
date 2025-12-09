@@ -210,12 +210,13 @@ const WizardCuidados = {
         try {
             console.log('Finalizando wizard...');
             
-            if (!window.app) {
+            // Acessar app global (sem window)
+            if (typeof app === 'undefined') {
                 alert('Erro: app não encontrado');
                 return;
             }
             
-            const pet = window.app.data.pets.find(p => p.id === window.app.currentPet);
+            const pet = app.data.pets.find(p => p.id === app.currentPet);
             if (!pet) {
                 alert('Erro: pet não encontrado');
                 return;
@@ -260,7 +261,7 @@ const WizardCuidados = {
             console.log('Salvando cuidado:', cuidado);
             
             pet.cuidados_wizard.push(cuidado);
-            window.app.saveData();
+            app.saveData();
             
             console.log('Cuidado salvo com sucesso!');
             
@@ -269,11 +270,11 @@ const WizardCuidados = {
             if (modal) modal.remove();
             
             // Recarregar detalhes do pet
-            if (window.app.loadPetDetails) {
-                window.app.loadPetDetails(pet.id);
+            if (app.loadPetDetails) {
+                app.loadPetDetails(pet.id);
             } else {
                 // Fallback: recarregar página
-                window.app.render();
+                app.render();
             }
             
             alert('✅ Cuidado salvo com sucesso!');

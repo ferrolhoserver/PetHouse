@@ -207,45 +207,80 @@ const WizardCuidados = {
     },
     
     finalizar() {
-        const pet = window.app.data.pets.find(p => p.id === window.app.currentPet);
-        if (!pet) return;
-        
-        const data = document.getElementById('wizard-data').value;
-        if (!data) {
-            alert('Por favor, informe a data');
-            return;
+        try {
+            console.log('Finalizando wizard...');
+            
+            if (!window.app) {
+                alert('Erro: app não encontrado');
+                return;
+            }
+            
+            const pet = window.app.data.pets.find(p => p.id === window.app.currentPet);
+            if (!pet) {
+                alert('Erro: pet não encontrado');
+                return;
+            }
+            
+            const data = document.getElementById('wizard-data')?.value;
+            if (!data) {
+                alert('Por favor, informe a data');
+                return;
+            }
+            
+            const valor = parseFloat(document.getElementById('wizard-valor')?.value) || 0;
+            const obs = document.getElementById('wizard-obs')?.value || '';
+            const adicionais = Array.from(document.querySelectorAll('input[name="wizard-add"]:checked')).map(cb => cb.value);
+            
+            // Inicializar array se não existir
+            if (!pet.cuidados_wizard) pet.cuidados_wizard = [];
+            
+            const tipoInfo = this.tipos.find(t => t.id === this.dados.tipo);
+            const localInfo = this.locais.find(l => l.id === this.dados.local);
+            
+            if (!tipoInfo || !localInfo) {
+                alert('Erro: dados incompletos');
+                return;
+            }
+            
+            const cuidado = {
+                id: Date.now(),
+                tipo: this.dados.tipo,
+                tipoNome: tipoInfo.nome,
+                tipoIcon: tipoInfo.icon,
+                tipoCor: tipoInfo.cor,
+                local: this.dados.local,
+                localNome: localInfo.nome,
+                localIcon: localInfo.icon,
+                data: data,
+                valor: valor,
+                adicionais: adicionais,
+                obs: obs
+            };
+            
+            console.log('Salvando cuidado:', cuidado);
+            
+            pet.cuidados_wizard.push(cuidado);
+            window.app.saveData();
+            
+            console.log('Cuidado salvo com sucesso!');
+            
+            // Fechar modal
+            const modal = document.getElementById('wizard-modal');
+            if (modal) modal.remove();
+            
+            // Recarregar detalhes do pet
+            if (window.app.loadPetDetails) {
+                window.app.loadPetDetails(pet.id);
+            } else {
+                // Fallback: recarregar página
+                window.app.render();
+            }
+            
+            alert('✅ Cuidado salvo com sucesso!');
+        } catch (error) {
+            console.error('Erro ao finalizar wizard:', error);
+            alert('❌ Erro ao salvar: ' + error.message);
         }
-        
-        const valor = parseFloat(document.getElementById('wizard-valor').value) || 0;
-        const obs = document.getElementById('wizard-obs').value;
-        const adicionais = Array.from(document.querySelectorAll('input[name="wizard-add"]:checked')).map(cb => cb.value);
-        
-        // Inicializar array se não existir
-        if (!pet.cuidados_wizard) pet.cuidados_wizard = [];
-        
-        const tipoInfo = this.tipos.find(t => t.id === this.dados.tipo);
-        const localInfo = this.locais.find(l => l.id === this.dados.local);
-        
-        const cuidado = {
-            id: Date.now(),
-            tipo: this.dados.tipo,
-            tipoNome: tipoInfo.nome,
-            tipoIcon: tipoInfo.icon,
-            tipoCor: tipoInfo.cor,
-            local: this.dados.local,
-            localNome: localInfo.nome,
-            localIcon: localInfo.icon,
-            data: data,
-            valor: valor,
-            adicionais: adicionais,
-            obs: obs
-        };
-        
-        pet.cuidados_wizard.push(cuidado);
-        window.app.saveData();
-        
-        document.getElementById('wizard-modal').remove();
-        window.app.loadPetDetails(pet.id);
     }
 };
 

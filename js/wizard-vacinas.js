@@ -308,6 +308,10 @@ const WizardVacinas = {
             console.log('Salvando vacina:', vacina);
             
             pet.vacinas_wizard.push(vacina);
+            
+            // Recalcular próximas doses de todas as vacinas do mesmo tipo
+            WizardVacinas.recalcularProximasDoses(pet, this.dados.vacina);
+            
             app.saveData();
             
             console.log('Vacina salva com sucesso!');
@@ -327,6 +331,49 @@ const WizardVacinas = {
         } catch (error) {
             console.error('Erro ao finalizar wizard vacinas:', error);
             alert('❌ Erro ao salvar: ' + error.message);
+        }
+    },
+    
+    /**
+     * Recalcula próximas doses de todas as vacinas do mesmo tipo
+     * Ordena por data e recalcula baseado no protocolo
+     */
+    recalcularProximasDoses(pet, tipoVacina) {
+        try {
+            console.log('Recalculando próximas doses para:', tipoVacina);
+            
+            // Filtrar vacinas do mesmo tipo
+            const vacinasMesmoTipo = pet.vacinas_wizard.filter(v => v.vacina === tipoVacina);
+            
+            if (vacinasMesmoTipo.length === 0) return;
+            
+            // Ordenar por data (mais antiga primeiro)
+            vacinasMesmoTipo.sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            // Pegar informações da vacina
+            const vacinaInfo = this.vacinas.find(v => v.id === tipoVacina);
+            if (!vacinaInfo) return;
+            
+            // Recalcular doses e próximas datas
+            vacinasMesmoTipo.forEach((vac, index) => {
+                // Atualizar número da dose
+                vac.dose = index + 1;
+                
+                // Calcular próxima dose
+                if (vac.dose < vacinaInfo.doses) {
+                    const dataAtual = new Date(vac.data + 'T00:00:00');
+                    const proximaData = new Date(dataAtual);
+                    proximaData.setDate(proximaData.getDate() + vacinaInfo.intervalo);
+                    vac.proximaDose = proximaData.toISOString().split('T')[0];
+                } else {
+                    // Última dose - próxima é o reforço anual
+                    vac.proximaDose = null;
+                }
+            });
+            
+            console.log('Doses recalculadas:', vacinasMesmoTipo);
+        } catch (error) {
+            console.error('Erro ao recalcular doses:', error);
         }
     }
 };

@@ -723,9 +723,14 @@ class PetHouse {
                     📝 Anote esse código em um lugar seguro!<br>
                     Você pode usá-lo na opção "Entrar em Família Existente".
                 </p>
-                <button onclick="navigator.clipboard.writeText('${result.familyCode}'); alert('✅ Código copiado!')" class="btn btn-primary" style="margin-top: 1rem;">
-                    📋 Copiar Código
-                </button>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button onclick="navigator.clipboard.writeText('${result.familyCode}'); alert('✅ Código copiado!')" class="btn btn-primary" style="flex: 1;">
+                        📋 Copiar Código
+                    </button>
+                    <button onclick="app.closeModal()" class="btn" style="background: #999; color: white; flex: 1;">
+                        ❌ Fechar
+                    </button>
+                </div>
             `);
         } else {
             alert('❌ Email não encontrado. Verifique se digitou corretamente ou crie uma nova família.');

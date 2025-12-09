@@ -195,6 +195,12 @@ class PetHouse {
                             <button type="submit" class="btn" style="background: #ff9800; color: white;">🔑 Recuperar Código</button>
                         </form>
                     </div>
+                    
+                    <!-- Opção 4: Usar sem sincronização -->
+                    <div style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 2px dashed #ddd;">
+                        <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.75rem;">Ou continue sem sincronização (apenas local)</p>
+                        <button class="btn" style="background: #999; color: white;" onclick="app.skipSync()">📱 Usar Apenas Neste Dispositivo</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -1966,6 +1972,28 @@ END:VEVENT
             }
         };
         document.head.appendChild(newScript);
+    }
+    
+    /**
+     * Pular sincronização e usar apenas localmente
+     */
+    skipSync() {
+        // Marcar que o usuário optou por não sincronizar
+        localStorage.setItem('skip_sync', 'true');
+        
+        // Inicializar dados vazios
+        this.data = {
+            casaNome: 'Minha Casa',
+            pets: []
+        };
+        
+        // Salvar no localStorage
+        this.saveData();
+        
+        // Renderizar
+        this.render();
+        
+        console.log('📱 Usando app apenas localmente (sem sincronização)');
     }
 }
 

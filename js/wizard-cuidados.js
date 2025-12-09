@@ -339,7 +339,7 @@ PetHouse.prototype.renderTabContent = function(pet) {
                                 ${c.obs ? `<div style="margin-top:0.75rem;padding:0.75rem;background:#f8f9fa;border-radius:8px;font-size:0.9rem">${c.obs}</div>` : ''}
                                 ${adicionaisHTML}
                             </div>
-                            <button onclick="if(confirm('Deletar?')){const pet=window.app.data.pets.find(p=>p.id===window.app.currentPet);pet.cuidados_wizard=pet.cuidados_wizard.filter(x=>x.id!==${c.id});window.app.saveData();window.app.loadPetDetails(pet.id)}" 
+                            <button onclick="if(confirm('Deletar?')){try{const pet=app.data.pets.find(p=>p.id===app.currentPet);if(pet){pet.cuidados_wizard=pet.cuidados_wizard.filter(x=>x.id!==${c.id});app.saveData();app.render();}}catch(e){console.error(e);alert('Erro ao deletar')}}" 
                                     style="background:#f44336;color:white;padding:0.5rem 0.75rem;border-radius:8px;border:none;cursor:pointer;font-size:1.2rem">🗑️</button>
                         </div>
                     </div>

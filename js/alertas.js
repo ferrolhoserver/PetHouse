@@ -270,7 +270,7 @@ const Alertas = {
     /**
      * Renderiza alertas em HTML
      */
-    renderizarAlertas(alertas) {
+    renderizarAlertas(alertas, pet = null) {
         if (!alertas || (alertas.vacinas.length === 0 && alertas.vermifugo.length === 0)) {
             return '<p style="color: #4CAF50; text-align: center;">✅ Todas as vacinas e vermífugos em dia!</p>';
         }
@@ -287,7 +287,7 @@ const Alertas = {
                              alerta.status === 'proxima' ? '📅' : 'ℹ️';
 
                 // Verificar se está coberta por vacina múltipla
-                const cobertura = window.VacinasCompostas?.vacinaEstaCoberta(alerta.nome, pet.vacinas || []);
+                const cobertura = pet && window.VacinasCompostas?.vacinaEstaCoberta(alerta.nome, pet.vacinas || []);
                 const descricaoFinal = cobertura ? 
                     window.VacinasCompostas.gerarDescricaoCobertura(alerta.nome, cobertura) : 
                     alerta.descricao;

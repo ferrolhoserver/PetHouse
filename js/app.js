@@ -328,7 +328,7 @@ class PetHouse {
 
         // Calcular alertas (MÓDULO NOVO)
         const alertas = window.Alertas ? window.Alertas.calcularTodosAlertas(pet) : null;
-        const alertasHTML = alertas ? window.Alertas.renderizarAlertas(alertas) : '';
+        const alertasHTML = alertas ? window.Alertas.renderizarAlertas(alertas, pet) : '';
         
         return `
             <div class="header">

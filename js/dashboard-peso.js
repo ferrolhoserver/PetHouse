@@ -254,7 +254,7 @@ const DashboardPeso = {
     renderBotaoAdicionar() {
         return `
             <div style="margin-bottom:1.5rem">
-                <button onclick="app.showAddRecordForm()" style="
+                <button onclick="app.showAddRecord()" style="
                     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
                     color: white;
                     border: none;

@@ -268,44 +268,110 @@ const Alertas = {
     },
 
     /**
-     * Renderiza alertas em HTML
+     * Renderiza alertas em HTML - CARDS COMPACTOS CLICÁVEIS
      */
     renderizarAlertas(alertas, pet = null) {
         if (!alertas || (alertas.vacinas.length === 0 && alertas.vermifugo.length === 0)) {
-            return '<p style="color: #4CAF50; text-align: center;">✅ Todas as vacinas e vermífugos em dia!</p>';
+            return '<p style="color: #4CAF50; text-align: center; padding: 1rem;">✅ Todas as vacinas e vermífugos em dia!</p>';
         }
 
-        let html = '';
+        // Contar alertas por categoria
+        const vacinasCount = alertas.vacinas.length;
+        const vermifugoCount = alertas.vermifugo.length;
+        const ciosCount = 0; // TODO: implementar alertas de cio
+        const banhoCount = 0; // TODO: implementar alertas de banho
 
-        // Alertas de vacinas
+        // Cards compactos e clicáveis
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0;">';
+
+        // Card de Vacinas
+        if (vacinasCount > 0) {
+            const temAtrasadas = alertas.vacinas.some(a => a.status === 'atrasada');
+            const cor = temAtrasadas ? '#f44336' : '#ff9800';
+            html += `
+                <div onclick="app.changeTab('cuidados')" style="
+                    background: linear-gradient(135deg, ${cor}15 0%, ${cor}25 100%);
+                    border-left: 4px solid ${cor};
+                    padding: 1rem;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                    <div style="font-size: 2rem; text-align: center;">${temAtrasadas ? '⚠️' : '💉'}</div>
+                    <div style="font-weight: bold; text-align: center; color: ${cor}; margin-top: 0.5rem;">${vacinasCount}</div>
+                    <div style="font-size: 0.85rem; text-align: center; color: #666; margin-top: 0.25rem;">Vacinas ${temAtrasadas ? 'atrasadas' : 'pendentes'}</div>
+                </div>
+            `;
+        }
+
+        // Card de Vermífugo
+        if (vermifugoCount > 0) {
+            const temAtrasadas = alertas.vermifugo.some(a => a.status === 'atrasada');
+            const cor = temAtrasadas ? '#f44336' : '#ff9800';
+            html += `
+                <div onclick="app.changeTab('cuidados')" style="
+                    background: linear-gradient(135deg, ${cor}15 0%, ${cor}25 100%);
+                    border-left: 4px solid ${cor};
+                    padding: 1rem;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                    <div style="font-size: 2rem; text-align: center;">💊</div>
+                    <div style="font-weight: bold; text-align: center; color: ${cor}; margin-top: 0.5rem;">${vermifugoCount}</div>
+                    <div style="font-size: 0.85rem; text-align: center; color: #666; margin-top: 0.25rem;">Vermífugo ${temAtrasadas ? 'atrasado' : 'pendente'}</div>
+                </div>
+            `;
+        }
+
+        // Card de Banho (placeholder)
+        if (banhoCount > 0) {
+            html += `
+                <div onclick="app.changeTab('banho-tosa')" style="
+                    background: linear-gradient(135deg, #2196F315 0%, #2196F325 100%);
+                    border-left: 4px solid #2196F3;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                    <div style="font-size: 2rem; text-align: center;">🛁</div>
+                    <div style="font-weight: bold; text-align: center; color: #2196F3; margin-top: 0.5rem;">${banhoCount}</div>
+                    <div style="font-size: 0.85rem; text-align: center; color: #666; margin-top: 0.25rem;">Banho pendente</div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+
+        // Detalhes expandidos (opcional - pode ser removido se quiser apenas cards)
+        html += '<details style="margin-top: 1rem; padding: 0.5rem; background: #f9f9f9; border-radius: 4px;"><summary style="cursor: pointer; font-weight: bold; color: #666;">Ver detalhes dos alertas</summary>';
+        
+        // Alertas de vacinas detalhados
         if (alertas.vacinas.length > 0) {
-            html += '<div class="alertas-section"><h4>💉 Vacinas</h4>';
+            html += '<div style="margin-top: 1rem;"><h4 style="color: #666; font-size: 0.9rem;">💉 Vacinas</h4>';
             alertas.vacinas.forEach(alerta => {
                 const cor = alerta.status === 'atrasada' ? '#f44336' : 
                            alerta.status === 'proxima' ? '#ff9800' : '#2196F3';
                 const icone = alerta.status === 'atrasada' ? '⚠️' : 
                              alerta.status === 'proxima' ? '📅' : 'ℹ️';
 
-                // Verificar se está coberta por vacina múltipla
-                const cobertura = pet && window.VacinasCompostas?.vacinaEstaCoberta(alerta.nome, pet.vacinas || []);
-                const descricaoFinal = cobertura ? 
-                    window.VacinasCompostas.gerarDescricaoCobertura(alerta.nome, cobertura) : 
-                    alerta.descricao;
-                
                 html += `
-                    <div class="alerta-card" style="border-left: 4px solid ${cor}; margin: 0.5rem 0; padding: 0.75rem; background: #f9f9f9; border-radius: 4px;">
+                    <div style="border-left: 3px solid ${cor}; margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; font-size: 0.85rem;">
                         <div style="font-weight: bold; color: ${cor};">${icone} ${alerta.nome}</div>
-                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">${alerta.mensagem}</div>
-                        ${descricaoFinal ? `<div style="font-size: 0.85rem; color: ${cobertura ? '#4CAF50' : '#999'}; margin-top: 0.25rem;">${cobertura ? '✅' : ''} ${descricaoFinal}</div>` : ''}
+                        <div style="color: #666; margin-top: 0.25rem;">${alerta.mensagem}</div>
                     </div>
                 `;
             });
             html += '</div>';
         }
 
-        // Alertas de vermífugo
+        // Alertas de vermífugo detalhados
         if (alertas.vermifugo.length > 0) {
-            html += '<div class="alertas-section" style="margin-top: 1rem;"><h4>💊 Vermífugo</h4>';
+            html += '<div style="margin-top: 1rem;"><h4 style="color: #666; font-size: 0.9rem;">💊 Vermífugo</h4>';
             alertas.vermifugo.forEach(alerta => {
                 const cor = alerta.status === 'atrasada' ? '#f44336' : 
                            alerta.status === 'proxima' ? '#ff9800' : '#2196F3';
@@ -313,16 +379,17 @@ const Alertas = {
                              alerta.status === 'proxima' ? '📅' : 'ℹ️';
 
                 html += `
-                    <div class="alerta-card" style="border-left: 4px solid ${cor}; margin: 0.5rem 0; padding: 0.75rem; background: #f9f9f9; border-radius: 4px;">
+                    <div style="border-left: 3px solid ${cor}; margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; font-size: 0.85rem;">
                         <div style="font-weight: bold; color: ${cor};">${icone} ${alerta.nome}</div>
-                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">${alerta.mensagem}</div>
-                        ${alerta.dosagem ? `<div style="font-size: 0.85rem; color: #2196F3; margin-top: 0.25rem;">💊 Dosagem: ${alerta.dosagem} (Peso: ${alerta.pesoAtual} kg)</div>` : ''}
-                        ${alerta.protocolo.observacao ? `<div style="font-size: 0.85rem; color: #999; margin-top: 0.25rem;">ℹ️ ${alerta.protocolo.observacao}</div>` : ''}
+                        <div style="color: #666; margin-top: 0.25rem;">${alerta.mensagem}</div>
+                        ${alerta.dosagem ? `<div style="color: #2196F3; margin-top: 0.25rem;">💊 ${alerta.dosagem}</div>` : ''}
                     </div>
                 `;
             });
             html += '</div>';
         }
+
+        html += '</details>';
 
         return html;
     }

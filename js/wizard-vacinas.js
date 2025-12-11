@@ -305,6 +305,11 @@ const WizardVacinas = {
             
             pet.vacinas_wizard.push(vacina);
             
+            // Gerar doses automáticas (se aplicável)
+            if (window.AutoDoses) {
+                AutoDoses.gerarDosesAutomaticas(pet, vacina);
+            }
+            
             // Recalcular próximas doses de todas as vacinas do mesmo tipo
             WizardVacinas.recalcularProximasDoses(pet, this.dados.vacina);
             

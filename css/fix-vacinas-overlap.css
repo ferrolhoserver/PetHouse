@@ -1,0 +1,73 @@
+/**
+ * CSS para Corrigir Sobreposição de Cards de Vacinas
+ * Fix cirúrgico sem afetar outros componentes
+ */
+
+/* Forçar layout correto da timeline */
+.timeline-prontuario {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    width: 100% !important;
+}
+
+/* Cada item da timeline deve ser block */
+.timeline-item {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    clear: both !important;
+    margin-bottom: 0 !important;
+}
+
+/* Evitar float e position absolute que causam sobreposição */
+.timeline-item > div {
+    position: relative !important;
+}
+
+/* Container de conteúdo do card */
+.timeline-item > div:last-child {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Garantir que cards não sobreponham */
+.timeline-prontuario > * {
+    position: relative !important;
+    z-index: auto !important;
+}
+
+/* Fix para cards no wizard também */
+#wizard-vacina-modal .vacinas-list {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    width: 100% !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .timeline-item {
+        padding-left: 2rem !important;
+    }
+}
+
+/* Garantir que nada fique sobreposto */
+* {
+    box-sizing: border-box;
+}
+
+/* Fix específico para cards de vacinas na aba Cuidados */
+[style*="padding-left: 2.5rem"] {
+    display: block !important;
+    width: 100% !important;
+    clear: both !important;
+}
+
+/* Limpar floats */
+.timeline-prontuario::after {
+    content: "";
+    display: table;
+    clear: both;
+}

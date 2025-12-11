@@ -249,6 +249,107 @@ const DashboardPeso = {
     },
     
     /**
+     * Renderizar botão de adicionar peso
+     */
+    renderBotaoAdicionar() {
+        return `
+            <div style="margin-bottom:1.5rem">
+                <button onclick="app.showAddRecordForm()" style="
+                    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+                    color: white;
+                    border: none;
+                    padding: 0.875rem 1.5rem;
+                    border-radius: 12px;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(33, 150, 243, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(33, 150, 243, 0.3)'">
+                    <span style="font-size:1.2rem">⚖️</span>
+                    Adicionar Peso
+                </button>
+            </div>
+        `;
+    },
+    
+    /**
+     * Renderizar lista de registros de peso
+     */
+    renderListaRegistros(pet) {
+        if (!pet.peso || pet.peso.length === 0) {
+            return '';
+        }
+        
+        const registros = [...pet.peso].sort((a, b) => new Date(b.data) - new Date(a.data));
+        
+        let html = `
+            <div style="background:white;padding:1.5rem;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-top:2rem">
+                <h3 style="margin-bottom:1rem;color:#333">📋 Histórico de Peso</h3>
+                <div style="display:flex;flex-direction:column;gap:0.75rem">
+        `;
+        
+        registros.forEach((registro, index) => {
+            const data = new Date(registro.data).toLocaleDateString('pt-BR');
+            const peso = typeof registro.valor !== 'undefined' ? registro.valor : registro.peso;
+            const pesoKg = (peso || 0).toFixed(3);
+            const pesoGramas = Math.round((peso || 0) * 1000);
+            
+            html += `
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:1rem;
+                    background:#f9f9f9;
+                    border-radius:8px;
+                    border-left:4px solid #2196F3;
+                ">
+                    <div style="flex:1">
+                        <div style="font-weight:600;color:#333;margin-bottom:0.25rem">
+                            ${pesoGramas}g (${pesoKg} kg)
+                        </div>
+                        <div style="font-size:0.85rem;color:#666">
+                            📅 ${data}
+                        </div>
+                        ${registro.obs ? `<div style="font-size:0.85rem;color:#666;margin-top:0.25rem">📝 ${registro.obs}</div>` : ''}
+                    </div>
+                    <div style="display:flex;gap:0.5rem">
+                        <button onclick="app.editRecord(${pet.peso.indexOf(registro)})" style="
+                            background:#2196F3;
+                            color:white;
+                            border:none;
+                            padding:0.5rem 0.75rem;
+                            border-radius:6px;
+                            cursor:pointer;
+                            font-size:0.85rem;
+                        ">✏️ Editar</button>
+                        <button onclick="app.deleteRecord(${pet.peso.indexOf(registro)})" style="
+                            background:#f44336;
+                            color:white;
+                            border:none;
+                            padding:0.5rem 0.75rem;
+                            border-radius:6px;
+                            cursor:pointer;
+                            font-size:0.85rem;
+                        ">🗑️ Excluir</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        return html;
+    },
+    
+    /**
      * Renderizar dashboard completo
      */
     render(pet) {
@@ -256,9 +357,11 @@ const DashboardPeso = {
         
         return `
             <div style="padding:1.5rem">
+                ${this.renderBotaoAdicionar()}
                 ${this.renderCards(stats)}
                 ${this.renderGrafico(pet)}
                 ${this.renderAnalise(stats, pet)}
+                ${this.renderListaRegistros(pet)}
             </div>
         `;
     }

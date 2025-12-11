@@ -164,7 +164,7 @@ const WizardVacinas = {
                 
                 <div style="margin-bottom:1.5rem">
                     <label style="display:block;margin-bottom:0.5rem;font-weight:600">Data da Aplicação</label>
-                    <input type="date" id="wizard-vac-data" value="${new Date().toISOString().split('T')[0]}" 
+                    <input type="date" id="wizard-vac-data" value="${UtilsData.hoje()}" 
                            onchange="WizardVacinas.calcularProxima()"
                            style="width:100%;padding:1rem;border:2px solid #e0e0e0;border-radius:12px;font-size:1rem">
                 </div>
@@ -236,16 +236,14 @@ const WizardVacinas = {
         
         if (!data) return;
         
-        const dataAplicacao = new Date(data + 'T00:00:00');
-        const proximaData = new Date(dataAplicacao);
-        proximaData.setDate(proximaData.getDate() + vacinaSelecionada.intervalo);
+        const proximaData = UtilsData.adicionarDias(data, vacinaSelecionada.intervalo);
         
         const texto = document.getElementById('proxima-dose-texto');
         if (texto) {
             if (dose >= vacinaSelecionada.doses) {
-                texto.innerHTML = `<strong>Última dose!</strong> Reforço anual em ${proximaData.toLocaleDateString('pt-BR')}`;
+                texto.innerHTML = `<strong>Última dose!</strong> Reforço anual em ${UtilsData.formatarBR(proximaData)}`;
             } else {
-                texto.innerHTML = `${(dose + 1)}ª dose em <strong>${proximaData.toLocaleDateString('pt-BR')}</strong> (${vacinaSelecionada.intervalo} dias)`;
+                texto.innerHTML = `${(dose + 1)}ª dose em <strong>${UtilsData.formatarBR(proximaData)}</strong> (${vacinaSelecionada.intervalo} dias)`;
             }
         }
     },
@@ -284,9 +282,7 @@ const WizardVacinas = {
             }
         
             // Calcular próxima dose
-            const dataAplicacao = new Date(data + 'T00:00:00');
-            const proximaData = new Date(dataAplicacao);
-            proximaData.setDate(proximaData.getDate() + vacinaSelecionada.intervalo);
+            const proximaData = UtilsData.adicionarDias(data, vacinaSelecionada.intervalo);
         
             const vacina = {
                 id: Date.now(),
@@ -300,7 +296,7 @@ const WizardVacinas = {
                 data: data,
                 dose: dose,
                 totalDoses: vacinaSelecionada.doses,
-                proximaDose: dose < vacinaSelecionada.doses ? proximaData.toISOString().split('T')[0] : null,
+                proximaDose: dose < vacinaSelecionada.doses ? proximaData : null,
                 lote: document.getElementById('wizard-vac-lote')?.value || '',
                 veterinario: document.getElementById('wizard-vac-vet')?.value || ''
             };
@@ -348,7 +344,7 @@ const WizardVacinas = {
             if (vacinasMesmoTipo.length === 0) return;
             
             // Ordenar por data (mais antiga primeiro)
-            vacinasMesmoTipo.sort((a, b) => new Date(a.data) - new Date(b.data));
+            vacinasMesmoTipo.sort((a, b) => UtilsData.diferencaDias(b.data, a.data));
             
             // Pegar informações da vacina
             const vacinaInfo = this.vacinas.find(v => v.id === tipoVacina);
@@ -361,10 +357,7 @@ const WizardVacinas = {
                 
                 // Calcular próxima dose
                 if (vac.dose < vacinaInfo.doses) {
-                    const dataAtual = new Date(vac.data + 'T00:00:00');
-                    const proximaData = new Date(dataAtual);
-                    proximaData.setDate(proximaData.getDate() + vacinaInfo.intervalo);
-                    vac.proximaDose = proximaData.toISOString().split('T')[0];
+                    vac.proximaDose = UtilsData.adicionarDias(vac.data, vacinaInfo.intervalo);
                 } else {
                     // Última dose - próxima é o reforço anual
                     vac.proximaDose = null;

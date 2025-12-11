@@ -230,6 +230,168 @@ const DashboardBanhoTosa = {
     },
     
     /**
+     * Renderizar gráfico de frequência (Realizado vs Recomendado)
+     */
+    renderGraficoFrequencia(cuidados, pet) {
+        if (cuidados.length === 0) {
+            return '';
+        }
+        
+        // Determinar recomendação
+        let recomendacao;
+        if (window.BaseRacas) {
+            const infoRaca = window.BaseRacas.obterRecomendacoes(pet);
+            recomendacao = { dias: infoRaca.banho.frequencia };
+        } else {
+            const pesoAtual = pet.peso?.[pet.peso.length - 1]?.valor || 10;
+            const porte = this.determinarPorte(pesoAtual);
+            recomendacao = this.recomendacoes[porte];
+        }
+        
+        // Pegar últimos 6 meses de dados
+        const hoje = new Date();
+        const seiseMesesAtras = new Date(hoje.getTime() - 180 * 24 * 60 * 60 * 1000);
+        const cuidadosRecentes = cuidados.filter(c => new Date(c.data) >= seiseMesesAtras);
+        
+        // Agrupar por mês
+        const meses = {};
+        cuidadosRecentes.forEach(c => {
+            const data = new Date(c.data);
+            const mesAno = `${data.getMonth() + 1}/${data.getFullYear()}`;
+            if (!meses[mesAno]) {
+                meses[mesAno] = { banhos: 0, tosas: 0 };
+            }
+            if (c.tipo === 'banho' || c.tipo === 'banho_tosa') {
+                meses[mesAno].banhos++;
+            }
+            if (c.tipo === 'tosa' || c.tipo === 'banho_tosa') {
+                meses[mesAno].tosas++;
+            }
+        });
+        
+        // Gerar labels e dados para últimos 6 meses
+        const labels = [];
+        const dadosRealizados = [];
+        const dadosRecomendados = [];
+        
+        for (let i = 5; i >= 0; i--) {
+            const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+            const mesAno = `${data.getMonth() + 1}/${data.getFullYear()}`;
+            const mesNome = data.toLocaleDateString('pt-BR', { month: 'short' });
+            
+            labels.push(mesNome);
+            
+            const totalRealizado = meses[mesAno] ? meses[mesAno].banhos : 0;
+            dadosRealizados.push(totalRealizado);
+            
+            // Calcular quantos banhos deveriam ter sido feitos no mês
+            const diasNoMes = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
+            const banhosRecomendados = Math.round(diasNoMes / recomendacao.dias);
+            dadosRecomendados.push(banhosRecomendados);
+        }
+        
+        return `
+            <div style="background:white;padding:1.5rem;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-top:2rem">
+                <h3 style="margin-bottom:1.5rem;color:#333">📊 Frequência de Banhos (Realizado vs Recomendado)</h3>
+                <canvas id="grafico-frequencia-banho" style="max-height:300px"></canvas>
+            </div>
+            
+            <script>
+                (function() {
+                    const ctx = document.getElementById('grafico-frequencia-banho');
+                    if (!ctx) return;
+                    
+                    // Destruir gráfico anterior se existir
+                    if (window.graficoFrequenciaBanho) {
+                        window.graficoFrequenciaBanho.destroy();
+                    }
+                    
+                    window.graficoFrequenciaBanho = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ${JSON.stringify(labels)},
+                            datasets: [
+                                {
+                                    label: 'Realizado',
+                                    data: ${JSON.stringify(dadosRealizados)},
+                                    backgroundColor: 'rgba(33, 150, 243, 0.8)',
+                                    borderColor: '#2196F3',
+                                    borderWidth: 2,
+                                    borderRadius: 8
+                                },
+                                {
+                                    label: 'Recomendado',
+                                    data: ${JSON.stringify(dadosRecomendados)},
+                                    type: 'line',
+                                    borderColor: '#4CAF50',
+                                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                    borderWidth: 3,
+                                    fill: false,
+                                    tension: 0.4,
+                                    pointRadius: 6,
+                                    pointHoverRadius: 8,
+                                    pointBackgroundColor: '#4CAF50',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        font: { size: 13, weight: '600' },
+                                        padding: 15,
+                                        usePointStyle: true
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: { size: 14, weight: 'bold' },
+                                    bodyFont: { size: 13 },
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.dataset.label + ': ' + context.parsed.y + ' banho(s)';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        callback: function(value) {
+                                            return value + ' banho(s)';
+                                        },
+                                        font: { size: 12 }
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: { size: 12 }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })();
+            </script>
+        `;
+    },
+    
+    /**
      * Renderizar recomendações inteligentes
      */
     renderRecomendacoes(pet, stats) {
@@ -300,6 +462,7 @@ const DashboardBanhoTosa = {
         return `
             <div id="dashboard-banho-tosa" style="padding:1.5rem">
                 ${this.renderCards(stats, pet)}
+                ${this.renderGraficoFrequencia(cuidados, pet)}
                 ${this.renderRecomendacoes(pet, stats)}
                 ${this.renderTimeline(cuidados)}
             </div>

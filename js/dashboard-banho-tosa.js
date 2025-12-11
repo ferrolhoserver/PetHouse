@@ -290,105 +290,117 @@ const DashboardBanhoTosa = {
             dadosRecomendados.push(banhosRecomendados);
         }
         
+        // Armazenar dados para criação posterior do gráfico
+        this._dadosGrafico = {
+            labels,
+            dadosRealizados,
+            dadosRecomendados
+        };
+        
         return `
             <div style="background:white;padding:1.5rem;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-top:2rem">
                 <h3 style="margin-bottom:1.5rem;color:#333">📊 Frequência de Banhos (Realizado vs Recomendado)</h3>
                 <canvas id="grafico-frequencia-banho" style="max-height:300px"></canvas>
             </div>
-            
-            <script>
-                (function() {
-                    const ctx = document.getElementById('grafico-frequencia-banho');
-                    if (!ctx) return;
-                    
-                    // Destruir gráfico anterior se existir
-                    if (window.graficoFrequenciaBanho) {
-                        window.graficoFrequenciaBanho.destroy();
+        `;
+    },
+    
+    /**
+     * Criar gráfico de frequência (deve ser chamado DEPOIS do render)
+     */
+    criarGraficoFrequencia() {
+        if (!this._dadosGrafico) return;
+        
+        const ctx = document.getElementById('grafico-frequencia-banho');
+        if (!ctx) return;
+        
+        const { labels, dadosRealizados, dadosRecomendados } = this._dadosGrafico;
+        
+        // Destruir gráfico anterior se existir
+        if (window.graficoFrequenciaBanho) {
+            window.graficoFrequenciaBanho.destroy();
+        }
+        
+        window.graficoFrequenciaBanho = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Realizado',
+                        data: dadosRealizados,
+                        backgroundColor: 'rgba(33, 150, 243, 0.8)',
+                        borderColor: '#2196F3',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    },
+                    {
+                        label: 'Recomendado',
+                        data: dadosRecomendados,
+                        type: 'line',
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#4CAF50',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
                     }
-                    
-                    window.graficoFrequenciaBanho = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ${JSON.stringify(labels)},
-                            datasets: [
-                                {
-                                    label: 'Realizado',
-                                    data: ${JSON.stringify(dadosRealizados)},
-                                    backgroundColor: 'rgba(33, 150, 243, 0.8)',
-                                    borderColor: '#2196F3',
-                                    borderWidth: 2,
-                                    borderRadius: 8
-                                },
-                                {
-                                    label: 'Recomendado',
-                                    data: ${JSON.stringify(dadosRecomendados)},
-                                    type: 'line',
-                                    borderColor: '#4CAF50',
-                                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                                    borderWidth: 3,
-                                    fill: false,
-                                    tension: 0.4,
-                                    pointRadius: 6,
-                                    pointHoverRadius: 8,
-                                    pointBackgroundColor: '#4CAF50',
-                                    pointBorderColor: '#fff',
-                                    pointBorderWidth: 2
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
-                                        font: { size: 13, weight: '600' },
-                                        padding: 15,
-                                        usePointStyle: true
-                                    }
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 12,
-                                    titleFont: { size: 14, weight: 'bold' },
-                                    bodyFont: { size: 13 },
-                                    callbacks: {
-                                        label: function(context) {
-                                            return context.dataset.label + ': ' + context.parsed.y + ' banho(s)';
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1,
-                                        callback: function(value) {
-                                            return value + ' banho(s)';
-                                        },
-                                        font: { size: 12 }
-                                    },
-                                    grid: {
-                                        color: 'rgba(0, 0, 0, 0.05)'
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        font: { size: 12 }
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
-                                }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: { size: 13, weight: '600' },
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' banho(s)';
                             }
                         }
-                    });
-                })();
-            </script>
-        `;
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value + ' banho(s)';
+                            },
+                            font: { size: 12 }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 12 }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
     },
     
     /**

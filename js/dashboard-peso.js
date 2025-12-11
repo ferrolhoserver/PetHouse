@@ -87,12 +87,29 @@ const DashboardPeso = {
             `;
         }
         
+        return `
+            <div style="background:white;padding:1.5rem;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-bottom:2rem">
+                <h3 style="margin-bottom:1.5rem;color:#333">📈 Evolução de Peso</h3>
+                <canvas id="grafico-peso-dashboard" style="max-height:300px"></canvas>
+            </div>
+        `;
+    },
+    
+    /**
+     * Criar gráfico no canvas (deve ser chamado DEPOIS do render)
+     */
+    criarGrafico(pet) {
+        if (!pet.peso || pet.peso.length === 0) return;
+        
+        const ctx = document.getElementById('grafico-peso-dashboard');
+        if (!ctx) return;
+        
         // Ordenar por data
         const pesos = [...pet.peso].sort((a, b) => new Date(a.data) - new Date(b.data));
         
-        // Preparar dados para o gráfico
+        // Preparar dados
         const labels = pesos.map(p => new Date(p.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }));
-        const valores = pesos.map(p => p.valor);
+        const valores = pesos.map(p => p.valor || p.peso);
         
         const minPeso = Math.min(...valores);
         const maxPeso = Math.max(...valores);
@@ -100,89 +117,76 @@ const DashboardPeso = {
         const yMin = Math.max(0, minPeso - range * 0.1);
         const yMax = maxPeso + range * 0.1;
         
-        return `
-            <div style="background:white;padding:1.5rem;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-bottom:2rem">
-                <h3 style="margin-bottom:1.5rem;color:#333">📈 Evolução de Peso</h3>
-                <canvas id="grafico-peso-dashboard" style="max-height:300px"></canvas>
-            </div>
-            
-            <script>
-                (function() {
-                    const ctx = document.getElementById('grafico-peso-dashboard');
-                    if (!ctx) return;
-                    
-                    // Destruir gráfico anterior se existir
-                    if (window.graficoPesoDashboard) {
-                        window.graficoPesoDashboard.destroy();
-                    }
-                    
-                    window.graficoPesoDashboard = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: ${JSON.stringify(labels)},
-                            datasets: [{
-                                label: 'Peso (kg)',
-                                data: ${JSON.stringify(valores)},
-                                borderColor: '#2196F3',
-                                backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                                borderWidth: 3,
-                                fill: true,
-                                tension: 0.4,
-                                pointRadius: 6,
-                                pointHoverRadius: 8,
-                                pointBackgroundColor: '#2196F3',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 12,
-                                    titleFont: { size: 14, weight: 'bold' },
-                                    bodyFont: { size: 13 },
-                                    callbacks: {
-                                        label: function(context) {
-                                            return 'Peso: ' + context.parsed.y.toFixed(1) + ' kg';
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: false,
-                                    min: ${yMin.toFixed(1)},
-                                    max: ${yMax.toFixed(1)},
-                                    ticks: {
-                                        callback: function(value) {
-                                            return value.toFixed(1) + ' kg';
-                                        },
-                                        font: { size: 12 }
-                                    },
-                                    grid: {
-                                        color: 'rgba(0, 0, 0, 0.05)'
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        font: { size: 11 }
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
-                                }
+        // Destruir gráfico anterior se existir
+        if (window.graficoPesoDashboard) {
+            window.graficoPesoDashboard.destroy();
+        }
+        
+        // Criar novo gráfico
+        window.graficoPesoDashboard = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Peso (kg)',
+                    data: valores,
+                    borderColor: '#2196F3',
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#2196F3',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            label: function(context) {
+                                return 'Peso: ' + context.parsed.y.toFixed(1) + ' kg';
                             }
                         }
-                    });
-                })();
-            </script>
-        `;
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: yMin,
+                        max: yMax,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(1) + ' kg';
+                            },
+                            font: { size: 12 }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 11 }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
     },
     
     /**

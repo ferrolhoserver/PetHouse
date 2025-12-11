@@ -132,15 +132,20 @@ class PetHouse {
         } else if (this.currentView === 'pet') {
             app.innerHTML = this.renderPet();
             
-            // Renderizar gráfico de peso se estiver na aba de peso
-            if (this.currentTab === 'peso' && window.GraficoPeso) {
+            // Renderizar gráficos se estiver nas abas correspondentes
+            if (this.currentTab === 'peso' && window.DashboardPeso) {
                 const pet = this.data.pets.find(p => p.id === this.currentPet);
                 if (pet) {
-                    // Usar setTimeout para garantir que o DOM foi atualizado
                     setTimeout(() => {
-                        window.GraficoPeso.renderizar(pet, 'grafico-peso-container');
-                    }, 10);
+                        window.DashboardPeso.criarGrafico(pet);
+                    }, 50);
                 }
+            }
+            
+            if (this.currentTab === 'banhos_tosas' && window.DashboardBanhoTosa) {
+                setTimeout(() => {
+                    window.DashboardBanhoTosa.criarGraficoFrequencia();
+                }, 50);
             }
         }
     }

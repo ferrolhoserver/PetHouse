@@ -473,6 +473,22 @@ const DashboardBanhoTosa = {
         
         return `
             <div id="dashboard-banho-tosa" style="padding:1.5rem">
+                <button onclick="window.BanhosTosas.mostrarFormulario()" style="
+                    background:linear-gradient(135deg,#2196F3,#64B5F6);
+                    color:white;
+                    border:none;
+                    padding:1rem 2rem;
+                    border-radius:12px;
+                    font-size:1rem;
+                    font-weight:600;
+                    cursor:pointer;
+                    margin-bottom:1.5rem;
+                    box-shadow:0 4px 12px rgba(33,150,243,0.3);
+                    transition:all 0.3s;
+                    width:100%;
+                " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(33,150,243,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(33,150,243,0.3)'">
+                    🛁 Adicionar Banho/Tosa
+                </button>
                 ${this.renderCards(stats, pet)}
                 ${this.renderGraficoFrequencia(cuidados, pet)}
                 ${this.renderRecomendacoes(pet, stats)}

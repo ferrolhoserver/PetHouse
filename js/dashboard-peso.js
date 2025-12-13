@@ -20,8 +20,8 @@ const DashboardPeso = {
         }
         
         const pesos = [...pet.peso].sort((a, b) => new Date(b.data) - new Date(a.data));
-        const pesoAtual = pesos[0].valor;
-        const pesoAnterior = pesos.length > 1 ? pesos[1].valor : pesoAtual;
+        const pesoAtual = pesos[0].valor || pesos[0].peso || 0;
+        const pesoAnterior = pesos.length > 1 ? (pesos[1].valor || pesos[1].peso || 0) : pesoAtual;
         const variacao = pesoAtual - pesoAnterior;
         
         let tendencia = 'estavel';

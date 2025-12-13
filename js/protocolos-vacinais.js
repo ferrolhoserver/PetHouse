@@ -184,6 +184,7 @@ const ProtocolosVacinais = {
      * Identifica o protocolo de uma vacina/vermífugo pelo nome
      */
     identificarProtocolo(nome) {
+        if (!nome) return null;
         const nomeLower = nome.toLowerCase().trim();
         
         // Busca exata ou por aliases
@@ -254,7 +255,9 @@ const ProtocolosVacinais = {
         const grupos = {};
         
         vacinas.forEach(v => {
-            const protocolo = this.identificarProtocolo(v.nome);
+            const nomeVacina = v.nome || v.vacinaNome || '';
+            const protocolo = this.identificarProtocolo(nomeVacina);
+            if (!protocolo) return; // Pular se protocolo não identificado
             const chave = protocolo.key;
             
             if (!grupos[chave]) {
@@ -270,7 +273,9 @@ const ProtocolosVacinais = {
             const ultima = lista[0];
             
             // Calcular próxima dose
-            const protocolo = this.identificarProtocolo(ultima.nome);
+            const nomeUltima = ultima.nome || ultima.vacinaNome || '';
+            const protocolo = this.identificarProtocolo(nomeUltima);
+            if (!protocolo) continue; // Pular se protocolo não identificado
             const numeroDose = lista.length;
             const proxima = this.calcularProximaDose(
                 ultima.nome,

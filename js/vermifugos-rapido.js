@@ -459,10 +459,10 @@ const VermifugosRapido = {
 
         // VALIDAÇÃO 1: Verificar duplicatas (mesmo vermífugo na mesma data)
         if (!pet.vermifugo) pet.vermifugo = [];
-        const duplicata = pet.vermifugo.find(v => 
-            v.nome.toLowerCase() === vermifugo.nome.toLowerCase() && 
-            v.data === dataAplicacao
-        );
+        const duplicata = pet.vermifugo.find(v => {
+            const nomeVermifugo = v.nome || v.vermifugoNome || '';
+            return nomeVermifugo.toLowerCase() === vermifugo.nome.toLowerCase() && v.data === dataAplicacao;
+        });
         
         if (duplicata) {
             app.showToast('⚠️ Já existe um registro deste vermífugo nesta data!', 'error');
@@ -471,7 +471,10 @@ const VermifugosRapido = {
 
         // VALIDAÇÃO 2: Verificar se está muito cedo (menos de 60 dias da última aplicação)
         const ultimaAplicacao = pet.vermifugo
-            .filter(v => v.nome.toLowerCase() === vermifugo.nome.toLowerCase())
+            .filter(v => {
+                const nomeVermifugo = v.nome || v.vermifugoNome || '';
+                return nomeVermifugo.toLowerCase() === vermifugo.nome.toLowerCase();
+            })
             .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
         
         if (ultimaAplicacao) {

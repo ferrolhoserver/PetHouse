@@ -49,9 +49,10 @@ const Alertas = {
             vacinasEsperadas.forEach(vacina => {
                 if (idadeDias >= vacina.idade_dias) {
                     // Verificar se já foi aplicada
-                    const jaAplicada = vacinasAplicadas.some(v => 
-                        v.nome.toLowerCase().includes(vacina.nome.toLowerCase().split('(')[0].trim().toLowerCase())
-                    );
+                    const jaAplicada = vacinasAplicadas.some(v => {
+                        const nomeVacina = v.nome || v.vacinaNome || '';
+                        return nomeVacina.toLowerCase().includes(vacina.nome.toLowerCase().split('(')[0].trim().toLowerCase());
+                    });
 
                     if (!jaAplicada) {
                         const diasAtraso = idadeDias - vacina.idade_dias;
@@ -92,7 +93,7 @@ const Alertas = {
                 // Buscar vacina aplicada que corresponda ao nome base
                 const ultimaAplicacao = vacinasAplicadas
                     .filter(v => {
-                        const nomeAplicado = v.nome.toLowerCase();
+                        const nomeAplicado = (v.nome || v.vacinaNome || '').toLowerCase();
                         // Verificar se o nome aplicado contém o nome base
                         // Ex: "V10 (Déctupla)" contém "v10" ou "v8 ou v10" contém "v10"
                         return nomeAplicado.includes(nomeBase) || 

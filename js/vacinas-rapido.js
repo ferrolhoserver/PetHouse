@@ -273,10 +273,10 @@ const VacinasRapido = {
 
         // VALIDAÇÃO 1: Verificar duplicatas (mesma vacina na mesma data)
         if (!pet.vacinas) pet.vacinas = [];
-        const duplicata = pet.vacinas.find(v => 
-            v.nome.toLowerCase().includes(vacina.nome.toLowerCase()) && 
-            v.data === dataAplicacao
-        );
+        const duplicata = pet.vacinas.find(v => {
+            const nomeVacina = v.nome || v.vacinaNome || '';
+            return nomeVacina.toLowerCase().includes(vacina.nome.toLowerCase()) && v.data === dataAplicacao;
+        });
         
         if (duplicata) {
             app.showToast('⚠️ Já existe um registro desta vacina nesta data!', 'error');
@@ -285,7 +285,10 @@ const VacinasRapido = {
 
         // VALIDAÇÃO 2: Verificar se está muito cedo (antes do prazo)
         const ultimaAplicacao = pet.vacinas
-            .filter(v => v.nome.toLowerCase().includes(vacina.nome.toLowerCase()))
+            .filter(v => {
+                const nomeVacina = v.nome || v.vacinaNome || '';
+                return nomeVacina.toLowerCase().includes(vacina.nome.toLowerCase());
+            })
             .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
         
         if (ultimaAplicacao && vacina.intervalo_dias) {

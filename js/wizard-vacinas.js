@@ -322,11 +322,7 @@ const WizardVacinas = {
             if (modal) modal.remove();
             
             // Recarregar detalhes do pet
-            if (app.loadPetDetails) {
-                app.loadPetDetails(pet.id);
-            } else {
-                app.render();
-            }
+            app.renderPet(pet.id);
             
             alert('✅ Vacina salva com sucesso!');
         } catch (error) {

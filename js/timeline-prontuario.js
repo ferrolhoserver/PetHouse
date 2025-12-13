@@ -263,7 +263,7 @@ const TimelineProntuario = {
 
         app.saveData();
         app.showToast('✅ Registro excluído com sucesso', 'success');
-        app.render();
+        app.renderPet(app.currentPet);
     }
 };
 

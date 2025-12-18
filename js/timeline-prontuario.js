@@ -248,27 +248,24 @@ const TimelineProntuario = {
      * Exclui registro individual
      */
     excluirRegistro(id, categoria) {
-        // Usar showModal do app em vez de confirm() nativo
-        app.showModal({
-            title: '⚠️ Confirmar Exclusão',
-            message: 'Tem certeza que deseja excluir este registro?',
-            confirmText: 'Sim, excluir',
-            cancelText: 'Cancelar',
-            onConfirm: () => {
-                const pet = app.data.pets.find(p => p.id === app.currentPet);
-                if (!pet) return;
+        if (!confirm('⚠️ Tem certeza que deseja excluir este registro?')) {
+            return;
+        }
 
-                if (categoria === 'vacina') {
-                    pet.vacinas = pet.vacinas.filter(v => v.id !== id);
-                } else if (categoria === 'vermifugo') {
-                    pet.vermifugo = pet.vermifugo.filter(v => v.id !== id);
-                }
+        const pet = app.data.pets.find(p => p.id === app.currentPet);
+        if (!pet) return;
 
-                app.saveData();
-                app.showToast('✅ Registro excluído com sucesso', 'success');
-                app.renderPet(app.currentPet);
-            }
-        });
+        if (categoria === 'vacina') {
+            pet.vacinas = pet.vacinas.filter(v => v.id !== id);
+        } else if (categoria === 'vermifugo') {
+            pet.vermifugo = pet.vermifugo.filter(v => v.id !== id);
+        }
+
+        app.saveData();
+        app.showToast('✅ Registro excluído com sucesso', 'success');
+        
+        // Forçar reload da página para garantir atualização
+        setTimeout(() => location.reload(), 500);
     }
 };
 

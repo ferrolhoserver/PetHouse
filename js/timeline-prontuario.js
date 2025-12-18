@@ -248,20 +248,33 @@ const TimelineProntuario = {
      * Exclui registro individual
      */
     excluirRegistro(id, categoria) {
-        if (!confirm('⚠️ Tem certeza que deseja excluir este registro?')) {
+        console.log('[DEBUG] excluirRegistro chamado:', {id, categoria});
+        
+        const confirmResult = confirm('⚠️ Tem certeza que deseja excluir este registro?');
+        console.log('[DEBUG] confirm() retornou:', confirmResult);
+        
+        if (!confirmResult) {
+            console.log('[DEBUG] Usuário cancelou');
             return;
         }
 
         const pet = app.data.pets.find(p => p.id === app.currentPet);
-        if (!pet) return;
+        if (!pet) {
+            console.log('[DEBUG] Pet não encontrado!');
+            return;
+        }
+        
+        console.log('[DEBUG] Pet encontrado, vacinas antes:', pet.vacinas.length);
 
         if (categoria === 'vacina') {
             pet.vacinas = pet.vacinas.filter(v => v.id !== id);
+            console.log('[DEBUG] Vacinas depois do filtro:', pet.vacinas.length);
         } else if (categoria === 'vermifugo') {
             pet.vermifugo = pet.vermifugo.filter(v => v.id !== id);
         }
 
         app.saveData();
+        console.log('[DEBUG] Dados salvos, recarregando...');
         app.showToast('✅ Registro excluído com sucesso', 'success');
         
         // Forçar reload da página para garantir atualização

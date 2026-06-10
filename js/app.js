@@ -877,17 +877,37 @@ class PetHouse {
         const pet = this.data.pets.find(p => p.id === this.currentPet);
         if (!pet || !pet[this.currentTab] || !pet[this.currentTab][index]) return;
         
-        // Confirmar exclusão
-        const confirmMsg = '⚠️ Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.';
-        if (!confirm(confirmMsg)) return;
+        // Modal de confirmação customizado (sem confirm() nativo que pode ser bloqueado)
+        const modalId = 'delete-record-confirm-modal';
+        const existente = document.getElementById(modalId);
+        if (existente) existente.remove();
         
-        // Remover o registro
-        pet[this.currentTab].splice(index, 1);
+        const modal = document.createElement('div');
+        modal.id = modalId;
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+        modal.innerHTML = `
+            <div style="background:white;border-radius:16px;padding:1.5rem;max-width:320px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
+                <div style="font-size:2.5rem;margin-bottom:0.75rem;">🗑️</div>
+                <h3 style="margin:0 0 0.5rem;color:#333;font-size:1.1rem;">Excluir registro?</h3>
+                <p style="margin:0 0 1.25rem;color:#666;font-size:0.9rem;">Esta ação não pode ser desfeita.</p>
+                <div style="display:flex;gap:0.75rem;justify-content:center;">
+                    <button id="delete-record-cancel" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button>
+                    <button id="delete-record-ok" style="flex:1;padding:0.75rem;border:none;background:#f44336;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Excluir</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
         
-        // Salvar e atualizar
-        this.saveData();
-        this.showToast('✅ Registro excluído com sucesso!', 'success');
-        this.render();
+        document.getElementById('delete-record-cancel').onclick = () => modal.remove();
+        document.getElementById('delete-record-ok').onclick = () => {
+            modal.remove();
+            // Remover o registro
+            pet[this.currentTab].splice(index, 1);
+            // Salvar e atualizar
+            this.saveData();
+            this.showToast('✅ Registro excluído com sucesso!', 'success');
+            this.render();
+        };
     }
 
 

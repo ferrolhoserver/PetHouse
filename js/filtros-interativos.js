@@ -170,9 +170,9 @@ const FiltrosInterativos = {
     }
 };
 
-// Adicionar animação CSS
-const style = document.createElement('style');
-style.textContent = `
+// Adicionar animação CSS (nome único para evitar conflito de redeclaração)
+const filtrosInterativosStyle = document.createElement('style');
+filtrosInterativosStyle.textContent = `
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -184,7 +184,7 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(filtrosInterativosStyle);
 
 // Exportar globalmente
 window.FiltrosInterativos = FiltrosInterativos;

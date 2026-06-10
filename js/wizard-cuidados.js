@@ -426,9 +426,9 @@ PetHouse.prototype.renderTabContent = function(pet) {
     return _originalRenderBanhosTab.call(this, pet);
 };
 
-// CSS para animações
-const style = document.createElement('style');
-style.textContent = `
+// CSS para animações (nome único para evitar conflito de redeclaração)
+const wizardCuidadosStyle = document.createElement('style');
+wizardCuidadosStyle.textContent = `
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -440,7 +440,7 @@ style.textContent = `
         box-shadow: 0 0 0 3px rgba(76,175,80,0.1) !important;
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(wizardCuidadosStyle);
 
 window.WizardCuidados = WizardCuidados;
 console.log('✅ Wizard Cuidados carregado');

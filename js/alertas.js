@@ -41,7 +41,8 @@ const Alertas = {
         const idadeDias = this.calcularIdadeDias(pet.nascimento);
         const fase = this.determinarFase(idadeDias, pet.especie);
         const vacinasEsperadas = VacinasDB[pet.especie][fase] || [];
-        const vacinasAplicadas = pet.vacinas || [];
+        // Combinar vacinas de ambos os arrays (legado + wizard) para verificação completa
+        const vacinasAplicadas = [...(pet.vacinas || []), ...(pet.vacinas_wizard || [])];
         const alertas = [];
 
         // Para filhotes: verificar vacinas por idade

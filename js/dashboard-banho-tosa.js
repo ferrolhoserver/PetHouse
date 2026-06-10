@@ -473,7 +473,7 @@ const DashboardBanhoTosa = {
         
         return `
             <div id="dashboard-banho-tosa" style="padding:1.5rem">
-                <button onclick="window.BanhosTosas.mostrarFormulario()" style="
+                <button onclick="app.showAddBanho()" style="
                     background:linear-gradient(135deg,#2196F3,#64B5F6);
                     color:white;
                     border:none;
@@ -588,39 +588,42 @@ window.deletarCuidado = function(index) {
         return;
     }
     
-    if (!confirm('Tem certeza que deseja deletar este cuidado?')) {
-        return;
-    }
+    // Modal de confirmação customizado
+    const modalId = 'deletar-cuidado-modal';
+    const existente = document.getElementById(modalId);
+    if (existente) existente.remove();
     
-    const pet = window.app.currentPet;
-    const cuidados = [];
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+    modal.innerHTML = `
+        <div style="background:white;border-radius:16px;padding:1.5rem;max-width:320px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;">🗑️</div>
+            <h3 style="margin:0 0 0.5rem;color:#333;font-size:1.1rem;">Excluir cuidado?</h3>
+            <p style="margin:0 0 1.25rem;color:#666;font-size:0.9rem;">Esta ação não pode ser desfeita.</p>
+            <div style="display:flex;gap:0.75rem;justify-content:center;">
+                <button id="deletar-cuidado-cancel" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button>
+                <button id="deletar-cuidado-ok" style="flex:1;padding:0.75rem;border:none;background:#f44336;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Excluir</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
     
-    // Coletar todos os cuidados
-    if (pet.banhos) cuidados.push(...pet.banhos.map((c, i) => ({ ...c, tipo: 'banho', index: i, array: 'banhos' })));
-    if (pet.tosas) cuidados.push(...pet.tosas.map((c, i) => ({ ...c, tipo: 'tosa', index: i, array: 'tosas' })));
-    if (pet.cuidados_wizard) cuidados.push(...pet.cuidados_wizard.map((c, i) => ({ ...c, index: i, array: 'cuidados_wizard' })));
-    
-    // Ordenar por data
-    cuidados.sort((a, b) => new Date(b.data) - new Date(a.data));
-    
-    const cuidado = cuidados[index];
-    if (!cuidado) {
-        alert('Erro: Cuidado não encontrado');
-        return;
-    }
-    
-    // Deletar do array correto
-    pet[cuidado.array].splice(cuidado.index, 1);
-    
-    // Salvar e recarregar
-    if (window.app.saveData) {
-        window.app.saveData();
-    }
-    
-    // Recarregar aba
-    if (window.app.renderTabContent) {
-        window.app.renderTabContent(pet);
-    }
-    
-    alert('Cuidado deletado com sucesso!');
+    document.getElementById('deletar-cuidado-cancel').onclick = () => modal.remove();
+    document.getElementById('deletar-cuidado-ok').onclick = () => {
+        modal.remove();
+        const pet = window.app.data.pets.find(p => p.id === window.app.currentPet);
+        if (!pet) return;
+        const cuidados = [];
+        if (pet.banhos) cuidados.push(...pet.banhos.map((c, i) => ({ ...c, tipo: 'banho', index: i, array: 'banhos' })));
+        if (pet.tosas) cuidados.push(...pet.tosas.map((c, i) => ({ ...c, tipo: 'tosa', index: i, array: 'tosas' })));
+        if (pet.cuidados_wizard) cuidados.push(...pet.cuidados_wizard.map((c, i) => ({ ...c, index: i, array: 'cuidados_wizard' })));
+        cuidados.sort((a, b) => new Date(b.data) - new Date(a.data));
+        const cuidado = cuidados[index];
+        if (!cuidado) { window.app.showToast('❌ Cuidado não encontrado', 'error'); return; }
+        pet[cuidado.array].splice(cuidado.index, 1);
+        if (window.app.saveData) window.app.saveData();
+        if (window.app.showToast) window.app.showToast('✅ Cuidado excluído com sucesso!', 'success');
+        if (window.app.renderPet) { window.app.renderPet(pet.id); setTimeout(() => window.app.changeTab && window.app.changeTab('banhos_tosas'), 50); }
+    };
 };

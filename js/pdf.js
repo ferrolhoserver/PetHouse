@@ -150,7 +150,7 @@ const PDF = {
      */
     gerarProntuario(pet, casaNome) {
         if (!pet) {
-            alert('Pet não encontrado!');
+            if (window.app && window.app.showToast) window.app.showToast('❌ Pet não encontrado!', 'error');
             return;
         }
 

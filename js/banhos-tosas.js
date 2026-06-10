@@ -96,7 +96,7 @@ const BanhosTosas = {
         const obs = document.getElementById('record-obs')?.value || '';
 
         if (!data || !tipo) {
-            alert('Preencha os campos obrigatórios!');
+            if (window.app && window.app.showToast) window.app.showToast('⚠️ Preencha os campos obrigatórios!', 'error');
             return null;
         }
 
@@ -124,7 +124,7 @@ const BanhosTosas = {
         const obs = document.getElementById('record-obs')?.value || '';
 
         if (!data || !tipo) {
-            alert('Preencha os campos obrigatórios!');
+            if (window.app && window.app.showToast) window.app.showToast('⚠️ Preencha os campos obrigatórios!', 'error');
             return null;
         }
 

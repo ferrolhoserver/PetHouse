@@ -74,7 +74,7 @@ const PDFAvancado = {
         const casaNome = this.casaNomeAtual;
         
         if (!pet) {
-            alert('Erro: Dados do pet não encontrados!');
+            if (window.app && window.app.showToast) window.app.showToast('❌ Dados do pet não encontrados!', 'error');
             return;
         }
 
@@ -741,7 +741,7 @@ const PDFAvancado = {
         // Abrir em nova janela
         const win = window.open('', '_blank');
         if (!win) {
-            alert('Bloqueador de pop-ups impediu a abertura. Por favor, permita pop-ups para este site.');
+            if (window.app && window.app.showToast) window.app.showToast('⚠️ Bloqueador de pop-ups ativo. Por favor, permita pop-ups para este site.', 'error');
             return;
         }
         

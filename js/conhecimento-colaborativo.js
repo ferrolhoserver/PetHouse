@@ -458,11 +458,9 @@ const ConhecimentoColaborativo = {
             
             if (typeof app !== 'undefined' && app.showToast) {
                 app.showToast(`✅ Contribuição enviada! Obrigado por ajudar a comunidade! 🎉`, 'success');
-            } else {
-                alert('✅ Contribuição enviada com sucesso!');
             }
         } catch (error) {
-            alert('Erro ao enviar contribuição: ' + error.message);
+            if (typeof app !== 'undefined' && app.showToast) { app.showToast('❌ Erro ao enviar contribuição: ' + error.message, 'error'); } else { console.error('Erro ao enviar contribuição:', error); }
             const btn = document.querySelector('#form-contribuicao button[type="submit"]');
             btn.disabled = false;
             btn.textContent = '✅ Enviar Contribuição';

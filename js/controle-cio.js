@@ -28,7 +28,7 @@ const ControleCio = {
         // Botão de registro
         html += `
             <div style="margin: 1.5rem 0;">
-                <button class="btn btn-primary" onclick="console.log('🐞 [Botão] Clicado!'); try { if (typeof app === 'undefined') { alert('❌ app não definido'); } else if (typeof app.registrarNovoCio !== 'function') { alert('❌ app.registrarNovoCio não é função'); } else { app.registrarNovoCio(); } } catch(e) { console.error('❌ Erro:', e); alert('❌ Erro: ' + e.message); }">
+                <button class="btn btn-primary" onclick="try { if (typeof app !== 'undefined' && typeof app.registrarNovoCio === 'function') { app.registrarNovoCio(); } else if (window.app && window.app.showToast) { window.app.showToast('❌ Erro ao abrir formulário de cio', 'error'); } } catch(e) { console.error('❌ Erro:', e); if(window.app && window.app.showToast) window.app.showToast('❌ Erro: ' + e.message, 'error'); }">
                     🌸 Registrar Novo Cio
                 </button>
             </div>

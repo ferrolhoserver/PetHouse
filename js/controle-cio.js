@@ -253,7 +253,7 @@ const ControleCio = {
     abrirFormulario(petId) {
         const pet = window.app?.data?.pets?.find(p => p.id === petId);
         if (!pet || !window.app) {
-            alert('❌ Erro ao carregar pet. Recarregue a página.');
+            if (window.app && window.app.showToast) window.app.showToast('❌ Erro ao carregar pet. Recarregue a página.', 'error');
             return;
         }
         this.mostrarFormularioRegistro(pet, window.app);
@@ -354,7 +354,7 @@ const ControleCio = {
         
         if (!app || !app.data || !app.data.pets) {
             console.error('❌ [Cio] app não disponível ao salvar!');
-            alert('❌ Erro: Sistema não inicializado. Recarregue a página.');
+            if (app && app.showToast) app.showToast('❌ Erro: Sistema não inicializado. Recarregue a página.', 'error');
             return false;
         }
         
@@ -420,7 +420,7 @@ const ControleCio = {
         app.closeModal();
         app.render();
         
-        alert('✅ Cio registrado com sucesso!');
+        if (app && app.showToast) app.showToast('✅ Cio registrado com sucesso!', 'success');
     },
     
     /**

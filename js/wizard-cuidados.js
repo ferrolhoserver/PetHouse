@@ -232,19 +232,19 @@ const WizardCuidados = {
             
             // Acessar app global (sem window)
             if (typeof app === 'undefined') {
-                alert('Erro: app não encontrado');
+                console.error('Erro: app não encontrado');
                 return;
             }
             
             const pet = app.data.pets.find(p => p.id === app.currentPet);
             if (!pet) {
-                alert('Erro: pet não encontrado');
+                if (app.showToast) app.showToast('❌ Pet não encontrado', 'error');
                 return;
             }
             
             const data = document.getElementById('wizard-data')?.value;
             if (!data) {
-                alert('Por favor, informe a data');
+                if (app.showToast) app.showToast('⚠️ Por favor, informe a data', 'error');
                 return;
             }
             
@@ -260,7 +260,7 @@ const WizardCuidados = {
             const localInfo = this.locais.find(l => l.id === this.dados.local);
             
             if (!tipoInfo || !localInfo) {
-                alert('Erro: dados incompletos');
+                if (app.showToast) app.showToast('❌ Dados incompletos', 'error');
                 return;
             }
             
@@ -324,42 +324,34 @@ const WizardCuidados = {
                 app.render();
             }
             
-            alert('✅ Cuidado salvo com sucesso!');
+            if (app.showToast) app.showToast('✅ Cuidado salvo com sucesso!', 'success');
         } catch (error) {
             console.error('Erro ao finalizar wizard:', error);
-            alert('❌ Erro ao salvar: ' + error.message);
+            if (typeof app !== 'undefined' && app.showToast) app.showToast('❌ Erro ao salvar: ' + error.message, 'error');
         }
     },
     
     deletar(id) {
-        try {
-            if (!confirm('Deletar este cuidado?')) return;
-            
-            if (typeof app === 'undefined') {
-                alert('Erro: app não encontrado');
-                return;
+        const _cm = document.createElement('div');
+        _cm.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+        _cm.innerHTML = `<div style="background:white;border-radius:16px;padding:1.5rem;max-width:320px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;"><div style="font-size:2.5rem;margin-bottom:0.75rem;">🗑️</div><h3 style="margin:0 0 0.5rem;color:#333;font-size:1.1rem;">Excluir cuidado?</h3><p style="margin:0 0 1.25rem;color:#666;font-size:0.9rem;">Esta ação não pode ser desfeita.</p><div style="display:flex;gap:0.75rem;"><button id="_cmc" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button><button id="_cmo" style="flex:1;padding:0.75rem;border:none;background:#f44336;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Excluir</button></div></div>`;
+        document.body.appendChild(_cm);
+        document.getElementById('_cmc').onclick = () => _cm.remove();
+        document.getElementById('_cmo').onclick = () => {
+            _cm.remove();
+            try {
+                if (typeof app === 'undefined') { if (window.app && window.app.showToast) window.app.showToast('❌ app não encontrado', 'error'); return; }
+                const pet = app.data.pets.find(p => p.id === app.currentPet);
+                if (!pet || !pet.cuidados_wizard) { app.showToast('❌ Cuidado não encontrado', 'error'); return; }
+                pet.cuidados_wizard = pet.cuidados_wizard.filter(c => c.id !== id);
+                app.saveData();
+                app.render();
+                if (app.showToast) app.showToast('✅ Cuidado excluído!', 'success');
+            } catch (error) {
+                console.error('Erro ao deletar cuidado:', error);
+                if (app && app.showToast) app.showToast('❌ Erro ao deletar: ' + error.message, 'error');
             }
-            
-            const pet = app.data.pets.find(p => p.id === app.currentPet);
-            if (!pet) {
-                alert('Erro: pet não encontrado');
-                return;
-            }
-            
-            if (!pet.cuidados_wizard) {
-                alert('Erro: nenhum cuidado para deletar');
-                return;
-            }
-            
-            pet.cuidados_wizard = pet.cuidados_wizard.filter(c => c.id !== id);
-            app.saveData();
-            app.render();
-            
-            console.log('Cuidado deletado com sucesso');
-        } catch (error) {
-            console.error('Erro ao deletar cuidado:', error);
-            alert('❌ Erro ao deletar: ' + error.message);
-        }
+        };
     }
 };
 

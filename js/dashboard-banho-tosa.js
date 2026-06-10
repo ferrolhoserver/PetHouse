@@ -553,7 +553,7 @@ window.DashboardBanhoTosa = DashboardBanhoTosa;
  */
 window.editarCuidado = function(index) {
     if (!window.app || !window.app.currentPet) {
-        alert('Erro: Pet não encontrado');
+        if (window.app && window.app.showToast) window.app.showToast('❌ Pet não encontrado', 'error');
         return;
     }
     
@@ -570,7 +570,7 @@ window.editarCuidado = function(index) {
     
     const cuidado = cuidados[index];
     if (!cuidado) {
-        alert('Erro: Cuidado não encontrado');
+        if (window.app && window.app.showToast) window.app.showToast('❌ Cuidado não encontrado', 'error');
         return;
     }
     
@@ -578,13 +578,13 @@ window.editarCuidado = function(index) {
     if (window.WizardCuidados && window.WizardCuidados.editarCuidado) {
         window.WizardCuidados.editarCuidado(pet, cuidado.array, cuidado.index);
     } else {
-        alert('Funcionalidade de edição em desenvolvimento');
+        if (window.app && window.app.showToast) window.app.showToast('ℹ️ Funcionalidade de edição em desenvolvimento', 'info');
     }
 };
 
 window.deletarCuidado = function(index) {
     if (!window.app || !window.app.currentPet) {
-        alert('Erro: Pet não encontrado');
+        if (window.app && window.app.showToast) window.app.showToast('❌ Pet não encontrado', 'error');
         return;
     }
     

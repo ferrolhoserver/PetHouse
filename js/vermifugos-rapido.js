@@ -477,49 +477,45 @@ const VermifugosRapido = {
             })
             .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
         
+        // Função interna para continuar o salvamento
+        const _continueVermifugo = () => {
+            const registro = {
+                id: Date.now().toString(),
+                nome: vermifugo.nome,
+                principio_ativo: vermifugo.principio_ativo,
+                data: dataAplicacao,
+                dose: document.getElementById('dose-aplicada-vermifugo').value,
+                lote: document.getElementById('lote-vermifugo').value,
+                proxima: document.getElementById('proxima-vermifugo').value,
+                obs: document.getElementById('obs-vermifugo').value,
+                cor: vermifugo.cor,
+                tipo: 'vermifugo'
+            };
+            pet.vermifugo.push(registro);
+            app.saveData();
+            app.closeModal();
+            app.showToast('✅ Vermífugo registrado com sucesso!', 'success');
+            app.render();
+        };
+
         if (ultimaAplicacao) {
             const dataUltima = new Date(ultimaAplicacao.data);
             const dataNova = new Date(dataAplicacao);
             const diasEntre = Math.floor((dataNova - dataUltima) / (1000 * 60 * 60 * 24));
-            const prazoMinimo = 60; // Mínimo 60 dias entre aplicações
+            const prazoMinimo = 60;
             
             if (diasEntre < prazoMinimo) {
-                const confirmar = confirm(
-                    `⚠️ ATENÇÃO!\n\n` +
-                    `Este vermífugo está sendo aplicado ANTES do prazo recomendado.\n\n` +
-                    `Última aplicação: ${new Date(ultimaAplicacao.data).toLocaleDateString('pt-BR')}\n` +
-                    `Intervalo recomendado: 90 dias (trimestral)\n` +
-                    `Intervalo atual: ${diasEntre} dias\n\n` +
-                    `Deseja continuar mesmo assim?`
-                );
-                
-                if (!confirmar) {
-                    return;
-                }
+                // Modal de aviso customizado (sem confirm() nativo)
+                const _wm = document.createElement('div');
+                _wm.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+                _wm.innerHTML = `<div style="background:white;border-radius:16px;padding:1.5rem;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;"><div style="font-size:2.5rem;margin-bottom:0.75rem;">⚠️</div><h3 style="margin:0 0 0.5rem;color:#e65100;font-size:1.1rem;">Antes do prazo!</h3><div style="background:#fff3e0;border-radius:10px;padding:0.75rem;margin-bottom:1rem;text-align:left;font-size:0.85rem;color:#555;"><p style="margin:0 0 0.25rem;"><b>Última aplicação:</b> ${new Date(ultimaAplicacao.data).toLocaleDateString('pt-BR')}</p><p style="margin:0 0 0.25rem;"><b>Intervalo recomendado:</b> 90 dias (trimestral)</p><p style="margin:0;"><b>Intervalo atual:</b> <span style="color:#e53935;font-weight:700;">${diasEntre} dias</span></p></div><p style="margin:0 0 1.25rem;color:#666;font-size:0.9rem;">Deseja continuar mesmo assim?</p><div style="display:flex;gap:0.75rem;"><button id="_wmc" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button><button id="_wmo" style="flex:1;padding:0.75rem;border:none;background:#e65100;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Continuar</button></div></div>`;
+                document.body.appendChild(_wm);
+                document.getElementById('_wmc').onclick = () => _wm.remove();
+                document.getElementById('_wmo').onclick = () => { _wm.remove(); _continueVermifugo(); };
+                return;
             }
         }
-
-        const registro = {
-            id: Date.now().toString(),
-            nome: vermifugo.nome,
-            principio_ativo: vermifugo.principio_ativo,
-            data: dataAplicacao,
-            dose: document.getElementById('dose-aplicada-vermifugo').value,
-            lote: document.getElementById('lote-vermifugo').value,
-            proxima: document.getElementById('proxima-vermifugo').value,
-            obs: document.getElementById('obs-vermifugo').value,
-            cor: vermifugo.cor,
-            tipo: 'vermifugo'
-        };
-
-        // Adicionar ao pet
-        pet.vermifugo.push(registro);
-
-        // Salvar
-        app.saveData();
-        app.closeModal();
-        app.showToast('✅ Vermífugo registrado com sucesso!', 'success');
-        app.render();
+        _continueVermifugo();
     }
 };
 

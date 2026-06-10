@@ -254,19 +254,19 @@ const WizardVacinas = {
             
             // Acessar app global (sem window)
             if (typeof app === 'undefined') {
-                alert('Erro: app não encontrado');
+                console.error('Erro: app não encontrado');
                 return;
             }
             
             const pet = app.data.pets.find(p => p.id === app.currentPet);
             if (!pet) {
-                alert('Erro: pet não encontrado');
+                if (app.showToast) app.showToast('❌ Pet não encontrado', 'error');
                 return;
             }
         
             const data = document.getElementById('wizard-vac-data')?.value;
             if (!data) {
-                alert('Por favor, informe a data');
+                if (app.showToast) app.showToast('⚠️ Por favor, informe a data', 'error');
                 return;
             }
         
@@ -277,7 +277,7 @@ const WizardVacinas = {
             const dose = parseInt(document.getElementById('wizard-vac-dose')?.value || 1);
             
             if (!vacinaSelecionada || !localSelecionado) {
-                alert('Erro: dados incompletos');
+                if (app.showToast) app.showToast('❌ Dados incompletos', 'error');
                 return;
             }
         
@@ -324,10 +324,10 @@ const WizardVacinas = {
             // Recarregar detalhes do pet
             app.renderPet(pet.id);
             
-            alert('✅ Vacina salva com sucesso!');
+            if (app.showToast) app.showToast('✅ Vacina salva com sucesso!', 'success');
         } catch (error) {
             console.error('Erro ao finalizar wizard vacinas:', error);
-            alert('❌ Erro ao salvar: ' + error.message);
+            if (typeof app !== 'undefined' && app.showToast) app.showToast('❌ Erro ao salvar: ' + error.message, 'error');
         }
     },
     

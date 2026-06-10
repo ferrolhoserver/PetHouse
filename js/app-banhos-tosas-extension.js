@@ -10,7 +10,7 @@ Object.assign(PetHouse.prototype, {
      */
     showAddBanho() {
         if (!window.BanhosTosas) {
-            alert('Módulo de Banhos não carregado!');
+            if (this.showToast) this.showToast('❌ Módulo de Banhos não carregado!', 'error');
             return;
         }
 
@@ -39,7 +39,7 @@ Object.assign(PetHouse.prototype, {
      */
     showAddTosa() {
         if (!window.BanhosTosas) {
-            alert('Módulo de Tosas não carregado!');
+            if (this.showToast) this.showToast('❌ Módulo de Tosas não carregado!', 'error');
             return;
         }
 
@@ -119,17 +119,24 @@ Object.assign(PetHouse.prototype, {
         // Converter ID para número se vier como string
         const numId = typeof id === 'string' ? parseFloat(id) : id;
 
-        if (confirm(`Tem certeza que deseja excluir este registro?`)) {
+        // Modal de confirmação customizado (sem confirm() nativo)
+        const _self = this;
+        const _m = document.createElement('div');
+        _m.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+        _m.innerHTML = `<div style="background:white;border-radius:16px;padding:1.5rem;max-width:320px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;"><div style="font-size:2.5rem;margin-bottom:0.75rem;">🗑️</div><h3 style="margin:0 0 0.5rem;color:#333;font-size:1.1rem;">Excluir registro?</h3><p style="margin:0 0 1.25rem;color:#666;font-size:0.9rem;">Esta ação não pode ser desfeita.</p><div style="display:flex;gap:0.75rem;"><button id="_bdc" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button><button id="_bdo" style="flex:1;padding:0.75rem;border:none;background:#f44336;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Excluir</button></div></div>`;
+        document.body.appendChild(_m);
+        document.getElementById('_bdc').onclick = () => _m.remove();
+        document.getElementById('_bdo').onclick = () => {
+            _m.remove();
             if (tipo === 'banhos' && pet.banhos) {
                 pet.banhos = pet.banhos.filter(b => b.id !== numId);
             } else if (tipo === 'tosas' && pet.tosas) {
                 pet.tosas = pet.tosas.filter(t => t.id !== numId);
             }
-
-            this.saveData();
-            this.render();
-            this.showToast('Registro excluído!', 'success');
-        }
+            _self.saveData();
+            _self.render();
+            _self.showToast('Registro excluído!', 'success');
+        };
     },
 
     /**

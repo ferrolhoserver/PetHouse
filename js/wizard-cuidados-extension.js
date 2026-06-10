@@ -62,7 +62,7 @@ function renderVacinasWizard(pet) {
                         </div>
                         ${proximaDoseHTML}
                     </div>
-                    <button onclick="if(confirm('Deletar?')){const pet=app.data.pets.find(p=>p.id===app.currentPet);pet.vacinas_wizard=pet.vacinas_wizard.filter(x=>x.id!==${v.id});app.saveData();app.render()}" 
+                    <button onclick="_deletarVacinaWizard(${v.id})" 
                             style="background:#f44336;color:white;padding:0.5rem 0.75rem;border-radius:8px;border:none;cursor:pointer;font-size:1.2rem">🗑️</button>
                 </div>
             </div>
@@ -94,3 +94,21 @@ Cuidados.renderContent = function(pet) {
 };
 
 console.log('✅ Wizard Cuidados Extension carregado');
+
+// Função global para deletar vacina wizard com modal customizado (sem confirm() nativo)
+window._deletarVacinaWizard = function(id) {
+    const _vm = document.createElement('div');
+    _vm.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+    _vm.innerHTML = `<div style="background:white;border-radius:16px;padding:1.5rem;max-width:320px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;"><div style="font-size:2.5rem;margin-bottom:0.75rem;">🗑️</div><h3 style="margin:0 0 0.5rem;color:#333;font-size:1.1rem;">Excluir vacina?</h3><p style="margin:0 0 1.25rem;color:#666;font-size:0.9rem;">Esta ação não pode ser desfeita.</p><div style="display:flex;gap:0.75rem;"><button id="_vwc" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button><button id="_vwo" style="flex:1;padding:0.75rem;border:none;background:#f44336;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Excluir</button></div></div>`;
+    document.body.appendChild(_vm);
+    document.getElementById('_vwc').onclick = () => _vm.remove();
+    document.getElementById('_vwo').onclick = () => {
+        _vm.remove();
+        const pet = app.data.pets.find(p => p.id === app.currentPet);
+        if (!pet) return;
+        pet.vacinas_wizard = pet.vacinas_wizard.filter(x => x.id !== id);
+        app.saveData();
+        app.render();
+        if (app.showToast) app.showToast('✅ Vacina excluída!', 'success');
+    };
+};

@@ -291,79 +291,65 @@ const VacinasRapido = {
             })
             .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
         
+        // Função interna para continuar o salvamento
+        const _continueVacina = () => {
+            // Calcular próxima dose usando sistema de revacinação
+            let proximaDose = null;
+            let proximaDoseInfo = null;
+            
+            if (window.Revacinacao) {
+                proximaDoseInfo = window.Revacinacao.calcularProximaDose(vacinaId, doseAplicada, dataAplicacao);
+                proximaDose = proximaDoseInfo ? proximaDoseInfo.data : null;
+            } else {
+                if (vacina.intervalo_dias && doseAplicada !== 'reforco') {
+                    const dataProx = new Date(dataAplicacao);
+                    dataProx.setDate(dataProx.getDate() + vacina.intervalo_dias);
+                    proximaDose = dataProx.toISOString().split('T')[0];
+                } else if (vacina.reforco_anual) {
+                    const dataProx = new Date(dataAplicacao);
+                    dataProx.setFullYear(dataProx.getFullYear() + 1);
+                    proximaDose = dataProx.toISOString().split('T')[0];
+                }
+            }
+            const registro = {
+                id: Date.now().toString(),
+                nome: `${vacina.nome}${doseAplicada !== 'reforco' && vacina.doses > 1 ? ` (${doseAplicada}ª dose)` : doseAplicada === 'reforco' ? ' (Reforço)' : ''}`,
+                data: dataAplicacao,
+                proxima: proximaDose,
+                lote: lote || '',
+                veterinario: veterinario || '',
+                obs: obs || '',
+                cor: vacina.cor,
+                tipo: 'vacina'
+            };
+            pet.vacinas.push(registro);
+            if (proximaDose && window.Alarmes) {
+                window.Alarmes.agendarAlarme(pet.nome, 'vacina', proximaDose, `${registro.nome} - Próxima dose`);
+            }
+            app.saveData();
+            app.closeModal();
+            app.showToast('✅ Vacina registrada com sucesso!' + (proximaDose ? ' Alarme criado!' : ''), 'success');
+            app.render();
+        };
+
         if (ultimaAplicacao && vacina.intervalo_dias) {
             const dataUltima = new Date(ultimaAplicacao.data);
             const dataNova = new Date(dataAplicacao);
             const diasEntre = Math.floor((dataNova - dataUltima) / (1000 * 60 * 60 * 24));
-            const prazoMinimo = vacina.intervalo_dias - 3; // Tolerância de 3 dias
+            const prazoMinimo = vacina.intervalo_dias - 3;
             
             if (diasEntre < prazoMinimo) {
-                const confirmar = confirm(
-                    `⚠️ ATENÇÃO!\n\n` +
-                    `Esta dose está sendo aplicada ANTES do prazo recomendado.\n\n` +
-                    `Última aplicação: ${new Date(ultimaAplicacao.data).toLocaleDateString('pt-BR')}\n` +
-                    `Intervalo recomendado: ${vacina.intervalo_dias} dias\n` +
-                    `Intervalo atual: ${diasEntre} dias\n\n` +
-                    `Deseja continuar mesmo assim?`
-                );
-                
-                if (!confirmar) {
-                    return;
-                }
+                // Modal de aviso customizado (sem confirm() nativo)
+                const _vm = document.createElement('div');
+                _vm.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+                _vm.innerHTML = `<div style="background:white;border-radius:16px;padding:1.5rem;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;"><div style="font-size:2.5rem;margin-bottom:0.75rem;">⚠️</div><h3 style="margin:0 0 0.5rem;color:#e65100;font-size:1.1rem;">Dose antes do prazo!</h3><div style="background:#fff3e0;border-radius:10px;padding:0.75rem;margin-bottom:1rem;text-align:left;font-size:0.85rem;color:#555;"><p style="margin:0 0 0.25rem;"><b>Última aplicação:</b> ${new Date(ultimaAplicacao.data).toLocaleDateString('pt-BR')}</p><p style="margin:0 0 0.25rem;"><b>Intervalo recomendado:</b> ${vacina.intervalo_dias} dias</p><p style="margin:0;"><b>Intervalo atual:</b> <span style="color:#e53935;font-weight:700;">${diasEntre} dias</span></p></div><p style="margin:0 0 1.25rem;color:#666;font-size:0.9rem;">Deseja continuar mesmo assim?</p><div style="display:flex;gap:0.75rem;"><button id="_vmc" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button><button id="_vmo" style="flex:1;padding:0.75rem;border:none;background:#e65100;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Continuar</button></div></div>`;
+                document.body.appendChild(_vm);
+                document.getElementById('_vmc').onclick = () => _vm.remove();
+                document.getElementById('_vmo').onclick = () => { _vm.remove(); _continueVacina(); };
+                return;
             }
         }
-
-        // Calcular próxima dose usando sistema de revacinação
-        let proximaDose = null;
-        let proximaDoseInfo = null;
-        
-        if (window.Revacinacao) {
-            proximaDoseInfo = window.Revacinacao.calcularProximaDose(vacinaId, doseAplicada, dataAplicacao);
-            proximaDose = proximaDoseInfo ? proximaDoseInfo.data : null;
-        } else {
-            // Fallback para cálculo simples
-            if (vacina.intervalo_dias && doseAplicada !== 'reforco') {
-                const dataProx = new Date(dataAplicacao);
-                dataProx.setDate(dataProx.getDate() + vacina.intervalo_dias);
-                proximaDose = dataProx.toISOString().split('T')[0];
-            } else if (vacina.reforco_anual) {
-                const dataProx = new Date(dataAplicacao);
-                dataProx.setFullYear(dataProx.getFullYear() + 1);
-                proximaDose = dataProx.toISOString().split('T')[0];
-            }
-        }
-
-        // Criar registro
-        const registro = {
-            id: Date.now().toString(),
-            nome: `${vacina.nome}${doseAplicada !== 'reforco' && vacina.doses > 1 ? ` (${doseAplicada}ª dose)` : doseAplicada === 'reforco' ? ' (Reforço)' : ''}`,
-            data: dataAplicacao,
-            proxima: proximaDose,
-            lote: lote || '',
-            veterinario: veterinario || '',
-            obs: obs || '',
-            cor: vacina.cor,
-            tipo: 'vacina'
-        };
-
-        // Adicionar ao pet
-        pet.vacinas.push(registro);
-
-        // Criar alarme automático se houver próxima dose
-        if (proximaDose && window.Alarmes) {
-            window.Alarmes.agendarAlarme(
-                pet.nome,
-                'vacina',
-                proximaDose,
-                `${registro.nome} - Próxima dose`
-            );
-        }
-        
-        // Salvar
-        app.saveData();
-        app.closeModal();
-        app.showToast('✅ Vacina registrada com sucesso!' + (proximaDose ? ' Alarme criado!' : ''), 'success');
-        app.render();
+        _continueVacina();
     }
 };
 

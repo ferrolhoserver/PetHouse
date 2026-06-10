@@ -649,14 +649,14 @@ class PetHouse {
         const email = document.getElementById('casa-email').value.trim();
         
         if (!casaNome || !email) {
-            alert('❌ Por favor, preencha todos os campos.');
+            this.showToast('❌ Por favor, preencha todos os campos.', 'error');
             return;
         }
         
         // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('❌ Por favor, insira um email válido.');
+            this.showToast('❌ Por favor, insira um email válido.', 'error');
             return;
         }
         
@@ -680,13 +680,13 @@ class PetHouse {
     async handleJoinFamily(e) {
         const familyCode = document.getElementById('family-code').value.trim();
         if (!familyCode) {
-            alert('❌ Por favor, cole o código da família.');
+            this.showToast('❌ Por favor, cole o código da família.', 'error');
             return;
         }
         
         // Verificar se Supabase está disponível
         if (!this.syncEnabled || !window.SupabaseSync) {
-            alert('⚠️ Sincronização não está disponível. Por favor, use a opção de backup.');
+            this.showToast('⚠️ Sincronização não está disponível. Por favor, use a opção de backup.', 'warning');
             return;
         }
         
@@ -701,9 +701,9 @@ class PetHouse {
             this.data = result.data;
             this.saveData(); // Salvar localmente também
             this.render();
-            alert('✅ Bem-vindo! Dados carregados com sucesso.');
+            this.showToast('✅ Bem-vindo! Dados carregados com sucesso.', 'success');
         } else {
-            alert('❌ Código inválido ou sem dados. Verifique e tente novamente.');
+            this.showToast('❌ Código inválido ou sem dados. Verifique e tente novamente.', 'error');
         }
     }
     
@@ -711,20 +711,20 @@ class PetHouse {
         const email = document.getElementById('recover-email').value.trim();
         
         if (!email) {
-            alert('❌ Por favor, insira seu email.');
+            this.showToast('❌ Por favor, insira seu email.', 'error');
             return;
         }
         
         // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('❌ Por favor, insira um email válido.');
+            this.showToast('❌ Por favor, insira um email válido.', 'error');
             return;
         }
         
         // Verificar se Supabase está disponível
         if (!this.syncEnabled || !window.SupabaseSync) {
-            alert('⚠️ Sincronização não está disponível. Verifique sua conexão e tente novamente.');
+            this.showToast('⚠️ Sincronização não está disponível. Verifique sua conexão e tente novamente.', 'warning');
             return;
         }
         
@@ -744,7 +744,7 @@ class PetHouse {
                     Você pode usá-lo na opção "Entrar em Família Existente".
                 </p>
                 <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                    <button onclick="navigator.clipboard.writeText('${result.familyCode}'); alert('✅ Código copiado!')" class="btn btn-primary" style="flex: 1;">
+                    <button onclick="navigator.clipboard.writeText('${result.familyCode}'); if(window.app && window.app.showToast) window.app.showToast('✅ Código copiado!', 'success');" class="btn btn-primary" style="flex: 1;">
                         📋 Copiar Código
                     </button>
                     <button onclick="app.closeModal()" class="btn" style="background: #999; color: white; flex: 1;">
@@ -753,7 +753,7 @@ class PetHouse {
                 </div>
             `);
         } else {
-            alert('❌ Email não encontrado. Verifique se digitou corretamente ou crie uma nova família.');
+            this.showToast('❌ Email não encontrado. Verifique se digitou corretamente ou crie uma nova família.', 'error');
         }
     }
 
@@ -1431,18 +1431,26 @@ class PetHouse {
                         throw new Error('Arquivo de backup inválido');
                     }
                     
-                    // Confirmar antes de restaurar
-                    if (confirm(`Deseja restaurar o backup "${backupData.casaNome}"?\n\nISTO IRÁ SUBSTITUIR TODOS OS DADOS ATUAIS!`)) {
-                        this.data = backupData;
-                        this.saveData();
-                        this.currentView = 'home';
-                        this.currentPet = null;
-                        this.render();
-                        this.showToast('Backup restaurado com sucesso!', 'success');
-                    }
+                    // Modal de confirmação customizado (sem confirm() nativo)
+                    const _appSelf = this;
+                    const _rm = document.createElement('div');
+                    _rm.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+                    _rm.innerHTML = `<div style="background:white;border-radius:16px;padding:1.5rem;max-width:340px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;"><div style="font-size:2.5rem;margin-bottom:0.75rem;">⚠️</div><h3 style="margin:0 0 0.5rem;color:#333;font-size:1.1rem;">Restaurar Backup?</h3><p style="margin:0 0 0.25rem;color:#555;font-size:0.95rem;font-weight:600;">${backupData.casaNome}</p><p style="margin:0 0 1.25rem;color:#e53935;font-size:0.85rem;font-weight:700;">ISTO IRÁ SUBSTITUIR TODOS OS DADOS ATUAIS!</p><div style="display:flex;gap:0.75rem;"><button id="_rmc" style="flex:1;padding:0.75rem;border:2px solid #ddd;background:white;border-radius:10px;font-size:0.9rem;cursor:pointer;color:#666;font-weight:600;">Cancelar</button><button id="_rmo" style="flex:1;padding:0.75rem;border:none;background:#e53935;color:white;border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;">Restaurar</button></div></div>`;
+                    document.body.appendChild(_rm);
+                    document.getElementById('_rmc').onclick = () => _rm.remove();
+                    document.getElementById('_rmo').onclick = () => {
+                        _rm.remove();
+                        _appSelf.data = backupData;
+                        _appSelf.saveData();
+                        _appSelf.currentView = 'home';
+                        _appSelf.currentPet = null;
+                        _appSelf.render();
+                        _appSelf.showToast('Backup restaurado com sucesso!', 'success');
+                    };
                 } catch (error) {
-                    alert('Erro ao restaurar backup: ' + error.message);
-                    console.error('Erro ao restaurar backup:', error);
+                    // Toast de erro em vez de alert()
+                    if (this.showToast) this.showToast('❌ Erro ao restaurar backup: ' + error.message, 'error');
+                    else console.error('Erro ao restaurar backup:', error);
                 }
             };
             reader.readAsText(file);
@@ -1460,7 +1468,7 @@ class PetHouse {
             // Fallback para PDF simples
             window.PDF.gerarProntuario(pet, this.data.casaNome);
         } else {
-            alert('Módulo PDF não carregado!');
+            this.showToast('Módulo PDF não carregado!', 'error');
         }
     }
 
@@ -1603,7 +1611,7 @@ END:VEVENT
         if (!codigo) return;
         
         if (!window.SupabaseSync) {
-            alert('⚠️ Sincronização não está disponível.');
+            this.showToast('⚠️ Sincronização não está disponível.', 'warning');
             return;
         }
         
@@ -1620,7 +1628,7 @@ END:VEVENT
             this.showToast('✅ Dados sincronizados com sucesso!', 'success');
             this.render();
         } else {
-            alert('❌ Erro ao carregar dados. Verifique o código.');
+            this.showToast('❌ Erro ao carregar dados. Verifique o código.', 'error');
         }
     }
     
@@ -1631,20 +1639,20 @@ END:VEVENT
         // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('❌ Por favor, insira um email válido.');
+            this.showToast('❌ Por favor, insira um email válido.', 'error');
             return;
         }
         
         // Verificar se Supabase está disponível
         if (!this.syncEnabled || !window.SupabaseSync) {
-            alert('⚠️ Sincronização não está disponível. Verifique sua conexão e tente novamente.');
+            this.showToast('⚠️ Sincronização não está disponível. Verifique sua conexão e tente novamente.', 'warning');
             return;
         }
         
         // Obter código da família atual
         const familyCode = SupabaseSync.getFamilyCode();
         if (!familyCode) {
-            alert('❌ Erro: Código da família não encontrado.');
+            this.showToast('❌ Erro: Código da família não encontrado.', 'error');
             return;
         }
         
@@ -1665,7 +1673,7 @@ END:VEVENT
             // Reabrir modal para mostrar email vinculado
             setTimeout(() => this.mostrarCompartilhamento(), 300);
         } else {
-            alert('❌ Erro ao vincular email: ' + (result.error || 'Tente novamente'));
+            this.showToast('❌ Erro ao vincular email: ' + (result.error || 'Tente novamente'), 'error');
         }
     }
 

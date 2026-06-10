@@ -365,7 +365,7 @@ const GraficoPeso = {
         const curva = window.CurvasRaca.buscarCurva(pet.raca);
         
         if (!curva) {
-            alert('❌ Curva padrão não encontrada para esta raça.');
+            if(window.app && window.app.showToast) window.app.showToast('❌ Curva padrão não encontrada para esta raça.', 'error');
             return;
         }
         
@@ -376,8 +376,7 @@ const GraficoPeso = {
         
         // Atualizar gráfico
         this.atualizarReferencias(petId);
-        
-        alert('✅ Valores padrão aplicados com sucesso!');
+        if (window.app && window.app.showToast) window.app.showToast('✅ Valores padrão aplicados com sucesso!', 'success');
     },
 
     /**

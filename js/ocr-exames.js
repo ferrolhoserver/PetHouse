@@ -99,8 +99,12 @@ const OCRExames = {
             if (arquivo.type === 'application/pdf') {
                 texto = await this.processarPDF(arquivo);
             } else {
-                // Processar imagem diretamente
-                const worker = await Tesseract.createWorker('por', 1, {
+                // Processar imagem localmente: o arquivo não é enviado a serviços externos.
+                const runtime = window.PetHouseOfflineRuntime;
+                await runtime?.ensureTesseract?.();
+                if (!window.Tesseract) throw new Error('Motor de leitura offline indisponível.');
+                const worker = await Tesseract.createWorker(runtime?.OCR_LANGUAGE || 'por', 1, {
+                    ...(runtime?.OCR_OPTIONS || {}),
                     logger: m => {
                         if (m.status === 'recognizing text') {
                             const progresso = Math.round(m.progress * 100);

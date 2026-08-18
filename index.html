@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PetHouse - Gestão familiar de pets">
+    <meta name="description" content="Prontuários, cuidados e histórico de pets protegidos neste dispositivo.">
     <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="PetHouse">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
     
     <title>PetHouse - Gestão de Pets</title>
     
@@ -14,31 +19,37 @@
     <link rel="stylesheet" href="./css/consent.css">
     <link rel="stylesheet" href="./css/vacinas-cards.css?v=1749600000">
     <link rel="stylesheet" href="./css/fix-vacinas-overlap.css?v=1749600000">
-    <link rel="stylesheet" href="./css/premium-ui.css?v=1749600000">
+    <link rel="stylesheet" href="./css/premium-ui.css?v=3">
+    <link rel="stylesheet" href="./css/secure-auth.css?v=4">
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app-root"></div>
     
     <!-- Modal -->
     <div id="modal" class="modal">
         <div class="modal-content" id="modal-content"></div>
     </div>
     
-    <!-- Biblioteca Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- O cofre e a autenticação local funcionam sem backend legado. -->
     
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bibliotecas empacotadas: o aplicativo continua utilizável sem CDN ou rede. -->
+    <script src="./vendor/chart/chart.umd.js?v=1"></script>
+    <!-- OCR local é carregado apenas quando uma leitura for iniciada. -->
+    <script src="./js/core/offline-runtime.js?v=3"></script>
     
-    <!-- Tesseract.js para OCR (versão otimizada) -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
-    
-    <!-- Configuração Supabase -->
-    <script src="./js/supabase-config.js"></script>
-    <script src="./js/supabase-sync.js"></script>
-    <script src="./js/auth.js"></script>
+    <!-- Núcleo offline-first e cofre por perfil (carregado antes dos módulos legados) -->
+    <script src="./js/security/crypto-vault.js?v=2"></script>
+    <script src="./js/storage/secure-store.js?v=2"></script>
+    <script src="./js/identity/local-identity.js?v=5"></script>
+    <script src="./js/identity/remote-auth.js?v=2"></script>
+    <script src="./js/migration/legacy-migration.js?v=2"></script>
+    <script src="./js/ui/secure-gate.js?v=3"></script>
+    <script src="./js/ui/security-center.js?v=4"></script>
+
+    <!-- Sincronização antiga por código de família desativada: nenhum dado é enviado à infraestrutura legada. -->
     
     <!-- Sistema de Logs -->
     <script src="./js/error-logger.js?v=1749600000"></script>
@@ -63,10 +74,10 @@
     <script src="./js/privacy-policy.js?v=1749600000"></script>
     <script src="./js/family-limit.js?v=1749600000"></script>
     <script src="./js/consent-manager.js?v=1749600000"></script>
-    <script src="./js/analytics.js?v=1749600000"></script>
+    <!-- Telemetria desativada no modo privado/offline. -->
     
     <!-- Aplicativo principal (DEVE VIR ANTES DAS EXTENSÕES) -->
-    <script src="./js/app.js?v=1749600000"></script>
+    <script src="./js/app.js?v=3"></script>
     
     <!-- Extensões do app (dependem de app.js) -->
     <script src="./js/banhos-tosas.js?v=1749600000"></script>
@@ -92,13 +103,13 @@
     <script src="./js/revacinacao.js?v=1749600000"></script>
     <script src="./js/alarmes.js?v=1749600000"></script>
     <script src="./js/calendario.js?v=1749600000"></script>
-    <script src="./js/ocr-cartao.js?v=1749600000"></script>
-    <script src="./js/ocr-cartao-v2.js?v=1749600000"></script>
+    <script src="./js/ocr-cartao.js?v=3"></script>
+    <script src="./js/ocr-cartao-v2.js?v=3"></script>
     <script src="./js/protocolos-vacinais.js?v=1749600000"></script>
-    <script src="./js/conhecimento-colaborativo.js?v=1749600000"></script>
-    <script src="./js/conhecimento-ia.js?v=1749600000"></script>
-    <script src="./js/entrada-manual-vacina.js?v=1749600000"></script>
-    <script src="./js/ocr-exames.js?v=1749600000"></script>
+    <script src="./js/conhecimento-colaborativo.js?v=2"></script>
+    <script src="./js/conhecimento-ia.js?v=2"></script>
+    <script src="./js/entrada-manual-vacina.js?v=3"></script>
+    <script src="./js/ocr-exames.js?v=3"></script>
     <script src="./js/visualizacao-exames.js?v=1749600000"></script>
 </body>
 </html>

@@ -2,9 +2,11 @@
 // Gestão familiar de pets com prontuário completo
 
 class PetHouse {
-    constructor() {
-        this.userId = this.getUserId();
-        this.data = this.loadData();
+    constructor(options = {}) {
+        this.secureSession = options.secureSession || null;
+        this.secureMode = Boolean(this.secureSession && window.PetHouseIdentity);
+        this.userId = this.secureMode ? this.secureSession.profile.profileId : this.getUserId();
+        this.data = this.secureMode ? this.secureSession.data : this.loadData();
         this.currentView = 'home';
         this.currentPet = null;
         this.currentTab = 'peso';
@@ -13,31 +15,10 @@ class PetHouse {
     }
 
     async init() {
-        // Verificar limite de famílias (protótipo)
-        if (window.FamilyLimit && !this.data.familyId) {
-            const canCreate = await FamilyLimit.canCreateFamily();
-            if (!canCreate) {
-                const { current } = await FamilyLimit.checkAvailability();
-                FamilyLimit.showFullScreen(current);
-                return; // Bloquear acesso
-            }
-        }
-        
-        // Inicializar Supabase
-        if (window.SupabaseSync) {
-            this.syncEnabled = await SupabaseSync.init();
-            
-            // Tentar carregar dados da nuvem
-            if (this.syncEnabled) {
-                const result = await SupabaseSync.loadFromCloud();
-                if (result.success && result.data) {
-                    // Mesclar dados da nuvem com dados locais
-                    this.data = result.data;
-                    this.saveData(); // Salvar localmente também
-                    console.log('☁️ Dados carregados da nuvem');
-                }
-            }
-        }
+        // O PetHouse V2 é offline-first. A infraestrutura anterior de código de família
+        // está desativada e nunca é consultada automaticamente durante a abertura do perfil.
+        // Uma futura vinculação remota será iniciada apenas pelo Centro de Segurança.
+        this.syncEnabled = false;
         
         this.render();
         this.setupEventListeners();
@@ -73,7 +54,15 @@ class PetHouse {
 
     async saveData() {
         try {
-            // Salva dados específicos do usuário localmente
+            // Todo dado de perfil V2 é cifrado antes de chegar ao armazenamento local.
+            // Nenhum dado clínico é enviado à nuvem ou ao analytics nesse fluxo.
+            if (this.secureMode) {
+                await window.PetHouseIdentity.saveVault(this.data);
+                this.showToast('Dados protegidos neste dispositivo.', 'success');
+                return true;
+            }
+
+            // Caminho legado: mantido apenas para permitir migração e reversão.
             localStorage.setItem(`pethouse_data_${this.userId}`, JSON.stringify(this.data));
             
             // Log da ação
@@ -123,7 +112,7 @@ class PetHouse {
     // ===== RENDERIZAÇÃO =====
     
     render() {
-        const app = document.getElementById('app');
+        const app = document.getElementById('app-root');
         
         if (!this.data.casaNome) {
             app.innerHTML = this.renderSetup();
@@ -286,6 +275,7 @@ class PetHouse {
                         <button class="btn btn-success btn-small" onclick="app.exportarBackup()">💾 Salvar</button>
                         <button class="btn btn-info btn-small" onclick="app.restaurarBackup()">📂 Restaurar</button>
                         <button class="btn btn-warning btn-small" onclick="app.mostrarCompartilhamento()">👥 Compartilhar</button>
+                        ${this.secureMode ? '<button class="btn btn-info btn-small" onclick="app.mostrarSeguranca()">🔐 Segurança</button>' : ''}
                         <button class="btn btn-danger btn-small" onclick="ErrorLogger.enviarPorEmail()" title="Reportar problema ou erro">🐛 Reportar</button>
                     </div>
                 </div>
@@ -1399,6 +1389,14 @@ class PetHouse {
 
     // ===== EXPORTAÇÕES =====
     
+    mostrarSeguranca() {
+        if (!this.secureMode || !window.PetHouseSecurityCenter) {
+            this.showToast('A segurança avançada estará disponível após migrar este perfil.', 'warning');
+            return;
+        }
+        window.PetHouseSecurityCenter.open(this);
+    }
+
     exportarBackup() {
         const json = JSON.stringify(this.data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
@@ -2093,17 +2091,30 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function initializeApp() {
-    // Criar instância do app
-    app = new PetHouse();
-    
-    // Inicializar Analytics
-    if (window.Analytics) {
-        Analytics.init();
-        console.log('📊 Analytics inicializado');
+async function initializeApp() {
+    const startProtectedApp = async (secureSession) => {
+        // A instância só existe depois de o perfil local ser desbloqueado.
+        app = new PetHouse({ secureSession });
+        // Handlers legados declarados no HTML consultam window.app; sobrescreva a propriedade nomeada do elemento id="app".
+        Object.defineProperty(window, 'app', { value: app, writable: true, configurable: true });
+        window.PetHouseApp = app;
+        document.body.style.overflow = '';
+
+        // Reinicia a contagem de inatividade apenas em interações reais do usuário.
+        ['pointerdown', 'keydown', 'touchstart'].forEach(eventName => {
+            document.addEventListener(eventName, () => window.PetHouseIdentity?.touch(), { passive: true });
+        });
+    };
+
+    if (window.PetHouseSecureGate && window.PetHouseIdentity) {
+        await window.PetHouseSecureGate.start(startProtectedApp);
+        return;
     }
-    
-    // Restaurar overflow do body (caso tenha sido bloqueado pelo consentimento)
+
+    // Fallback estritamente temporário para navegadores muito antigos.
+    app = new PetHouse();
+    Object.defineProperty(window, 'app', { value: app, writable: true, configurable: true });
+    window.PetHouseApp = app;
     document.body.style.overflow = '';
 }
 

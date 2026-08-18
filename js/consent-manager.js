@@ -5,7 +5,7 @@
 
 const ConsentManager = {
     STORAGE_KEY: 'pethouse_consent',
-    CURRENT_VERSION: '1.0.0',
+    CURRENT_VERSION: '2.0.0',
     
     /**
      * Verifica se o usuário já aceitou os termos
@@ -37,59 +37,18 @@ const ConsentManager = {
             accepted: true,
             timestamp: new Date().toISOString(),
             termsVersion: window.TermsOfService?.version || '1.0.0',
-            privacyVersion: window.PrivacyPolicy?.version || '1.0.0',
-            userAgent: navigator.userAgent,
-            language: navigator.language
+            privacyVersion: window.PrivacyPolicy?.version || '2.0.0',
+            storage: 'local-device-only'
         };
         
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(consent));
             
-            // Salvar no Supabase se disponível
-            if (window.SupabaseSync && window.SupabaseSync.supabase) {
-                this.saveConsentToSupabase(consent).catch(err => {
-                    console.error('Erro ao salvar consentimento no Supabase:', err);
-                });
-            }
-            
+            // O registro de consentimento permanece neste dispositivo.
             return true;
         } catch (e) {
             console.error('Erro ao salvar consentimento:', e);
             return false;
-        }
-    },
-    
-    /**
-     * Salva consentimento no Supabase
-     */
-    async saveConsentToSupabase(consent) {
-        if (!window.SupabaseSync || !window.SupabaseSync.supabase) {
-            return;
-        }
-        
-        const familyId = localStorage.getItem('familyId') || 'temp_' + Date.now();
-        
-        try {
-            const { error } = await window.SupabaseSync.supabase
-                .from('user_consents')
-                .upsert({
-                    family_id: familyId,
-                    terms_version: consent.termsVersion,
-                    privacy_version: consent.privacyVersion,
-                    consent_version: consent.version,
-                    accepted: true,
-                    accepted_at: consent.timestamp,
-                    user_agent: consent.userAgent,
-                    language: consent.language
-                }, {
-                    onConflict: 'family_id'
-                });
-            
-            if (error) {
-                console.error('Erro ao salvar no Supabase:', error);
-            }
-        } catch (err) {
-            console.error('Erro ao conectar com Supabase:', err);
         }
     },
     
@@ -285,9 +244,9 @@ const ConsentManager = {
             <div class="consent-header">
                 <div class="consent-icon">🐾</div>
                 <h1>Bem-vindo ao PetHouse</h1>
-                <div class="prototype-badge">⚠️ PROTÓTIPO - VAGAS LIMITADAS (20 famílias)</div>
+                <div class="prototype-badge">PRIVADO · FUNCIONA OFFLINE</div>
                 <p class="consent-subtitle">
-                    Antes de começar, precisamos do seu consentimento para coletar e processar seus dados.
+                    Leia os termos e confirme o uso local e protegido dos prontuários.
                 </p>
             </div>
             
@@ -318,12 +277,6 @@ const ConsentManager = {
                     <input type="checkbox" id="accept-privacy">
                     <span>Li e aceito a <strong>Política de Privacidade</strong></span>
                 </label>
-                <label class="consent-checkbox">
-                    <input type="checkbox" id="accept-data-collection">
-                    <span>Concordo com a <strong>coleta e análise de dados</strong> para fins de 
-                    pesquisa, desenvolvimento e melhoria do aplicativo</span>
-                </label>
-                
                 <div class="consent-buttons">
                     <button class="btn btn-secondary" id="decline-btn">
                         ❌ Não Aceito
@@ -334,10 +287,7 @@ const ConsentManager = {
                 </div>
                 
                 <p class="consent-note">
-                    <strong>Importante:</strong> Ao aceitar, você concorda com a coleta de dados agregados 
-                    e anonimizados sobre uso do aplicativo, espécies e raças de pets, padrões de saúde e 
-                    outras estatísticas para fins de pesquisa, desenvolvimento de novos produtos e 
-                    estratégias comerciais. Seus dados pessoais serão protegidos conforme a LGPD.
+                    <strong>Privacidade:</strong> os dados clínicos são guardados neste dispositivo, em um cofre protegido. O PetHouse não envia prontuários automaticamente e você pode exportar um backup cifrado a qualquer momento.
                 </p>
             </div>
         `;
@@ -349,23 +299,19 @@ const ConsentManager = {
         const tabContents = container.querySelectorAll('.consent-tab-content');
         const acceptTermsCheckbox = container.querySelector('#accept-terms');
         const acceptPrivacyCheckbox = container.querySelector('#accept-privacy');
-        const acceptDataCheckbox = container.querySelector('#accept-data-collection');
         const acceptBtn = container.querySelector('#accept-btn');
         const declineBtn = container.querySelector('#decline-btn');
         
         // Função para atualizar botão
         const updateButton = () => {
-            const allChecked = acceptTermsCheckbox.checked && 
-                              acceptPrivacyCheckbox.checked && 
-                              acceptDataCheckbox.checked;
+            const allChecked = acceptTermsCheckbox.checked && acceptPrivacyCheckbox.checked;
             acceptBtn.disabled = !allChecked;
         };
         
         // Listeners de checkbox
         acceptTermsCheckbox.addEventListener('change', updateButton);
         acceptPrivacyCheckbox.addEventListener('change', updateButton);
-        acceptDataCheckbox.addEventListener('change', updateButton);
-        
+
         // Troca de abas
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -385,15 +331,18 @@ const ConsentManager = {
                 // Recarregar a página para iniciar o app
                 window.location.reload();
             } else {
-                alert('Erro ao salvar consentimento. Tente novamente.');
+                const message = container.querySelector('#ph-consent-error') || document.createElement('p');
+                message.id = 'ph-consent-error';
+                message.textContent = 'Não foi possível registrar o consentimento neste dispositivo. Tente novamente.';
+                message.style.cssText = 'color:#b3261e;font-weight:600;margin:0.75rem 0 0;';
+                container.querySelector('.consent-footer').appendChild(message);
             }
         });
         
         // Botão Recusar
         declineBtn.addEventListener('click', () => {
-            if (confirm('Você tem certeza que deseja recusar? Sem aceitar os termos, você não poderá usar o PetHouse.')) {
-                this.recordDecline();
-                document.body.innerHTML = `
+            this.recordDecline();
+            document.body.innerHTML = `
                     <div style="padding: 2rem; text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
                         <h1 style="color: #f44336;">❌ Acesso Negado</h1>
                         <p>Você recusou os Termos de Uso. Para usar o PetHouse, é necessário aceitar os termos.</p>
@@ -402,7 +351,6 @@ const ConsentManager = {
                         </button>
                     </div>
                 `;
-            }
         });
     },
     

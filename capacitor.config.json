@@ -1,0 +1,14 @@
+{
+  "appId": "app.pethouse.private",
+  "appName": "PetHouse",
+  "webDir": "native/www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile",
+    "scrollEnabled": true
+  }
+}

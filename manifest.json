@@ -1,23 +1,30 @@
 {
-  "name": "PetHouse - Gestão de Pets",
+  "id": "/",
+  "name": "PetHouse — Prontuário privado para pets",
   "short_name": "PetHouse",
-  "description": "Gestão familiar completa de saúde e cuidados dos seus pets",
-  "start_url": "./",
+  "description": "Prontuários, cuidados e histórico de pets protegidos neste dispositivo.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#071a2b",
   "theme_color": "#2196F3",
   "orientation": "portrait-primary",
+  "categories": ["lifestyle", "medical", "productivity"],
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
-

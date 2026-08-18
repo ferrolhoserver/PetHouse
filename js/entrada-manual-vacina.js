@@ -122,25 +122,18 @@ const EntradaManualVacina = {
         }
 
         try {
-            // Buscar no banco colaborativo
-            const { data, error } = await supabase
-                .from('conhecimento_colaborativo')
-                .select('nome, fabricante, descricao')
-                .eq('tipo', tipo === 'vermifugo' ? 'vermifugos' : 'vacinas')
-                .eq('status', 'aprovado')
-                .ilike('nome', `%${termo}%`)
-                .order('vezes_usado', { ascending: false })
-                .limit(5);
-
-            if (error) throw error;
-
+            const categoria = tipo === 'vermifugo' ? 'vermifugos' : 'vacinas';
+            const data = window.ConhecimentoColaborativo
+                ? await window.ConhecimentoColaborativo.buscarPorTexto(termo, categoria)
+                : [];
             if (data && data.length > 0) {
-                this.mostrarSugestoes(data);
+                this.mostrarSugestoes(data.slice(0, 5));
             } else {
                 document.getElementById('sugestoes-vacina').style.display = 'none';
             }
         } catch (error) {
-            console.error('Erro ao buscar sugestões:', error);
+            console.error('Erro ao buscar sugestões locais:', error);
+            document.getElementById('sugestoes-vacina').style.display = 'none';
         }
     },
 
@@ -199,23 +192,20 @@ const EntradaManualVacina = {
         try {
             app.showToast('💾 Salvando...', 'info');
 
-            // CALCULAR PRÓXIMA DOSE AUTOMATICAMENTE usando protocolos veterinários
+            // Calcular próxima dose usando exclusivamente o histórico deste pet no cofre local.
+            const pet = app.data?.pets?.find(item => item.id === petId);
+            if (!pet) throw new Error('Pet não encontrado no perfil protegido.');
             let proximaCalculada = proximaAplicacao;
             
             if (!proximaCalculada && typeof ProtocolosVacinais !== 'undefined') {
-                // Buscar histórico dessa vacina para saber qual dose é
-                const tabela = tipo === 'vermifugo' ? 'vermifugos' : 'vacinas';
-                const { data: historico } = await supabase
-                    .from(tabela)
-                    .select('*')
-                    .eq('pet_id', petId)
-                    .order('data_aplicacao', { ascending: false });
-                
-                // Contar quantas doses dessa vacina já foram aplicadas
+                const historico = tipo === 'vermifugo'
+                    ? (pet.vermifugo || pet.vermifugos || [])
+                    : [...(pet.vacinas || []), ...(pet.vacinas_wizard || [])];
                 const protocolo = ProtocolosVacinais.identificarProtocolo(nome);
-                const vacinasMesmoNome = (historico || []).filter(v => {
-                    const prot = ProtocolosVacinais.identificarProtocolo(v.nome);
-                    return prot.key === protocolo.key;
+                const vacinasMesmoNome = historico.filter(v => {
+                    const nomeRegistro = v?.nome || v?.vacinaNome || '';
+                    const prot = ProtocolosVacinais.identificarProtocolo(nomeRegistro);
+                    return prot?.key && protocolo?.key && prot.key === protocolo.key;
                 });
                 
                 const numeroDose = vacinasMesmoNome.length + 1; // +1 porque ainda não salvou a atual
@@ -234,57 +224,40 @@ const EntradaManualVacina = {
                 }
             }
 
-            // Preparar dados
             const dados = {
+                id: `${tipo}_${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`,
                 nome,
+                vacinaNome: nome,
+                data: dataAplicacao,
                 data_aplicacao: dataAplicacao,
+                proximaDose: proximaCalculada || null,
                 proxima_aplicacao: proximaCalculada || null,
                 lote: lote || null,
                 veterinario: veterinario || null,
                 observacoes: observacoes || null,
                 pet_id: petId,
-                criado_em: new Date().toISOString()
+                criado_em: new Date().toISOString(),
+                origem: 'manual-local'
             };
 
-            // Salvar no Supabase
-            const tabela = tipo === 'vermifugo' ? 'vermifugos' : 'vacinas';
-            const { data: resultado, error } = await supabase
-                .from(tabela)
-                .insert([dados])
-                .select();
-
-            if (error) throw error;
-
-            app.showToast(`✅ ${tipo === 'vermifugo' ? 'Vermífugo' : 'Vacina'} salvo com sucesso!`, 'success');
-            app.closeModal();
-
-            // Recarregar lista
             if (tipo === 'vermifugo') {
-                await app.carregarVermifugos(petId);
+                pet.vermifugo = Array.isArray(pet.vermifugo) ? pet.vermifugo : [];
+                pet.vermifugo.push(dados);
             } else {
-                await app.carregarVacinas(petId);
+                pet.vacinas = Array.isArray(pet.vacinas) ? pet.vacinas : [];
+                pet.vacinas.push(dados);
             }
-            
-            // IMPORTANTE: Recarregar alertas para atualizar cards
-            if (typeof Alertas !== 'undefined' && Alertas.carregarAlertas) {
-                await Alertas.carregarAlertas();
+            await app.saveData();
+            app.closeModal();
+            // A tela do pet pode ter sido renderizada em outra aba; preserve Cuidados para exibir o registro recém-criado.
+            if (typeof app.renderPet === 'function') {
+                app.renderPet(petId);
+                window.setTimeout(() => app.changeTab?.('cuidados'), 50);
+            } else if (typeof app.render === 'function') {
+                app.render();
             }
-            
-            // Atualizar contador de atrasados
-            if (typeof app.atualizarContadores === 'function') {
-                await app.atualizarContadores();
-            }
-            
-            // Atualizar timeline/prontuário para refletir mudanças nos cards
-            if (typeof TimelineProntuario !== 'undefined' && TimelineProntuario.renderizar) {
-                const petAtual = app.pets.find(p => p.id === petId);
-                if (petAtual) {
-                    TimelineProntuario.renderizar(petAtual);
-                }
-            }
-
-            // Registrar uso no conhecimento colaborativo
-            this.registrarUso(nome, tipo);
+            app.showToast(`✅ ${tipo === 'vermifugo' ? 'Vermífugo' : 'Vacina'} salvo no perfil protegido.`, 'success');
+            await this.registrarUso(nome, tipo);
 
         } catch (error) {
             console.error('Erro ao salvar:', error);
@@ -296,13 +269,7 @@ const EntradaManualVacina = {
      * Registrar uso no conhecimento colaborativo
      */
     async registrarUso(nome, tipo) {
-        try {
-            await supabase.rpc('registrar_uso_conhecimento', {
-                p_nome: nome,
-                p_tipo: tipo === 'vermifugo' ? 'vermifugos' : 'vacinas'
-            });
-        } catch (error) {
-            console.error('Erro ao registrar uso:', error);
-        }
+        // O uso é mantido no prontuário local. Não há telemetria ou RPC remoto neste modo.
+        return { localOnly: true, nome, tipo };
     }
 };

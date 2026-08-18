@@ -67,8 +67,12 @@ const OCRCartao = {
             // Mostrar loading
             app.showToast('📸 Processando imagem...', 'info');
 
-            // Criar worker do Tesseract
-            const worker = await Tesseract.createWorker('por', 1, {
+            // Motor OCR empacotado: a imagem nunca deixa este dispositivo.
+            const runtime = window.PetHouseOfflineRuntime;
+            await runtime?.ensureTesseract?.();
+            if (!window.Tesseract) throw new Error('Motor de leitura offline indisponível.');
+            const worker = await Tesseract.createWorker(runtime?.OCR_LANGUAGE || 'por', 1, {
+                ...(runtime?.OCR_OPTIONS || {}),
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         const progresso = Math.round(m.progress * 100);

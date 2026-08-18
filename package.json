@@ -1,0 +1,21 @@
+{
+  "name": "pethouse-secure",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "PetHouse offline-first com perfil criptografado e autenticação independente",
+  "scripts": {
+    "prepare:offline": "node scripts/generate-sw-manifest.mjs",
+    "prepare:native": "pnpm run prepare:offline && node scripts/prepare-native.mjs",
+    "sync:ios": "pnpm run prepare:native && cap sync ios",
+    "open:ios": "pnpm run sync:ios && cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
+    "@supabase/supabase-js": "^2.57.4",
+    "chart.js": "4.4.7",
+    "tesseract.js": "5.1.1"
+  }
+}

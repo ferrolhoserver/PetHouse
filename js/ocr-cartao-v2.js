@@ -87,75 +87,42 @@ const OCRCartaoV2 = {
     },
     
     /**
-     * OCR via API OCR.space (fallback rápido)
+     * Reconhecimento local do cartão. O nome é mantido para não quebrar chamadores legados.
      */
     async processarComAPI(arquivo) {
         try {
-            console.log('🌐 [OCR] Usando OCR.space API...');
-            if (this.addDebugLog) this.addDebugLog('Preparando imagem para envio...', 'info');
-            if (this.updateProgress) this.updateProgress(30, 'Comprimindo imagem...');
-            
-            // Comprimir imagem se necessário
+            const runtime = window.PetHouseOfflineRuntime;
+            await runtime?.ensureTesseract?.();
+            if (!window.Tesseract) throw new Error('Motor de leitura offline indisponível. Atualize o aplicativo e tente novamente.');
+            if (this.addDebugLog) this.addDebugLog('Preparando imagem para leitura neste dispositivo...', 'info');
+            if (this.updateProgress) this.updateProgress(30, 'Otimizando imagem localmente...');
+
             let arquivoFinal = arquivo;
             const sizeKB = arquivo.size / 1024;
-            
             if (sizeKB > 1024) {
-                console.log(`⚠️ [OCR] Imagem grande (${sizeKB.toFixed(0)}KB), comprimindo...`);
-                if (this.addDebugLog) this.addDebugLog(`Imagem ${sizeKB.toFixed(0)}KB > 1MB, comprimindo...`, 'warning');
+                if (this.addDebugLog) this.addDebugLog(`Imagem ${sizeKB.toFixed(0)}KB; otimizando localmente...`, 'info');
                 arquivoFinal = await this.comprimirImagem(arquivo);
-            } else {
-                console.log(`✅ [OCR] Imagem OK (${sizeKB.toFixed(0)}KB)`);
-                if (this.addDebugLog) this.addDebugLog(`Imagem ${sizeKB.toFixed(0)}KB (OK)`);
             }
-            
-            if (this.updateProgress) this.updateProgress(40, 'Enviando para API OCR...');
-            
-            // Criar FormData
-            const formData = new FormData();
-            formData.append('file', arquivoFinal);
-            formData.append('language', 'por');
-            formData.append('isOverlayRequired', 'false');
-            formData.append('detectOrientation', 'true');
-            formData.append('scale', 'true');
-            formData.append('OCREngine', '2'); // Engine 2 é melhor para português
-            formData.append('apikey', this.OCR_SPACE_API_KEY);
-            
-            if (this.updateProgress) this.updateProgress(50, 'Aguardando resposta da API...');
-            
-            // Fazer requisição
-            const response = await fetch('https://api.ocr.space/parse/image', {
-                method: 'POST',
-                body: formData
+
+            if (this.updateProgress) this.updateProgress(45, 'Lendo texto no dispositivo...');
+            const worker = await Tesseract.createWorker(runtime?.OCR_LANGUAGE || 'por', 1, {
+                ...(runtime?.OCR_OPTIONS || {}),
+                logger: message => {
+                    if (message.status === 'recognizing text' && this.updateProgress) {
+                        this.updateProgress(45 + Math.round(message.progress * 45), 'Lendo texto no dispositivo...');
+                    }
+                }
             });
-            
-            if (!response.ok) {
-                throw new Error(`API retornou erro: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (this.updateProgress) this.updateProgress(70, 'Processando resposta...');
-            
-            // Verificar se teve sucesso
-            if (result.IsErroredOnProcessing) {
-                throw new Error(result.ErrorMessage?.[0] || 'Erro desconhecido na API');
-            }
-            
-            // Extrair texto
-            const texto = result.ParsedResults?.[0]?.ParsedText || '';
-            
-            if (!texto || texto.length < 10) {
-                throw new Error('Texto extraído muito curto ou vazio');
-            }
-            
-            console.log('✅ [OCR] API retornou texto com sucesso!');
-            if (this.addDebugLog) this.addDebugLog(`API retornou ${texto.length} caracteres`, 'success');
-            
+            const { data: { text: texto } } = await worker.recognize(arquivoFinal);
+            await worker.terminate();
+
+            if (!texto || texto.trim().length < 3) throw new Error('Não foi possível identificar texto suficiente na imagem.');
+            if (this.updateProgress) this.updateProgress(95, 'Analisando informações...');
+            if (this.addDebugLog) this.addDebugLog(`${texto.length} caracteres lidos localmente`, 'success');
             return texto;
-            
         } catch (error) {
-            console.error('❌ [OCR] Erro na API OCR.space:', error);
-            if (this.addDebugLog) this.addDebugLog(`Erro na API: ${error.message}`, 'error');
+            console.error('Erro no OCR local:', error);
+            if (this.addDebugLog) this.addDebugLog(`Erro no OCR local: ${error.message}`, 'error');
             throw error;
         }
     },
@@ -358,10 +325,11 @@ const OCRCartaoV2 = {
         try {
             app.showToast('🐛 Processando cartão de vermífugos...', 'info');
 
-            // OCR básico (Tesseract v5)
-            const worker = await Tesseract.createWorker();
-            await worker.loadLanguage('por');
-            await worker.initialize('por');
+            // OCR local com arquivos empacotados no aplicativo.
+            const runtime = window.PetHouseOfflineRuntime;
+            await runtime?.ensureTesseract?.();
+            if (!window.Tesseract) throw new Error('Motor de leitura offline indisponível.');
+            const worker = await Tesseract.createWorker(runtime?.OCR_LANGUAGE || 'por', 1, runtime?.OCR_OPTIONS || {});
             const { data: { text } } = await worker.recognize(arquivo);
             await worker.terminate();
 

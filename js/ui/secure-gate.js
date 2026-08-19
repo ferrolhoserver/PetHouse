@@ -273,5 +273,19 @@
         await renderEntry();
     }
 
-    window.PetHouseSecureGate = Object.freeze({ start, renderEntry });
+    async function startMigration(callback) {
+        onUnlocked = callback || onUnlocked;
+        root = document.getElementById('app-root');
+        if (!root) throw new Error('Área principal do PetHouse não encontrada.');
+        legacyCandidates = await window.PetHouseLegacyMigration.discover();
+        const candidate = legacyCandidates[0] || null;
+        if (!candidate) {
+            await renderEntry();
+            return;
+        }
+        root.dataset.selectedLegacy = candidate.key;
+        renderShell(createForm(candidate));
+    }
+
+    window.PetHouseSecureGate = Object.freeze({ start, startMigration, renderEntry });
 }());

@@ -12,6 +12,12 @@
 
 const GraficoPeso = {
     chartInstance: null, // Armazenar instância do gráfico para destruir ao atualizar
+
+    pesoEmKg(registro) {
+        if (window.PetHouseWeight?.kg) return window.PetHouseWeight.kg(registro);
+        const raw = Number(registro?.valor ?? registro?.peso ?? 0);
+        return Number.isFinite(raw) && raw > 1000 ? raw / 1000 : (Number.isFinite(raw) ? raw : 0);
+    },
     
     /**
      * Renderiza o gráfico de peso do pet
@@ -119,16 +125,16 @@ const GraficoPeso = {
         }
 
         // Calcular estatísticas
-        const pesoAtual = ordenados.length > 0 
-            ? Math.round(ordenados[ordenados.length - 1].peso * 1000) + ' g'
+        const pesoAtual = ordenados.length > 0
+            ? Math.round(this.pesoEmKg(ordenados[ordenados.length - 1]) * 1000) + ' g'
             : '0 g';
         
-        const pesoInicial = ordenados.length > 0 
-            ? ordenados[0].peso * 1000 
+        const pesoInicial = ordenados.length > 0
+            ? this.pesoEmKg(ordenados[0]) * 1000
             : 0;
         
-        const pesoFinal = ordenados.length > 0 
-            ? ordenados[ordenados.length - 1].peso * 1000 
+        const pesoFinal = ordenados.length > 0
+            ? this.pesoEmKg(ordenados[ordenados.length - 1]) * 1000
             : 0;
         
         const variacao = ordenados.length > 1 
@@ -161,7 +167,7 @@ const GraficoPeso = {
             return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
         });
 
-        const pesos = dados.registros.map(r => r.peso * 1000); // Converter para gramas
+        const pesos = dados.registros.map(r => this.pesoEmKg(r) * 1000); // Converter para gramas somente no eixo
 
         // Determinar cor da linha baseado na tendência
         const tendencia = dados.variacao >= 0 ? 'ganho' : 'perda';

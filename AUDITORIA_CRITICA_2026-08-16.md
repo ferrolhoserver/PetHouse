@@ -236,3 +236,19 @@ No navegador de teste, `PetHouseIdentity` e `PetHouseSecureStore` estavam carreg
 ## Validação pública após o commit c5306fc
 
 A URL de produção `https://pet-house-sigma.vercel.app/?release=c5306fc` carregou o tema violeta–coral, reconheceu o perfil fictício criado no navegador de teste e realizou o desbloqueio com sucesso. O dashboard mostrou o pet de validação e seus indicadores, confirmando que o cofre local e a interface publicada estão operacionais na hospedagem oficial.
+
+## Regressão de continuidade — correção em validação
+
+Em uma origem limpa, dados fictícios no formato legado `pethouse_data` passaram a abrir diretamente na casa e no pet, sem criação de perfil nem desbloqueio adicional. O mesmo cenário confirmou a correção da unidade: um registro histórico de `12.4` é apresentado como `12,4 kg` no card principal, em vez de `12.400 g`. A proteção do cofre permanece disponível como ação opcional `Proteger dados`.
+
+## Regressão final — experiência restaurada
+
+Na origem limpa final, a casa legada abriu diretamente após o consentimento, preservando os comandos conhecidos: adicionar pet, salvar, restaurar, compartilhar, reportar e o novo atalho opcional de proteção. O card do pet e o cabeçalho exibiram corretamente `12,4 kg`; o dashboard, gráfico e histórico usam a mesma normalização sem reescrever a origem legada.
+
+A regressão funcional confirmou a abertura do pet legado, os alertas, o gráfico de peso, o histórico e o formulário de novo peso. O formulário mantém a entrada em gramas (`12.600`) e a camada de leitura normaliza a apresentação para quilogramas.
+
+A regressão de peso aprovou a gravação de `12.600` g, atualizando imediatamente cabeçalho (`12,6 kg`), card de tendência, gráfico e histórico com dois registros. A aba Cuidados também exibiu sem recarregar a vacina legada V10, sua próxima dose e a ação de exclusão protegida.
+
+A aba Cuidados de Higiene carregou a frequência, a recomendação de próximo banho, a timeline e o formulário completo de Adicionar Banho/Tosa sem erros no perfil legado de teste.
+
+Após reabrir a aplicação, o peso recém-salvo (`12,6 kg`) permaneceu no card do pet. A persistência continuou na origem legada, sem criar novo perfil nem exigir desbloqueio.

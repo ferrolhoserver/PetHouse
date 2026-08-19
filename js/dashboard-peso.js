@@ -5,6 +5,12 @@
 
 const DashboardPeso = {
     
+    pesoEmKg(registro) {
+        if (window.PetHouseWeight?.kg) return window.PetHouseWeight.kg(registro);
+        const raw = Number(registro?.valor ?? registro?.peso ?? 0);
+        return Number.isFinite(raw) && raw > 1000 ? raw / 1000 : (Number.isFinite(raw) ? raw : 0);
+    },
+
     /**
      * Calcular estatísticas de peso
      */
@@ -20,8 +26,8 @@ const DashboardPeso = {
         }
         
         const pesos = [...pet.peso].sort((a, b) => new Date(b.data) - new Date(a.data));
-        const pesoAtual = pesos[0].valor || pesos[0].peso || 0;
-        const pesoAnterior = pesos.length > 1 ? (pesos[1].valor || pesos[1].peso || 0) : pesoAtual;
+        const pesoAtual = this.pesoEmKg(pesos[0]);
+        const pesoAnterior = pesos.length > 1 ? this.pesoEmKg(pesos[1]) : pesoAtual;
         const variacao = pesoAtual - pesoAnterior;
         
         let tendencia = 'estavel';
@@ -109,7 +115,7 @@ const DashboardPeso = {
         
         // Preparar dados
         const labels = pesos.map(p => new Date(p.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }));
-        const valores = pesos.map(p => p.valor || p.peso);
+        const valores = pesos.map(p => this.pesoEmKg(p));
         
         const minPeso = Math.min(...valores);
         const maxPeso = Math.max(...valores);
@@ -298,9 +304,10 @@ const DashboardPeso = {
         
         registros.forEach((registro, index) => {
             const data = new Date(registro.data).toLocaleDateString('pt-BR');
-            const peso = typeof registro.valor !== 'undefined' ? registro.valor : registro.peso;
-            const pesoKg = (peso || 0).toFixed(3);
-            const pesoGramas = Math.round((peso || 0) * 1000);
+            const peso = this.pesoEmKg(registro);
+            const pesoKg = peso.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+            const pesoGramas = Math.round(peso * 1000);
+            const pesoExibido = peso > 0 && peso < 1 ? `${pesoGramas} g` : `${pesoKg} kg`;
             
             html += `
                 <div style="
@@ -314,7 +321,7 @@ const DashboardPeso = {
                 ">
                     <div style="flex:1">
                         <div style="font-weight:600;color:#333;margin-bottom:0.25rem">
-                            ${pesoGramas}g (${pesoKg} kg)
+                            ${pesoExibido}
                         </div>
                         <div style="font-size:0.85rem;color:#666">
                             📅 ${data}

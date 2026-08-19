@@ -5,8 +5,9 @@ class PetHouse {
     constructor(options = {}) {
         this.secureSession = options.secureSession || null;
         this.secureMode = Boolean(this.secureSession && window.PetHouseIdentity);
+        this.legacySourceKey = options.legacySourceKey || null;
         this.userId = this.secureMode ? this.secureSession.profile.profileId : this.getUserId();
-        this.data = this.secureMode ? this.secureSession.data : this.loadData();
+        this.data = this.secureMode ? this.secureSession.data : (options.legacyData || this.loadData());
         this.currentView = 'home';
         this.currentPet = null;
         this.currentTab = 'peso';
@@ -40,16 +41,31 @@ class PetHouse {
     }
     
     loadData() {
-        // Carrega dados específicos do usuário
-        const saved = localStorage.getItem(`pethouse_data_${this.userId}`);
-        if (saved) {
-            return JSON.parse(saved);
+        // Mantém compatibilidade com todas as chaves locais usadas nas versões anteriores.
+        // Nenhuma cópia é apagada ou sobrescrita automaticamente durante essa leitura.
+        const keys = [
+            this.legacySourceKey,
+            `pethouse_data_${this.userId}`,
+            'pethouse_data',
+            'petHouseData',
+            'pethouseData'
+        ].filter((key, index, list) => key && list.indexOf(key) === index);
+
+        for (const key of keys) {
+            const saved = localStorage.getItem(key);
+            if (!saved) continue;
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed && typeof parsed === 'object' && Array.isArray(parsed.pets)) {
+                    this.legacySourceKey = key;
+                    return parsed;
+                }
+            } catch (_) {
+                // Uma chave inválida não pode impedir a abertura dos demais dados locais.
+            }
         }
-        return {
-            casaNome: '',
-            pets: [],
-            membros: []
-        };
+
+        return { casaNome: '', pets: [], membros: [] };
     }
 
     async saveData() {
@@ -62,8 +78,9 @@ class PetHouse {
                 return true;
             }
 
-            // Caminho legado: mantido apenas para permitir migração e reversão.
-            localStorage.setItem(`pethouse_data_${this.userId}`, JSON.stringify(this.data));
+            // Caminho legado: preserva a própria chave de origem para que a experiência antiga continue contínua.
+            const legacyKey = this.legacySourceKey || `pethouse_data_${this.userId}`;
+            localStorage.setItem(legacyKey, JSON.stringify(this.data));
             
             // Log da ação
             if (window.ErrorLogger) {
@@ -275,7 +292,7 @@ class PetHouse {
                         <button class="btn btn-success btn-small" onclick="app.exportarBackup()">💾 Salvar</button>
                         <button class="btn btn-info btn-small" onclick="app.restaurarBackup()">📂 Restaurar</button>
                         <button class="btn btn-warning btn-small" onclick="app.mostrarCompartilhamento()">👥 Compartilhar</button>
-                        ${this.secureMode ? '<button class="btn btn-info btn-small" onclick="app.mostrarSeguranca()">🔐 Segurança</button>' : ''}
+                        ${this.secureMode ? '<button class="btn btn-info btn-small" onclick="app.mostrarSeguranca()">🔐 Segurança</button>' : '<button class="btn btn-info btn-small" onclick="app.mostrarSeguranca()">🔐 Proteger dados</button>'}
                         <button class="btn btn-danger btn-small" onclick="ErrorLogger.enviarPorEmail()" title="Reportar problema ou erro">🐛 Reportar</button>
                     </div>
                 </div>
@@ -504,13 +521,12 @@ class PetHouse {
         const date = new Date(record.data).toLocaleDateString('pt-BR');
         
         if (this.currentTab === 'peso') {
-            // Formatar peso em gramas
-            const pesoGramas = Math.round(record.peso * 1000);
+            const pesoExibido = this.formatarPeso(record);
             return `
                 <div class="record-item">
                     <div class="flex justify-between">
                         <div>
-                            <strong>${date}</strong> - ${pesoGramas} g
+                            <strong>${date}</strong> - ${pesoExibido}
                             ${record.obs ? `<br><small>${record.obs}</small>` : ''}
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
@@ -1266,7 +1282,7 @@ class PetHouse {
                     <label>Peso *</label>
                     <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
                         <div style="flex: 1;">
-                            <input type="text" id="edit-record-peso" value="${Math.round(record.peso * 1000)}" required style="width: 100%;" oninput="app.formatPesoInput(this)">
+                            <input type="text" id="edit-record-peso" value="${Math.round(this.pesoEmKg(record) * 1000)}" required style="width: 100%;" oninput="app.formatPesoInput(this)">
                         </div>
                     </div>
                     <small style="color: #666; display: block; margin-top: 0.25rem;" id="peso-hint">Digite apenas os números (ex: 4450 = 4,450 kg)</small>
@@ -1390,11 +1406,18 @@ class PetHouse {
     // ===== EXPORTAÇÕES =====
     
     mostrarSeguranca() {
-        if (!this.secureMode || !window.PetHouseSecurityCenter) {
-            this.showToast('A segurança avançada estará disponível após migrar este perfil.', 'warning');
+        if (this.secureMode && window.PetHouseSecurityCenter) {
+            window.PetHouseSecurityCenter.open(this);
             return;
         }
-        window.PetHouseSecurityCenter.open(this);
+
+        if (window.PetHouseSecureGate?.startMigration && window.PetHouseStartProtectedApp) {
+            this.showToast('Seus registros continuam disponíveis. Escolha uma senha apenas se quiser protegê-los neste aparelho.', 'info');
+            window.PetHouseSecureGate.startMigration(window.PetHouseStartProtectedApp);
+            return;
+        }
+
+        this.showToast('A proteção opcional não está disponível neste navegador.', 'warning');
     }
 
     exportarBackup() {
@@ -1700,6 +1723,19 @@ END:VEVENT
         }
     }
 
+    pesoEmKg(record) {
+        if (window.PetHouseWeight?.kg) return window.PetHouseWeight.kg(record);
+        const raw = Number(record?.valor ?? record?.peso ?? 0);
+        return Number.isFinite(raw) && raw > 1000 ? raw / 1000 : (Number.isFinite(raw) ? raw : 0);
+    }
+
+    formatarPeso(record) {
+        const kg = this.pesoEmKg(record);
+        if (kg <= 0) return '0 kg';
+        if (kg < 1) return `${Math.round(kg * 1000)} g`;
+        return `${kg.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg`;
+    }
+
     // ===== UTILIDADES =====
     
     calcularIdade(nascimento) {
@@ -1734,7 +1770,7 @@ END:VEVENT
 
         const pesosOrdenados = [...pet.peso].sort((a, b) => new Date(b.data) - new Date(a.data));
         const pesoAtual = pesosOrdenados[0];
-        const pesoGramas = Math.round(pesoAtual.peso * 1000);
+        const pesoAtualKg = this.pesoEmKg(pesoAtual);
         
         // Calcular tendência (compara com peso de 30 dias atrás)
         const trintaDiasAtras = new Date();
@@ -1746,8 +1782,9 @@ END:VEVENT
         });
         
         let tendenciaHTML = '';
-        if (pesoAnterior && pesoAnterior.peso !== pesoAtual.peso) {
-            const variacao = pesoAtual.peso - pesoAnterior.peso;
+        const pesoAnteriorKg = pesoAnterior ? this.pesoEmKg(pesoAnterior) : pesoAtualKg;
+        if (pesoAnterior && pesoAnteriorKg !== pesoAtualKg) {
+            const variacao = pesoAtualKg - pesoAnteriorKg;
             const variacaoAbs = Math.abs(variacao).toFixed(2);
             
             if (variacao > 0.1) {
@@ -1765,7 +1802,7 @@ END:VEVENT
         }
         
         return {
-            valor: `${pesoGramas} g`,
+            valor: this.formatarPeso(pesoAtual),
             tendencia: tendenciaHTML
         };
     }
@@ -1884,6 +1921,7 @@ END:VEVENT
         // Ordenar pesos por data (mais recente primeiro)
         const pesosOrdenados = [...pet.peso].sort((a, b) => new Date(b.data) - new Date(a.data));
         const pesoAtual = pesosOrdenados[0];
+        const pesoAtualKg = this.pesoEmKg(pesoAtual);
         
         // Calcular variação do último mês
         const umMesAtras = new Date();
@@ -1896,16 +1934,15 @@ END:VEVENT
         });
         
         let variacaoTexto = '';
-        if (pesoAnterior && pesoAnterior.peso !== pesoAtual.peso) {
-            const variacao = pesoAtual.peso - pesoAnterior.peso;
+        const pesoAnteriorKg = pesoAnterior ? this.pesoEmKg(pesoAnterior) : pesoAtualKg;
+        if (pesoAnterior && pesoAnteriorKg !== pesoAtualKg) {
+            const variacao = pesoAtualKg - pesoAnteriorKg;
             const sinal = variacao > 0 ? '+' : '';
             const cor = variacao > 0 ? '#4CAF50' : '#f44336';
             variacaoTexto = ` <span style="color: ${cor};">(${sinal}${variacao.toFixed(1)} kg no último mês)</span>`;
         }
         
-        // Formatar peso em gramas
-        const pesoGramas = Math.round(pesoAtual.peso * 1000);
-        return `⚖️ Peso: ${pesoGramas} g${variacaoTexto}`;
+        return `⚖️ Peso: ${this.formatarPeso(pesoAtual)}${variacaoTexto}`;
     }
 
     getTabTitle() {
@@ -2092,29 +2129,46 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
-    const startProtectedApp = async (secureSession) => {
-        // A instância só existe depois de o perfil local ser desbloqueado.
-        app = new PetHouse({ secureSession });
-        // Handlers legados declarados no HTML consultam window.app; sobrescreva a propriedade nomeada do elemento id="app".
+    const mountApp = (options = {}) => {
+        app = new PetHouse(options);
         Object.defineProperty(window, 'app', { value: app, writable: true, configurable: true });
         window.PetHouseApp = app;
         document.body.style.overflow = '';
+        return app;
+    };
 
-        // Reinicia a contagem de inatividade apenas em interações reais do usuário.
+    const startProtectedApp = async (secureSession) => {
+        mountApp({ secureSession });
         ['pointerdown', 'keydown', 'touchstart'].forEach(eventName => {
             document.addEventListener(eventName, () => window.PetHouseIdentity?.touch(), { passive: true });
         });
     };
 
-    if (window.PetHouseSecureGate && window.PetHouseIdentity) {
+    const startLegacyApp = async (candidate = null) => {
+        mountApp(candidate ? { legacyData: candidate.data, legacySourceKey: candidate.key } : {});
+    };
+
+    // Estas referências permitem proteger dados existentes somente por escolha explícita,
+    // sem retirar a abertura direta que já funcionava para quem possui registros locais.
+    window.PetHouseStartProtectedApp = startProtectedApp;
+    window.PetHouseStartLegacyApp = startLegacyApp;
+
+    if (window.PetHouseSecureGate && window.PetHouseIdentity && window.PetHouseLegacyMigration) {
+        const [profiles, candidates] = await Promise.all([
+            window.PetHouseIdentity.listProfiles(),
+            window.PetHouseLegacyMigration.discover()
+        ]);
+
+        if (!profiles.length && candidates.length) {
+            await startLegacyApp(candidates[0]);
+            return;
+        }
+
         await window.PetHouseSecureGate.start(startProtectedApp);
         return;
     }
 
-    // Fallback estritamente temporário para navegadores muito antigos.
-    app = new PetHouse();
-    Object.defineProperty(window, 'app', { value: app, writable: true, configurable: true });
-    window.PetHouseApp = app;
-    document.body.style.overflow = '';
+    // Fallback para navegadores antigos: mantém o comportamento local anterior.
+    await startLegacyApp();
 }
 

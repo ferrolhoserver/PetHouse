@@ -252,3 +252,7 @@ A regressão de peso aprovou a gravação de `12.600` g, atualizando imediatamen
 A aba Cuidados de Higiene carregou a frequência, a recomendação de próximo banho, a timeline e o formulário completo de Adicionar Banho/Tosa sem erros no perfil legado de teste.
 
 Após reabrir a aplicação, o peso recém-salvo (`12,6 kg`) permaneceu no card do pet. A persistência continuou na origem legada, sem criar novo perfil nem exigir desbloqueio.
+
+## Validação pública da correção 6243e93
+
+O HTML entregue pelo servidor de produção confirmou `app.js?v=4`, `weight-utils.js?v=1`, `secure-gate.js?v=4` e `dashboard-peso.js?v=3`. Após atualizar somente o cache do navegador sandbox, a URL oficial abriu diretamente uma casa legada fictícia (`Casa Pública Legada`) e exibiu o pet Nina com `4,2 kg`, sem exigir criação ou desbloqueio de perfil.

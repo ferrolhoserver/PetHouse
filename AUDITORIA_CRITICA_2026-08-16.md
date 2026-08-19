@@ -213,3 +213,8 @@ Em 18 de agosto de 2026, a sessão GitHub autenticada no navegador (`rodrigoroch
 ## Implantação temporária validada
 
 Em 19 de agosto de 2026, a versão commitada `1bd776a` foi implantada anonimamente pela Vercel CLI em `https://temporary-racing-sienna-ra2y4o1.vercel.app`. A página pública carregou a tela de consentimento PetHouse 2.0, com Termos de Uso, Política de Privacidade e a indicação de funcionamento privado/offline. A conta GitHub ativa no navegador permanece `rodrigorochalima` e não oferece uma segunda conta no seletor; ela não possui permissão administrativa nem de escrita no repositório `ferrolhoserver/PetHouse`.
+
+## Validação após deploy oficial
+
+Após o push do commit `55d5617`, a URL oficial `https://pet-house-sigma.vercel.app/?release=55d5617` carregou a versão 2.0.0. No navegador isolado foram validados: consentimento de termos e privacidade, criação de perfil local protegido, geração e confirmação do kit de recuperação apenas para o perfil fictício, e entrada no dashboard sem qualquer sincronização remota automática.
+A regressão pública foi concluída no perfil fictício: o cadastro de `Luna Publicação` (cachorro, fêmea, nascimento em 11/04/2021) foi salvo na URL oficial, exibiu o card do pet, os indicadores iniciais de peso/vacinação/banho e a confirmação de que os dados foram protegidos neste dispositivo.

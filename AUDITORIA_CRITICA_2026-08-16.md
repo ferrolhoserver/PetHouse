@@ -232,3 +232,7 @@ O service worker foi registrado e ativado em origem de teste, com cache `pethous
 ## Regressão de execução da revisão local
 
 No navegador de teste, `PetHouseIdentity` e `PetHouseSecureStore` estavam carregados, o perfil fictício permaneceu desbloqueado e `PetHouseRemoteAuth` não foi carregado. O cache ativo continha `/index.html`, `/css/companion-theme.css?v=2` e `/js/ui/security-center.js?v=5`. A checagem de sintaxe cobriu os módulos JavaScript, as rotas e os scripts de preparação; a verificação de integridade do diff não encontrou espaços em branco ou conflitos.
+
+## Validação pública após o commit c5306fc
+
+A URL de produção `https://pet-house-sigma.vercel.app/?release=c5306fc` carregou o tema violeta–coral, reconheceu o perfil fictício criado no navegador de teste e realizou o desbloqueio com sucesso. O dashboard mostrou o pet de validação e seus indicadores, confirmando que o cofre local e a interface publicada estão operacionais na hospedagem oficial.

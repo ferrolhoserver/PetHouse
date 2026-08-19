@@ -1,8 +1,10 @@
 /* PetHouse V2 — cache offline de recursos do próprio aplicativo. */
-const CACHE_NAME = 'pethouse-offline-v2-20260818k';
+const CACHE_NAME = 'pethouse-offline-v2-20260819a';
 const SHELL = [
   "/",
   "/css/auth.css",
+  "/css/companion-theme.css",
+  "/css/companion-theme.css?v=2",
   "/css/consent-simple.css",
   "/css/consent.css",
   "/css/fix-vacinas-overlap.css",
@@ -42,31 +44,29 @@ const SHELL = [
   "/js/diagnosticos.js?v=1749600000",
   "/js/entrada-manual-vacina.js?v=3",
   "/js/error-logger.js?v=1749600000",
-  "/js/family-limit.js?v=1749600000",
   "/js/filtros-interativos.js?v=1749600000",
   "/js/grafico-banhos.js?v=1749600000",
   "/js/grafico-peso.js?v=1749600000",
   "/js/identity/local-identity.js?v=5",
-  "/js/identity/remote-auth.js?v=2",
   "/js/migration/legacy-migration.js?v=2",
   "/js/ocr-cartao-v2.js?v=3",
   "/js/ocr-cartao.js?v=3",
   "/js/ocr-exames.js?v=3",
   "/js/pdf-avancado.js?v=1749600000",
   "/js/pdf.js?v=1749600000",
-  "/js/privacy-policy.js?v=1749600000",
+  "/js/privacy-policy.js?v=2",
   "/js/protocolos-vacinais.js?v=1749600000",
   "/js/protocolos-vacinas.js?v=1749600000",
   "/js/racas_db.js?v=1749600000",
   "/js/revacinacao.js?v=1749600000",
   "/js/security/crypto-vault.js?v=2",
   "/js/storage/secure-store.js?v=2",
-  "/js/terms-of-service.js?v=1749600000",
+  "/js/terms-of-service.js?v=2",
   "/js/timeline-prontuario.js?v=1749600000",
   "/js/tooltips-vacinas.js?v=1749600000",
   "/js/tratamentos.js?v=1749600000",
   "/js/ui/secure-gate.js?v=3",
-  "/js/ui/security-center.js?v=4",
+  "/js/ui/security-center.js?v=5",
   "/js/utils-data.js?v=1749600000",
   "/js/vacinas-compostas.js?v=1749600000",
   "/js/vacinas-rapido.js?v=1749600000",
@@ -110,17 +110,15 @@ self.addEventListener('fetch', event => {
   const isDocument = request.mode === 'navigate';
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-    if (!isDocument) {
-      const cached = await cache.match(request);
-      if (cached) return cached;
-    }
+    const cacheKey = isDocument ? '/index.html' : request;
+    const cached = await cache.match(cacheKey);
+    if (cached) return cached;
+
     try {
       const response = await fetch(request);
-      if (response && response.ok) cache.put(request, response.clone());
+      if (response && response.ok) cache.put(cacheKey, response.clone());
       return response;
     } catch (_) {
-      const fallback = await cache.match(isDocument ? '/index.html' : request);
-      if (fallback) return fallback;
       return new Response('Recurso indisponível offline.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     }
   })());

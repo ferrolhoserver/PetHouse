@@ -31,7 +31,7 @@ const TermsOfService = {
 
                 <section class="legal-section">
                     <h2>3. Funcionalidades</h2>
-                    <p>O PetHouse pode permitir cadastro de pets, peso, cuidados, vacinas, vermífugos, consultas, documentos e backups. Recursos de recuperação remota, sincronização ou compartilhamento somente serão ativados mediante ação expressa da pessoa responsável e apresentação clara das condições aplicáveis.</p>
+                    <p>O PetHouse permite cadastro de pets, peso, cuidados, vacinas, vermífugos, consultas, documentos e backups cifrados. Os registros permanecem neste aparelho e o uso das funções principais não exige conexão com a internet.</p>
                     <p>O aplicativo pode ser atualizado para corrigir falhas, reforçar a segurança ou melhorar a compatibilidade. Quando uma alteração relevante modificar estes Termos, será solicitado um novo aceite local.</p>
                 </section>
 
@@ -43,7 +43,7 @@ const TermsOfService = {
                 <section class="legal-section">
                     <h2>5. Exportação, exclusão e encerramento</h2>
                     <p>Você pode exportar um backup cifrado e remover dados locais pelo próprio dispositivo. A exclusão do perfil local remove o cofre deste aparelho; faça backup antes dessa ação caso queira preservar os registros.</p>
-                    <p>Se no futuro você vincular uma conta remota, os controles de exclusão dessa conta serão apresentados dentro do aplicativo, de acordo com o serviço de recuperação escolhido.</p>
+                    <p>Para manter os registros em outro aparelho, exporte o backup cifrado pelo Centro de Segurança e guarde o kit de recuperação em local seguro. O PetHouse não cria cópias remotas automáticas dos prontuários.</p>
                 </section>
 
                 <section class="legal-section">

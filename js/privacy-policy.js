@@ -43,7 +43,7 @@ const PrivacyPolicy = {
                 <section class="legal-section">
                     <h2>4. Backup e recuperação</h2>
                     <p>O backup exportado é cifrado e deve ser guardado por você em local seguro. O kit de recuperação também deve ser mantido em sigilo. Quem possuir o kit e o arquivo de backup pode ter condições de restaurar o acesso, portanto não os compartilhe.</p>
-                    <p>Uma futura recuperação por e-mail ou sincronização entre aparelhos será opcional e só será ativada após uma ação clara de vinculação. Antes da ativação, esta política será atualizada para identificar o serviço, os dados envolvidos, a finalidade e os controles de exclusão.</p>
+                    <p>A recuperação de acesso é feita localmente com o kit criado junto ao perfil. Para mover registros entre aparelhos, use somente o backup cifrado e o kit de recuperação; não há sincronização automática, e-mail de redefinição ou cópia remota do prontuário nesta versão.</p>
                 </section>
 
                 <section class="legal-section">
@@ -54,7 +54,7 @@ const PrivacyPolicy = {
                 <section class="legal-section">
                     <h2>6. Contato e revisão</h2>
                     <p>Para dúvidas sobre privacidade ou para solicitar esclarecimentos, entre em contato por <strong>rodrigorochalima@gmail.com</strong>.</p>
-                    <p>Esta política deve ser revisada antes de uma publicação comercial ou da ativação de serviços remotos, inclusive para conferência das obrigações aplicáveis de proteção de dados.</p>
+                    <p>Esta política deve ser revisada antes de uma publicação comercial, especialmente se o aplicativo passar a oferecer qualquer serviço de nuvem, sincronização ou recuperação fora do próprio dispositivo.</p>
                 </section>
 
                 <footer class="legal-footer"><p><strong>Ao aceitar, você confirma que leu esta Política de Privacidade.</strong></p></footer>

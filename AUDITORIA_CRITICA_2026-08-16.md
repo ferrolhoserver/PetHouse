@@ -218,3 +218,17 @@ Em 19 de agosto de 2026, a versão commitada `1bd776a` foi implantada anonimamen
 
 Após o push do commit `55d5617`, a URL oficial `https://pet-house-sigma.vercel.app/?release=55d5617` carregou a versão 2.0.0. No navegador isolado foram validados: consentimento de termos e privacidade, criação de perfil local protegido, geração e confirmação do kit de recuperação apenas para o perfil fictício, e entrada no dashboard sem qualquer sincronização remota automática.
 A regressão pública foi concluída no perfil fictício: o cadastro de `Luna Publicação` (cachorro, fêmea, nascimento em 11/04/2021) foi salvo na URL oficial, exibiu o card do pet, os indicadores iniciais de peso/vacinação/banho e a confirmação de que os dados foram protegidos neste dispositivo.
+
+## Revisão offline local e identidade visual acolhedora
+
+Em origem isolada, a versão revisada exibiu termos coerentes com recuperação local, criação de perfil protegido, geração de kit de recuperação e dashboard. O Centro de Segurança mostrou somente: cofre cifrado no dispositivo, exportação de backup cifrado, confirmação por Face ID/Touch ID/código do dispositivo quando disponível, recuperação pelo kit local e exclusão confirmada. Não foram exibidos campos de e-mail, sincronização ou autenticação remota.
+
+A revisão visual foi validada em viewport móvel: cabeçalho em gradiente violeta–coral, elementos de toque altos, cartões com bordas arredondadas, tipografia arredondada local e estados semânticos menta/azul. O fluxo preserva os rótulos e as ações funcionais do prontuário.
+
+## PWA e empacotamento iOS
+
+O service worker foi registrado e ativado em origem de teste, com cache `pethouse-offline-v2-20260819a`. O projeto Capacitor iOS foi sincronizado após a revisão: o pacote nativo contém o tema acolhedor, o centro de segurança local e os recursos estáticos necessários ao funcionamento offline.
+
+## Regressão de execução da revisão local
+
+No navegador de teste, `PetHouseIdentity` e `PetHouseSecureStore` estavam carregados, o perfil fictício permaneceu desbloqueado e `PetHouseRemoteAuth` não foi carregado. O cache ativo continha `/index.html`, `/css/companion-theme.css?v=2` e `/js/ui/security-center.js?v=5`. A checagem de sintaxe cobriu os módulos JavaScript, as rotas e os scripts de preparação; a verificação de integridade do diff não encontrou espaços em branco ou conflitos.

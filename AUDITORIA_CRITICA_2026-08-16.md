@@ -205,3 +205,11 @@ Após reabrir o aplicativo e desbloquear o mesmo perfil, o card de `Nina Teste` 
 O fluxo de peso foi validado em ponta a ponta no perfil protegido: foi adicionado um registro de 8.400 g, o peso atual passou a refletir o valor, o gráfico foi renderizado, o histórico exibiu data e observação, e os controles de editar/excluir apareceram sem diálogo nativo.
 
 A regressão de cuidados foi concluída: uma segunda vacina apareceu imediatamente na timeline e reduziu a contagem de pendências sem recarregamento. Em seguida, o modal customizado de exclusão removeu somente o registro fictício selecionado, atualizou a timeline e recalculou os alertas. Não houve uso de `confirm()` nativo.
+
+## Bloqueio de publicação identificado
+
+Em 18 de agosto de 2026, a sessão GitHub autenticada no navegador (`rodrigorochalima`) abriu `https://github.com/ferrolhoserver/PetHouse/edit/main/VERSION.txt` e recebeu a mensagem de que não possui permissão de edição direta no repositório `ferrolhoserver/PetHouse`; o GitHub oferece apenas a criação de fork e pull request. O `git push` local também está bloqueado porque o conector GitHub desta sessão está com credencial expirada. O commit local pronto para publicação é `1bd776a`.
+
+## Implantação temporária validada
+
+Em 19 de agosto de 2026, a versão commitada `1bd776a` foi implantada anonimamente pela Vercel CLI em `https://temporary-racing-sienna-ra2y4o1.vercel.app`. A página pública carregou a tela de consentimento PetHouse 2.0, com Termos de Uso, Política de Privacidade e a indicação de funcionamento privado/offline. A conta GitHub ativa no navegador permanece `rodrigorochalima` e não oferece uma segunda conta no seletor; ela não possui permissão administrativa nem de escrita no repositório `ferrolhoserver/PetHouse`.

@@ -8,3 +8,4 @@ coverage/
 
 # Saída reproduzível do empacotamento Capacitor
 /native/
+.vercel
